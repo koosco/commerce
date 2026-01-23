@@ -1,16 +1,11 @@
-# common-core Utilities
-
-이 skill은 common-core의 유틸리티 기능을 사용할 때 참조합니다.
-
-## 사용 시점
-
-- TransactionRunner로 트랜잭션 관리가 필요할 때
-- JsonUtils로 JSON 직렬화/역직렬화가 필요할 때
-- @UseCase, @NotBlankIfPresent, @EnumIfPresent 어노테이션 사용할 때
+---
+name: common-core-utility
+description: common-core 유틸리티 가이드. TransactionRunner, JsonUtils, @UseCase/@NotBlankIfPresent/@EnumIfPresent 어노테이션 사용이 필요할 때 사용합니다.
+---
 
 ## 참조 문서
 
-상세 문서: @common-core/docs/utilities.md
+상세 문서: `common-core/docs/utilities.md`
 
 ## Quick Reference
 

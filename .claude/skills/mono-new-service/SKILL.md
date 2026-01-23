@@ -1,12 +1,7 @@
-# mono New Service Generation
-
-이 skill은 새로운 서비스 모듈 추가 가이드를 참조합니다.
-
-## 사용 시점
-
-- 새로운 서비스 모듈 생성이 필요할 때
-- 서비스 모듈 기본 구조 설정이 필요할 때
-- settings.gradle.kts 업데이트가 필요할 때
+---
+name: mono-new-service
+description: 새로운 서비스 모듈 추가 가이드. 서비스 모듈 생성, 기본 구조 설정, settings.gradle.kts 업데이트가 필요할 때 사용합니다.
+---
 
 ## 서비스 생성 순서
 

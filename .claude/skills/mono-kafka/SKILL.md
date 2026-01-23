@@ -1,13 +1,7 @@
-# mono Kafka Integration
-
-이 skill은 Kafka Producer/Consumer 작성 및 이벤트 처리를 참조합니다.
-
-## 사용 시점
-
-- Kafka Consumer 작성이 필요할 때
-- Kafka Producer 작성이 필요할 때
-- CloudEvent 파싱이 필요할 때
-- 멱등성 처리가 필요할 때
+---
+name: mono-kafka
+description: Kafka Producer/Consumer 작성 및 이벤트 처리 가이드. Kafka Consumer/Producer 작성, CloudEvent 파싱, 멱등성 처리가 필요할 때 사용합니다.
+---
 
 ## 참조 문서
 

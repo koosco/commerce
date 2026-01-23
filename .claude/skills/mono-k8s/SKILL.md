@@ -1,13 +1,7 @@
-# mono Kubernetes Deployment
-
-이 skill은 k8s/k3d 배포 가이드를 참조합니다.
-
-## 사용 시점
-
-- Kubernetes 배포가 필요할 때
-- 서비스 스케일링이 필요할 때
-- 로그 확인이 필요할 때
-- 포트 포워딩이 필요할 때
+---
+name: mono-k8s
+description: Kubernetes/k3d 배포 가이드. 서비스 배포, 스케일링, 로그 확인, 포트 포워딩이 필요할 때 사용합니다.
+---
 
 ## 작업 디렉토리
 

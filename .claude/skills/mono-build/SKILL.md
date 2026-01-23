@@ -1,6 +1,7 @@
-# mono Build Commands
-
-이 skill은 Gradle 멀티모듈 빌드 명령어를 참조합니다.
+---
+name: mono-build
+description: Gradle 멀티모듈 빌드 명령어 가이드. 빌드, 테스트, 포맷팅, 의존성 확인이 필요할 때 사용합니다.
+---
 
 ## 사용 시점
 

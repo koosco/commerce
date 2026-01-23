@@ -1,0 +1,31 @@
+# ===================================================================
+# Infrastructure .gitignore
+# ===================================================================
+
+# Persistent data directories
+data/
+
+# Old docker-compose locations data
+docker/mariadb_data/
+docker/redis/data/
+kafka/kafka_data_*/
+monitoring/prometheus-data/
+monitoring/grafana-data/
+
+# Environment files with secrets (keep templates)
+.env.prod
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo

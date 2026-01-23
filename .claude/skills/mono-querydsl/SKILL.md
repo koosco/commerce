@@ -1,13 +1,7 @@
-# mono QueryDSL Usage
-
-이 skill은 QueryDSL 레포지토리 작성을 참조합니다.
-
-## 사용 시점
-
-- 복잡한 동적 쿼리 작성이 필요할 때
-- CustomRepository 패턴 적용이 필요할 때
-- Q클래스 생성 및 사용이 필요할 때
-- Projection 사용이 필요할 때
+---
+name: mono-querydsl
+description: QueryDSL 레포지토리 작성 가이드. 복잡한 동적 쿼리, CustomRepository 패턴, Projection 사용이 필요할 때 사용합니다.
+---
 
 ## 의존성 설정
 

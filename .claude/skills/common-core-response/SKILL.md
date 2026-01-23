@@ -1,16 +1,11 @@
-# common-core API Response
-
-이 skill은 common-core의 API 응답 기능을 사용할 때 참조합니다.
-
-## 사용 시점
-
-- 컨트롤러에서 API 응답을 반환할 때
-- 일관된 응답 포맷이 필요할 때
-- ApiResponseAdvice 설정이 필요할 때
+---
+name: common-core-response
+description: common-core API 응답 포맷 가이드. ApiResponse 사용, 응답 래핑, ApiResponseAdvice 설정이 필요할 때 사용합니다.
+---
 
 ## 참조 문서
 
-상세 문서: @common-core/docs/api-response.md
+상세 문서: `common-core/docs/api-response.md`
 
 ## Quick Reference
 

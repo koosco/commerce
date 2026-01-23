@@ -1,16 +1,11 @@
-# common-core Exception Handling
-
-이 skill은 common-core의 예외 처리 기능을 사용할 때 참조합니다.
-
-## 사용 시점
-
-- 도메인별 에러 코드 정의가 필요할 때
-- 예외를 발생시켜야 할 때
-- GlobalExceptionHandler의 동작을 이해해야 할 때
+---
+name: common-core-exception
+description: common-core 예외 처리 가이드. 도메인 에러 코드 정의, 예외 발생, GlobalExceptionHandler 사용이 필요할 때 사용합니다.
+---
 
 ## 참조 문서
 
-상세 문서: @common-core/docs/exception-handling.md
+상세 문서: `common-core/docs/exception-handling.md`
 
 ## Quick Reference
 

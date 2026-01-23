@@ -1,18 +1,12 @@
-# common-core Event System
-
-이 skill은 common-core의 Kafka 이벤트 발행 기능을 사용할 때 참조합니다.
-
-## 사용 시점
-
-- DomainEvent 정의가 필요할 때
-- Kafka로 이벤트 발행이 필요할 때
-- CloudEvent 스펙을 이해해야 할 때
-- EventPublisher 구현이 필요할 때
+---
+name: common-core-event
+description: common-core Kafka 이벤트 발행 가이드. DomainEvent 정의, CloudEvent 스펙, EventPublisher 구현이 필요할 때 사용합니다.
+---
 
 ## 참조 문서
 
-상세 문서: @common-core/docs/event-system.md
-CloudEvents 상세: @common-core/src/main/kotlin/com/koosco/common/core/event/README.md
+- 상세 문서: `common-core/docs/event-system.md`
+- CloudEvents 상세: `common-core/src/main/kotlin/com/koosco/common/core/event/README.md`
 
 ## Quick Reference
 

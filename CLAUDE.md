@@ -264,33 +264,35 @@ class CreateOrderUseCase { ... }
 
 특정 기능이 필요할 때 다음 skill을 호출하세요 (`.claude/skills/` 폴더):
 
-### mono namespace - 프로젝트 가이드
+### mono 프로젝트 가이드
 
 | Skill | 용도 | 사용 시점 |
 |-------|------|----------|
-| `/mono:build` | Gradle 빌드 명령어 | 빌드, 테스트, 포맷팅 |
-| `/mono:kafka` | Kafka Producer/Consumer | 이벤트 발행/소비 구현 |
-| `/mono:clean-arch` | Clean Architecture | 계층 구조, 의존성 규칙 |
-| `/mono:new-service` | 새 서비스 생성 | 서비스 모듈 추가 |
-| `/mono:querydsl` | QueryDSL 사용 | 복잡한 쿼리 작성 |
-| `/mono:docker` | Docker 명령어 | 로컬 인프라 관리 |
-| `/mono:k8s` | Kubernetes 배포 | k8s/k3d 배포 |
+| `/mono-build` | Gradle 빌드 명령어 | 빌드, 테스트, 포맷팅 |
+| `/mono-kafka` | Kafka Producer/Consumer | 이벤트 발행/소비 구현 |
+| `/mono-clean-arch` | Clean Architecture | 계층 구조, 의존성 규칙 |
+| `/mono-new-service` | 새 서비스 생성 | 서비스 모듈 추가 |
+| `/mono-querydsl` | QueryDSL 사용 | 복잡한 쿼리 작성 |
+| `/mono-docker` | Docker 명령어 | 로컬 인프라 관리 |
+| `/mono-k8s` | Kubernetes 배포 | k8s/k3d 배포 |
+| `/mono-parallel` | 멀티 서비스 병렬 작업 | 여러 서비스에 동시 작업 |
 
-### common-core namespace - 공통 모듈 사용
+### common-core 공통 모듈 사용
 
 | Skill | 용도 | 사용 시점 |
 |-------|------|----------|
-| `/common-core:exception` | 예외 처리 및 에러 코드 | 도메인 에러 코드 정의, 예외 발생 |
-| `/common-core:event` | Kafka 이벤트 발행 | DomainEvent 정의, CloudEvent 발행 |
-| `/common-core:response` | API 응답 포맷 | ApiResponse 사용, 응답 래핑 |
-| `/common-core:utility` | 유틸리티 | TransactionRunner, JsonUtils, 검증 어노테이션 |
+| `/common-core-exception` | 예외 처리 및 에러 코드 | 도메인 에러 코드 정의, 예외 발생 |
+| `/common-core-event` | Kafka 이벤트 발행 | DomainEvent 정의, CloudEvent 발행 |
+| `/common-core-response` | API 응답 포맷 | ApiResponse 사용, 응답 래핑 |
+| `/common-core-utility` | 유틸리티 | TransactionRunner, JsonUtils, 검증 어노테이션 |
 
 ### Skill 호출 방법
 
 ```
-/mono:build        # Gradle 빌드 가이드 참조
-/mono:kafka        # Kafka 통합 가이드 참조
-/common-core:event # 이벤트 시스템 가이드 참조
+/mono-build        # Gradle 빌드 가이드 참조
+/mono-kafka        # Kafka 통합 가이드 참조
+/mono-parallel     # 멀티 서비스 병렬 작업 (subagents 사용)
+/common-core-event # 이벤트 시스템 가이드 참조
 ```
 
 ## IMPORTANT Notes

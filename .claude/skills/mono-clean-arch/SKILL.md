@@ -1,13 +1,7 @@
-# mono Clean Architecture
-
-이 skill은 Clean Architecture 계층 구조와 의존성 규칙을 참조합니다.
-
-## 사용 시점
-
-- 새로운 기능 개발 시 패키지 구조가 필요할 때
-- 계층 간 의존성 규칙 확인이 필요할 때
-- Port/Adapter 패턴 적용이 필요할 때
-- 데이터 흐름 이해가 필요할 때
+---
+name: mono-clean-arch
+description: Clean Architecture 계층 구조와 의존성 규칙 가이드. 새로운 기능 개발 시 패키지 구조, 계층 간 의존성 규칙, Port/Adapter 패턴 적용이 필요할 때 사용합니다.
+---
 
 ## 레이어 구조
 
