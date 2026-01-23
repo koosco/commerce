@@ -31,5 +31,7 @@ data class OrderPlacedEvent(
 
         @field:Positive
         val quantity: Int,
+
+        val unitPrice: Long = 0L,
     )
 }

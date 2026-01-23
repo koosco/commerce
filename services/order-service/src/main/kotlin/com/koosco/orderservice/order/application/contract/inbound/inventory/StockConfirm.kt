@@ -9,7 +9,7 @@ package com.koosco.orderservice.order.application.contract.inbound.inventory
 // 재고 확정 성공
 data class StockConfirmedEvent(
     val orderId: Long,
-    val reservationId: String,
+    val reservationId: String? = null,
     val items: List<ConfirmedItem>,
 
     val correlationId: String,

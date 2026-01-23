@@ -1,4 +1,0 @@
-com.koosco.commonobservability.ObservabilityAutoConfiguration
-com.koosco.commonobservability.logging.LoggingAutoConfiguration
-com.koosco.commonobservability.metrics.MetricsAutoConfiguration
-com.koosco.commonobservability.actuator.ActuatorAutoConfiguration

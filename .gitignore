@@ -1,0 +1,51 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.vscode/
+
+# Kotlin
+*.class
+*.log
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+*.local
+
+# Logs
+logs/
+*.log
+
+# Test outputs
+out/
+target/
+
+# Generated files
+generated/
+generated-sources/
+generated-test-sources/
+
+# KAPT
+.apt_generated/
+.apt_generated_tests/

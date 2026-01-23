@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class KafkaStockReservedConsumer(private val markOrderPaymentPendingUseCase: MarkOrderPaymentPendingUseCase) {
-    private val logger = LoggerFactory.getLogger(KafkaPaymentCompletedConsumer::class.java)
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     @KafkaListener(
         topics = ["\${order.topic.mappings.stock.reserved}"],
