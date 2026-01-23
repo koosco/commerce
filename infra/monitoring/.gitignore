@@ -1,0 +1,22 @@
+# 환경별 설정 파일 중 실제 운영 정보가 담긴 파일
+.env
+.env.prod
+
+# Grafana 데이터
+grafana/data/
+
+# Prometheus 데이터
+prometheus/data/
+
+# 임시 파일
+*.log
+*.tmp
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

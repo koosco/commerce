@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: commerce
+  labels:
+    name: commerce
+    environment: production

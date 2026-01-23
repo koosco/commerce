@@ -1,0 +1,2 @@
+com.koosco.common.core.config.CommonCoreAutoConfiguration
+com.koosco.common.core.openapi.OpenApiAutoConfiguration

@@ -1,0 +1,145 @@
+# 개발용 Ingress - 로컬 k3s 환경용
+# 사용법: kubectl apply -f k8s/ingress-dev.yaml
+# localhost로 접근 가능, HTTP 허용, 각 서비스 8080 포트 사용
+
+---
+# Traefik Middleware: CORS 설정
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: commerce-dev-cors
+  namespace: commerce
+spec:
+  headers:
+    accessControlAllowMethods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+      - "PATCH"
+      - "OPTIONS"
+    accessControlAllowOriginList:
+      - "*"
+    accessControlAllowCredentials: true
+    accessControlAllowHeaders:
+      - "DNT"
+      - "Keep-Alive"
+      - "User-Agent"
+      - "X-Requested-With"
+      - "If-Modified-Since"
+      - "Cache-Control"
+      - "Content-Type"
+      - "Range"
+      - "Authorization"
+    accessControlMaxAge: 100
+
+---
+# Traefik Middleware: Rate Limiting (개발용 - 넉넉하게)
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: commerce-dev-ratelimit
+  namespace: commerce
+spec:
+  rateLimit:
+    average: 1000
+    burst: 2000
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: commerce-dev-ingress
+  namespace: commerce
+  labels:
+    app: commerce-api
+    environment: development
+  annotations:
+    # Traefik Ingress Controller
+    traefik.ingress.kubernetes.io/router.entrypoints: web # HTTP 전용 (개발 환경)
+    traefik.ingress.kubernetes.io/router.middlewares: commerce-commerce-dev-cors@kubernetescrd,commerce-commerce-dev-ratelimit@kubernetescrd
+
+spec:
+  # k3s uses Traefik by default - no ingressClassName needed
+  # ingressClassName: traefik
+  rules:
+    # host 없음 = localhost 포함 모든 호스트 허용
+    - http:
+        paths:
+          # ==========================================
+          # Auth Service - 인증/인가
+          # ==========================================
+          - path: /api/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 80
+
+          # ==========================================
+          # User Service - 사용자 관리
+          # ==========================================
+          - path: /api/users
+            pathType: Prefix
+            backend:
+              service:
+                name: user-service
+                port:
+                  number: 80
+
+          # ==========================================
+          # Order Service - 주문 관리
+          # ==========================================
+          - path: /api/orders
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service
+                port:
+                  number: 80
+
+          # ==========================================
+          # Catalog Service - 상품 관리
+          # ==========================================
+          - path: /api/catalog
+            pathType: Prefix
+            backend:
+              service:
+                name: catalog-service
+                port:
+                  number: 80
+
+          # ==========================================
+          # Inventory Service - 재고 관리
+          # ==========================================
+          - path: /api/inventory
+            pathType: Prefix
+            backend:
+              service:
+                name: inventory-service
+                port:
+                  number: 80
+
+          # ==========================================
+          # Payment Service - 결제 처리
+          # ==========================================
+          - path: /api/payments
+            pathType: Prefix
+            backend:
+              service:
+                name: payment-service
+                port:
+                  number: 80
+
+          # ==========================================
+          # Notification Service - 알림
+          # ==========================================
+          - path: /api/notifications
+            pathType: Prefix
+            backend:
+              service:
+                name: notification-service
+                port:
+                  number: 80
+# TLS 설정 없음 (개발 환경에서는 HTTP 사용)

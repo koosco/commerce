@@ -1,0 +1,183 @@
+# 통합 Ingress - 모든 마이크로서비스를 하나의 도메인으로 라우팅
+# 사용법: 모든 서비스 배포 후 이 파일을 적용
+# kubectl apply -f k8s/ingress.yaml
+
+---
+# Traefik Middleware: CORS 설정
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: commerce-cors
+  namespace: commerce
+spec:
+  headers:
+    accessControlAllowMethods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+      - "PATCH"
+      - "OPTIONS"
+    accessControlAllowOriginList:
+      - "*"
+    accessControlAllowCredentials: true
+    accessControlAllowHeaders:
+      - "DNT"
+      - "Keep-Alive"
+      - "User-Agent"
+      - "X-Requested-With"
+      - "If-Modified-Since"
+      - "Cache-Control"
+      - "Content-Type"
+      - "Range"
+      - "Authorization"
+    accessControlMaxAge: 100
+
+---
+# Traefik Middleware: Rate Limiting
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: commerce-ratelimit
+  namespace: commerce
+spec:
+  rateLimit:
+    average: 100
+    burst: 200
+
+---
+# Traefik Middleware: Security Headers
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: commerce-security-headers
+  namespace: commerce
+spec:
+  headers:
+    customResponseHeaders:
+      X-Content-Type-Options: "nosniff"
+      X-Frame-Options: "DENY"
+      X-XSS-Protection: "1; mode=block"
+      Referrer-Policy: "strict-origin-when-cross-origin"
+      Permissions-Policy: "geolocation=(), microphone=(), camera=()"
+
+---
+# Traefik Middleware: Path Strip Prefix
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: commerce-strip-prefix
+  namespace: commerce
+spec:
+  stripPrefix:
+    prefixes:
+      - /api/auth
+      - /api/users
+      - /api/orders
+      - /api/catalog
+      - /api/payments
+      - /api/notifications
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: commerce-ingress
+  namespace: commerce
+  labels:
+    app: commerce-api
+  annotations:
+    # Traefik Ingress Controller
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure # HTTPS 전용
+    traefik.ingress.kubernetes.io/router.middlewares: commerce-commerce-cors@kubernetescrd,commerce-commerce-ratelimit@kubernetescrd,commerce-commerce-security-headers@kubernetescrd
+    # TLS 인증서 자동 발급 (cert-manager 사용 시)
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: api.commerce.com # 메인 API 도메인
+      http:
+        paths:
+          # ==========================================
+          # Auth Service - 인증/인가
+          # ==========================================
+          - path: /api/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 80
+
+          # ==========================================
+          # User Service - 사용자 관리
+          # ==========================================
+          - path: /api/users
+            pathType: Prefix
+            backend:
+              service:
+                name: user-service
+                port:
+                  number: 80
+
+          # ==========================================
+          # Order Service - 주문 관리
+          # ==========================================
+          - path: /api/orders
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service
+                port:
+                  number: 80
+
+          # ==========================================
+          # Catalog Service - 상품 관리
+          # ==========================================
+          - path: /api/catalog
+            pathType: Prefix
+            backend:
+              service:
+                name: catalog-service
+                port:
+                  number: 80
+
+          # ==========================================
+          # Inventory Service - 재고 관리
+          # ==========================================
+          - path: /api/inventory
+            pathType: Prefix
+            backend:
+              service:
+                name: inventory-service
+                port:
+                  number: 80
+
+          # ==========================================
+          # Payment Service - 결제 처리
+          # ==========================================
+          - path: /api/payments
+            pathType: Prefix
+            backend:
+              service:
+                name: payment-service
+                port:
+                  number: 80
+
+          # ==========================================
+          # Notification Service - 알림
+          # ==========================================
+          - path: /api/notifications
+            pathType: Prefix
+            backend:
+              service:
+                name: notification-service
+                port:
+                  number: 80
+
+  # TLS 설정 (Let's Encrypt 또는 자체 인증서 사용)
+  tls:
+    - hosts:
+        - api.commerce.com
+      secretName: commerce-tls-secret

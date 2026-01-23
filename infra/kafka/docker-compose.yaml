@@ -1,0 +1,104 @@
+services:
+  kafka:
+    image: apache/kafka:3.7.0
+    container_name: kafka-kraft
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+      - "9999:9999"
+
+    environment:
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${KAFKA_ADVERTISED_HOST:-host.docker.internal}:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      KAFKA_CLUSTER_ID: "abcdefghijklmnopqrstuv"
+
+      KAFKA_HEAP_OPTS: "-Xms2g -Xmx2g"
+
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+
+      KAFKA_LOG_DIRS: "/var/lib/kafka/data"
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+
+      KAFKA_JMX_PORT: 9999
+
+    volumes:
+      - ./kafka_data_${KAFKA_PROFILE:-local}:/var/lib/kafka/data
+
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 3g
+  debezium:
+    image: debezium/connect:2.6
+    container_name: debezium-connect
+    ports:
+      - "18083:8083"
+    depends_on:
+      - kafka
+
+    environment:
+      # Kafka 연결
+      BOOTSTRAP_SERVERS: "kafka:9092"
+
+      # Kafka Connect 클러스터 설정 (단일 노드지만 distributed mode)
+      GROUP_ID: "debezium-connect-cluster"
+
+      CONFIG_STORAGE_TOPIC: "connect_configs"
+      OFFSET_STORAGE_TOPIC: "connect_offsets"
+      STATUS_STORAGE_TOPIC: "connect_statuses"
+
+      CONFIG_STORAGE_REPLICATION_FACTOR: "1"
+      OFFSET_STORAGE_REPLICATION_FACTOR: "1"
+      STATUS_STORAGE_REPLICATION_FACTOR: "1"
+
+      # Converter 설정 (Outbox 패턴 기준으로 가장 흔함)
+      KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+
+      # REST API
+      REST_PORT: 8083
+      REST_ADVERTISED_HOST_NAME: "debezium-connect"
+
+      # 안정성 / 운영 옵션
+      OFFSET_FLUSH_INTERVAL_MS: 10000
+      CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
+
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 2g
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "18080:8080"
+    depends_on:
+      - kafka
+      - debezium
+
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "local-kraft"
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:9092"
+
+      # Debezium Kafka Connect 연동 (선택이지만 강력 추천)
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: "debezium-connect"
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: "http://debezium-connect:8083"
+
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512m

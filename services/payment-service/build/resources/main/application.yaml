@@ -1,0 +1,104 @@
+spring:
+  application:
+    name: payment-service
+  profiles:
+    active: local
+  web:
+    resources:
+      add-mappings: false
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:payment-service-group}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
+        show_sql: false
+        format_sql: false
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+  datasource:
+    url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:commerce-payment}
+    username: ${DB_USERNAME:admin}
+    password: ${DB_PASSWORD:admin1234}
+    driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+
+jwt:
+  secret: ${JWT_SECRET:mySecretKeyForJWTWhichShouldBeAtLeast256BitsLongToEnsureSecurityAndCompliance}
+  expiration: ${JWT_EXPIRATION:86400} # 24 hours in seconds
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800} # 7 days in seconds
+
+payment:
+  topic:
+    default: koosco.commerce.integration.order
+    mappings:
+      order:
+        placed: koosco.commerce.order.placed
+        confirmed: koosco.commerce.order.confirmed
+        cancelled: koosco.commerce.order.cancelled
+      payment:
+        created: koosco.commerce.payment.created
+
+common:
+  openapi:
+    enabled: true
+    title: "Payment Service API"
+    version: "v1.0.0"
+    description: |
+      # Payment Service API Documentation
+
+      Payment processing service using Toss Payments API.
+
+      ## Key Features
+      - **Payment Widget**: Toss Payments widget integration
+      - **Payment Processing**: Handle payment transactions
+      - **Payment Status**: Check payment status and history
+
+      ## Authentication
+      - JWT Bearer token for user operations
+      - Internal service authentication for order processing
+    servers:
+      - url: http://localhost:8087
+        description: Local development
+
+springdoc:
+  swagger-ui:
+    enabled: ${SWAGGER_UI_ENABLED:true}
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+    deep-linking: true
+  api-docs:
+    path: /v3/api-docs
+  show-actuator: ${SPRINGDOC_SHOW_ACTUATOR:true}

@@ -1,0 +1,102 @@
+{
+  "properties": [
+    {
+      "name": "observability.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable all observability features",
+      "defaultValue": true
+    },
+    {
+      "name": "observability.logging.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable logging configuration",
+      "defaultValue": true
+    },
+    {
+      "name": "observability.logging.mdc-enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable MDC filter for distributed tracing",
+      "defaultValue": true
+    },
+    {
+      "name": "observability.logging.json-enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable JSON format logging",
+      "defaultValue": true
+    },
+    {
+      "name": "observability.logging.level",
+      "type": "java.lang.String",
+      "description": "Default log level for application",
+      "defaultValue": "INFO"
+    },
+    {
+      "name": "observability.logging.additional-mdc-keys",
+      "type": "java.util.Set<java.lang.String>",
+      "description": "Additional MDC keys to include in logs"
+    },
+    {
+      "name": "observability.metrics.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable metrics configuration",
+      "defaultValue": true
+    },
+    {
+      "name": "observability.metrics.prometheus-enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable Prometheus metrics export",
+      "defaultValue": true
+    },
+    {
+      "name": "observability.metrics.application-name",
+      "type": "java.lang.String",
+      "description": "Application name tag for metrics (defaults to spring.application.name)"
+    },
+    {
+      "name": "observability.metrics.environment",
+      "type": "java.lang.String",
+      "description": "Environment tag for metrics (dev, staging, production)",
+      "defaultValue": "development"
+    },
+    {
+      "name": "observability.metrics.common-tags",
+      "type": "java.util.Map<java.lang.String,java.lang.String>",
+      "description": "Common tags to apply to all metrics"
+    },
+    {
+      "name": "observability.metrics.custom-tags",
+      "type": "java.util.Map<java.lang.String,java.lang.String>",
+      "description": "Additional custom tags for metrics"
+    },
+    {
+      "name": "observability.actuator.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable actuator endpoint configuration",
+      "defaultValue": true
+    },
+    {
+      "name": "observability.actuator.expose-all",
+      "type": "java.lang.Boolean",
+      "description": "Expose all actuator endpoints (use with caution)",
+      "defaultValue": false
+    },
+    {
+      "name": "observability.actuator.exposed-endpoints",
+      "type": "java.util.Set<java.lang.String>",
+      "description": "Specific actuator endpoints to expose",
+      "defaultValue": ["health", "info", "metrics", "prometheus"]
+    },
+    {
+      "name": "observability.actuator.show-details",
+      "type": "java.lang.String",
+      "description": "When to show detailed health information (always, never, when-authorized)",
+      "defaultValue": "when-authorized"
+    },
+    {
+      "name": "observability.actuator.probes-enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable Kubernetes health probes (liveness, readiness)",
+      "defaultValue": true
+    }
+  ]
+}

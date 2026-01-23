@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Toss Payments 테스트</title>
+  <script src="https://js.tosspayments.com/v2/standard"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: 500;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #3182f6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #1b64da;
+    }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    #payment-method {
+      margin: 20px 0;
+      min-height: 100px;
+    }
+    #agreement {
+      margin: 20px 0;
+    }
+    .info {
+      background-color: #f0f7ff;
+      border-left: 4px solid #3182f6;
+      padding: 12px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #333;
+    }
+    .error {
+      background-color: #fff5f5;
+      border-left: 4px solid #f44336;
+      padding: 12px;
+      margin-top: 20px;
+      display: none;
+      color: #d32f2f;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💳 Toss Payments 테스트</h1>
+
+    <div class="info">
+      <strong>테스트 모드</strong><br>
+      실제 결제가 진행되지 않습니다.
+    </div>
+
+    <div class="form-group">
+      <label for="amount">결제 금액</label>
+      <input type="number" id="amount" value="10000" min="1000" step="100">
+    </div>
+
+    <div class="form-group">
+      <label for="orderName">주문명</label>
+      <input type="text" id="orderName" value="테스트 상품" placeholder="주문명을 입력하세요">
+    </div>
+
+    <div class="form-group">
+      <label for="customerName">구매자명</label>
+      <input type="text" id="customerName" value="홍길동" placeholder="구매자명을 입력하세요">
+    </div>
+
+    <div class="form-group">
+      <label for="customerEmail">이메일</label>
+      <input type="email" id="customerEmail" value="test@example.com" placeholder="이메일을 입력하세요">
+    </div>
+
+    <!-- 결제 수단 선택 영역 -->
+    <div id="payment-method"></div>
+
+    <!-- 약관 동의 영역 -->
+    <div id="agreement"></div>
+
+    <button id="payment-button">결제하기</button>
+
+    <div class="error" id="error-message"></div>
+  </div>
+
+  <script>
+    // ⚠️ 실제 운영 환경에서는 클라이언트 키를 안전하게 관리해야 합니다
+    // 결제위젯 연동 키 (test_gck로 시작)
+    const clientKey = 'test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm';
+    const customerKey = 'test_customer_' + Date.now(); // 고유한 고객 식별자
+
+    let paymentWidget;
+
+    // Payment Widget 초기화
+    async function initializePaymentWidget() {
+      try {
+        // TossPayments SDK 초기화
+        const tossPayments = TossPayments(clientKey);
+
+        // 결제위젯 인스턴스 생성
+        paymentWidget = tossPayments.widgets({
+          customerKey: customerKey
+        });
+
+        // 결제 UI 렌더링
+        await renderPaymentWidget();
+      } catch (error) {
+        console.error('Payment Widget 초기화 실패:', error);
+        showError('결제 시스템을 초기화하는데 실패했습니다: ' + error.message);
+      }
+    }
+
+    // 결제 UI 렌더링
+    async function renderPaymentWidget() {
+      try {
+        const amount = parseInt(document.getElementById('amount').value);
+
+        // 결제 금액 설정
+        await paymentWidget.setAmount({
+          currency: 'KRW',
+          value: amount
+        });
+
+        // 결제 수단 UI 렌더링
+        await paymentWidget.renderPaymentMethods({
+          selector: '#payment-method',
+          variantKey: 'DEFAULT'
+        });
+
+        // 약관 동의 UI 렌더링
+        await paymentWidget.renderAgreement({
+          selector: '#agreement',
+          variantKey: 'AGREEMENT'
+        });
+      } catch (error) {
+        console.error('결제 UI 렌더링 실패:', error);
+        showError('결제 UI를 불러오는데 실패했습니다: ' + error.message);
+      }
+    }
+
+    // 페이지 로드 시 Payment Widget 초기화
+    window.addEventListener('load', initializePaymentWidget);
+
+    // 금액 변경 시 결제 UI 업데이트
+    document.getElementById('amount').addEventListener('change', async function() {
+      const amount = parseInt(this.value);
+      if (amount >= 1000 && paymentWidget) {
+        try {
+          await paymentWidget.setAmount({
+            currency: 'KRW',
+            value: amount
+          });
+        } catch (error) {
+          console.error('금액 업데이트 실패:', error);
+        }
+      }
+    });
+
+    // 결제 요청
+    document.getElementById('payment-button').addEventListener('click', async function() {
+      const amount = parseInt(document.getElementById('amount').value);
+      const orderName = document.getElementById('orderName').value;
+      const customerName = document.getElementById('customerName').value;
+      const customerEmail = document.getElementById('customerEmail').value;
+
+      // 입력 값 검증
+      if (amount < 1000) {
+        showError('결제 금액은 최소 1,000원 이상이어야 합니다.');
+        return;
+      }
+
+      if (!orderName || !customerName || !customerEmail) {
+        showError('모든 필수 정보를 입력해주세요.');
+        return;
+      }
+
+      if (!paymentWidget) {
+        showError('결제 시스템이 초기화되지 않았습니다.');
+        return;
+      }
+
+      try {
+        // 고유한 주문 ID 생성
+        const orderId = 'order_' + Date.now();
+
+        // 결제 요청
+        await paymentWidget.requestPayment({
+          orderId: orderId,
+          orderName: orderName,
+          successUrl: window.location.origin + window.location.pathname + '?success=true',
+          failUrl: window.location.origin + window.location.pathname + '?fail=true',
+          customerName: customerName,
+          customerEmail: customerEmail
+        });
+      } catch (error) {
+        console.error('결제 요청 실패:', error);
+        showError('결제 요청 중 오류가 발생했습니다: ' + error.message);
+      }
+    });
+
+    // 에러 메시지 표시
+    function showError(message) {
+      const errorElement = document.getElementById('error-message');
+      errorElement.textContent = message;
+      errorElement.style.display = 'block';
+
+      setTimeout(() => {
+        errorElement.style.display = 'none';
+      }, 5000);
+    }
+
+    // URL 파라미터 확인 (결제 성공/실패 후 리다이렉트)
+    (function checkPaymentResult() {
+      const urlParams = new URLSearchParams(window.location.search);
+
+      // 결제 실패 처리
+      if (urlParams.get('fail') === 'true' || urlParams.get('code')) {
+        showError('결제 실패: ' + (urlParams.get('message') || '알 수 없는 오류'));
+      }
+
+      // 결제 성공 처리
+      if (urlParams.get('success') === 'true' && urlParams.get('paymentKey')) {
+        const info = document.querySelector('.info');
+        info.innerHTML = `
+          <strong>✅ 결제 승인 대기 중</strong><br>
+          결제 키: ${urlParams.get('paymentKey')}<br>
+          주문 ID: ${urlParams.get('orderId')}<br>
+          금액: ${urlParams.get('amount')}원<br><br>
+          <small>※ 실제 운영 환경에서는 서버에서 승인 API를 호출해야 합니다.</small>
+        `;
+        info.style.backgroundColor = '#f0fff4';
+        info.style.borderLeftColor = '#4caf50';
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+spring:
+  application:
+    name: order-service
+  profiles:
+    active: local
+  web:
+    resources:
+      add-mappings: false
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+      group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:order-service-group}
+      auto-offset-reset: earliest
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
+        show_sql: false
+        format_sql: false
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+  datasource:
+    url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:commerce-order}
+    username: ${DB_USERNAME:admin}
+    password: ${DB_PASSWORD:admin1234}
+    driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+
+jwt:
+  secret: ${JWT_SECRET:mySecretKeyForJWTWhichShouldBeAtLeast256BitsLongToEnsureSecurityAndCompliance}
+  expiration: ${JWT_EXPIRATION:86400} # 24 hours in seconds
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800} # 7 days in seconds
+
+order:
+  topic:
+    default: koosco.commerce.order.default
+    mappings:
+      "order.failed": koosco.commerce.order.failed
+      order:
+        placed: koosco.commerce.order.placed
+        confirmed: koosco.commerce.order.confirmed
+        cancelled: koosco.commerce.order.cancelled
+      stock:
+        reserved: koosco.commerce.stock.reserved
+        "reservation.failed": koosco.commerce.stock.reservation.failed
+        confirmed: koosco.commerce.stock.confirmed
+        "confirm.failed": koosco.commerce.stock.confirm.failed
+        cancelled: koosco.commerce.stock.cancelled
+      payment:
+        created: koosco.commerce.payment.created
+        completed: koosco.commerce.payment.completed
+        failed: koosco.commerce.payment.failed
+
+common:
+  openapi:
+    enabled: true
+    title: "Order Service API"
+    version: "v1.0.0"
+    description: |
+      # Order Service API Documentation
+
+      Order processing and management service.
+
+      ## Key Features
+      - **Order Creation**: Create new orders with multiple items
+      - **Order Management**: View and manage order status
+      - **Order History**: User order history
+      - **Admin Operations**: Manage all orders
+
+      ## Authentication
+      - JWT Bearer token required for all operations
+    servers:
+      - url: http://localhost:8085
+        description: Local development
+
+springdoc:
+  swagger-ui:
+    enabled: ${SWAGGER_UI_ENABLED:true}
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+    deep-linking: true
+  api-docs:
+    path: /v3/api-docs
+  show-actuator: ${SPRINGDOC_SHOW_ACTUATOR:true}

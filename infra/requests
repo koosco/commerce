@@ -1,0 +1,54 @@
+curl -i -X POST -H "Accept:application/json"
+-H "Content-Type:application/json" \
+localhost:8083/connectors/ -d '{
+"name": "financial-mysql-connector",
+"config": {
+"connector.class": "io.debezium.connecto
+r.mysql.MySqlConnector",
+"tasks.max": "1",
+"database.hostname": "mysql",
+"database.port": "3306",
+"database.user": "debezium",
+"database.password": "debezium_password",
+"database.server.id": "184054",
+"topic.prefix": "financial",
+"database.include.list": "finance_app"
+,
+"schema.history.internal.kafka.bootstrap.
+servers": "kafka:29092",
+"schema.history.internal.kafka.topic": "fin
+ancial.schema.history",
+"include.schema.changes": "true"
+,
+"transforms": "unwrap"
+,
+"transforms.unwrap.type": "io.debezium.t
+ransforms.ExtractNewRecordState"
+,
+"key.converter": "org.apache.kafka.conne
+ct.json.JsonConverter",
+"value.converter": "org.apache.kafka.con
+nect.json.JsonConverter",
+"key.converter.schemas.enable": "false"
+,
+"value.converter.schemas.enable": "fals
+e"
+}
+}'
+
+INSERT INTO customers (customer_id, name, email, phone, status) VALUES
+('12','김철수', 'kim@email.com', '010-1234-5678','ACTIVE'),
+('22','이영희', 'lee@email.com', '010-2345-6789','ACTIVE'),
+('33','박민수', 'park@email.com', '010-3456-7890','ACTIVE');
+
+-- 계좌 데이터
+INSERT INTO accounts (account_id, account_name, balance, status) VALUES
+('ACC001-z','김철수 통장', 1500000.00, 'ACTIVE'),
+('ACC002-b','이영희 통장', 2300000.00, 'ACTIVE'),
+('ACC003-c','박민수 통장', 800000.00, 'ACTIVE');
+
+-- 거래 데이터
+INSERT INTO transactions (transaction_id, from_account_id, to_account_id, transaction_type, amount, description, status) VALUES
+('TXN001-4111','ACC001','ACC002', 'TRANSFER', 100000.00,'pin money', 'COMPLETED'),
+('TXN002-5222','ACC002','ACC001', 'DEPOSIT', 300000.00,'salary', 'COMPLETED'),
+('TXN003-6333','ACC003','ACC001', 'WITHDRAWAL', 50000.00,'ATM withdraw', 'COMPLETED');

@@ -1,0 +1,92 @@
+package com.koosco.catalogservice.product.api
+
+import com.koosco.catalogservice.product.application.result.ProductInfo
+import com.koosco.catalogservice.product.application.result.ProductInfo.ProductOptionGroupInfo
+import com.koosco.catalogservice.product.application.result.ProductInfo.ProductOptionInfo
+import com.koosco.catalogservice.product.domain.entity.ProductOption
+import com.koosco.catalogservice.product.domain.entity.ProductOptionGroup
+import com.koosco.catalogservice.product.domain.enums.ProductStatus
+
+/**
+ * fileName       : ProductResponses
+ * author         : koo
+ * date           : 2025. 12. 22. 오전 9:20
+ * description    :
+ */
+data class ProductListResponse(
+    val id: Long,
+    val name: String,
+    val price: Long,
+    val status: ProductStatus,
+    val categoryId: Long?,
+    val thumbnailImageUrl: String?,
+) {
+    companion object {
+        fun from(productInfo: ProductInfo): ProductListResponse = ProductListResponse(
+            id = productInfo.id,
+            name = productInfo.name,
+            price = productInfo.price,
+            status = productInfo.status,
+            categoryId = productInfo.categoryId,
+            thumbnailImageUrl = productInfo.thumbnailImageUrl,
+        )
+    }
+}
+
+data class ProductDetailResponse(
+    val id: Long,
+    val name: String,
+    val description: String?,
+    val price: Long,
+    val status: ProductStatus,
+    val categoryId: Long?,
+    val thumbnailImageUrl: String?,
+    val brand: String?,
+    val optionGroups: List<ProductOptionGroupResponse>,
+) {
+    companion object {
+        fun from(productInfo: ProductInfo): ProductDetailResponse = ProductDetailResponse(
+            id = productInfo.id,
+            name = productInfo.name,
+            description = productInfo.description,
+            price = productInfo.price,
+            status = productInfo.status,
+            categoryId = productInfo.categoryId,
+            thumbnailImageUrl = productInfo.thumbnailImageUrl,
+            brand = productInfo.brand,
+            optionGroups = productInfo.optionGroups.map { ProductOptionGroupResponse.from(it) },
+        )
+    }
+}
+
+data class ProductOptionGroupResponse(val id: Long, val name: String, val options: List<ProductOptionResponse>) {
+    companion object {
+        fun from(group: ProductOptionGroup): ProductOptionGroupResponse = ProductOptionGroupResponse(
+            id = group.id!!,
+            name = group.name,
+            options = group.options.map { ProductOptionResponse.from(it) },
+        )
+
+        fun from(groupInfo: ProductOptionGroupInfo): ProductOptionGroupResponse = ProductOptionGroupResponse(
+            id = groupInfo.id,
+            name = groupInfo.name,
+            options = groupInfo.options.map { ProductOptionResponse.from(it) },
+        )
+    }
+}
+
+data class ProductOptionResponse(val id: Long, val name: String, val additionalPrice: Long) {
+    companion object {
+        fun from(option: ProductOption): ProductOptionResponse = ProductOptionResponse(
+            id = option.id!!,
+            name = option.name,
+            additionalPrice = option.additionalPrice,
+        )
+
+        fun from(optionInfo: ProductOptionInfo): ProductOptionResponse = ProductOptionResponse(
+            id = optionInfo.id,
+            name = optionInfo.name,
+            additionalPrice = optionInfo.additionalPrice,
+        )
+    }
+}

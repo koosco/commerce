@@ -1,0 +1,164 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: "commerce-monitoring"
+    environment: "production"
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "alerts/*.yml"
+
+scrape_configs:
+  # Prometheus 자체 모니터링
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # ====================
+  # 노드 지표 수집 (Node Exporter)
+  # ====================
+
+  # Kafka Server Node Metrics
+  - job_name: "node-kafka"
+    static_configs:
+      - targets: ["172.31.32.89:9100"]
+        labels:
+          instance: "kafka-server"
+          environment: "production"
+          role: "message-broker"
+
+  # Stress Server Node Metrics (부하 생성기)
+  - job_name: "node-stress"
+    static_configs:
+      - targets: ["172.31.46.94:9100"]
+        labels:
+          instance: "stress-server"
+          environment: "production"
+          role: "load-generator"
+
+  # Microservice Server Node Metrics
+  - job_name: "node-microservice"
+    static_configs:
+      - targets: ["172.31.43.230:9100"]
+        labels:
+          instance: "microservice-server"
+          environment: "production"
+          role: "application"
+
+  # ====================
+  # 애플리케이션 지표 수집 (Microservices)
+  # ====================
+
+  # Auth Service
+  - job_name: "auth-service"
+    metrics_path: "/actuator/prometheus"
+    scrape_interval: 10s # 운영 환경에서는 더 짧은 간격
+    scrape_timeout: 5s
+    static_configs:
+      - targets: ["172.31.43.230:8089"]
+        labels:
+          service: "auth"
+          environment: "production"
+          team: "platform"
+          tier: "critical"
+
+  # User Service
+  - job_name: "user-service"
+    metrics_path: "/actuator/prometheus"
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    static_configs:
+      - targets: ["172.31.43.230:8081"]
+        labels:
+          service: "user"
+          environment: "production"
+          team: "user-management"
+          tier: "high"
+
+  # Catalog Service
+  - job_name: "catalog-service"
+    metrics_path: "/actuator/prometheus"
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    static_configs:
+      - targets: ["172.31.43.230:8084"]
+        labels:
+          service: "catalog"
+          environment: "production"
+          team: "product"
+          tier: "high"
+
+  # Inventory Service
+  - job_name: "inventory-service"
+    metrics_path: "/actuator/prometheus"
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    static_configs:
+      - targets: ["172.31.43.230:8083"]
+        labels:
+          service: "inventory"
+          environment: "production"
+          team: "product"
+          tier: "critical"
+
+  # Order Service
+  - job_name: "order-service"
+    metrics_path: "/actuator/prometheus"
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    static_configs:
+      - targets: ["172.31.43.230:8085"]
+        labels:
+          service: "order"
+          environment: "production"
+          team: "order-management"
+          tier: "critical"
+
+  # Payment Service
+  - job_name: "payment-service"
+    metrics_path: "/actuator/prometheus"
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    static_configs:
+      - targets: ["172.31.43.230:8087"]
+        labels:
+          service: "payment"
+          environment: "production"
+          team: "payment"
+          tier: "critical"
+
+  # ====================
+  # 추가 모니터링 (Optional)
+  # ====================
+
+  # Kafka Exporter (Kafka 메트릭을 수집하는 경우)
+  # - job_name: 'kafka-exporter'
+  #   static_configs:
+  #     - targets: ['172.31.32.89:9308']
+  #       labels:
+  #         instance: 'kafka'
+  #         environment: 'production'
+
+  # MySQL Exporter (DB 메트릭)
+  # - job_name: 'mysql-exporter'
+  #   static_configs:
+  #     - targets: ['172.31.43.230:9104']
+  #       labels:
+  #         instance: 'mysql-primary'
+  #         environment: 'production'
+
+  # Redis Exporter
+  # - job_name: 'redis-exporter'
+  #   static_configs:
+  #     - targets: ['172.31.43.230:9121']
+  #       labels:
+  #         instance: 'redis-cache'
+  #         environment: 'production'

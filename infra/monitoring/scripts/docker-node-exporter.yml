@@ -1,0 +1,39 @@
+version: '3.8'
+
+# Docker로 Node Exporter 실행 (대안)
+# 주의: 호스트 메트릭 수집을 위해 여러 볼륨 마운트 필요
+
+services:
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: node-exporter
+    restart: unless-stopped
+
+    # 호스트 네트워크 모드 (권장)
+    network_mode: host
+
+    # PID 네임스페이스
+    pid: host
+
+    # 호스트 파일시스템 마운트
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - /etc/hostname:/etc/nodename:ro
+      - /etc/localtime:/etc/localtime:ro
+
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.netclass.ignored-devices=^(veth.*)$$'
+      - '--collector.netdev.device-exclude=^(veth.*)$$'
+      - '--no-collector.ipvs'
+
+# 실행 방법:
+# docker-compose -f docker-node-exporter.yml up -d
+#
+# 확인:
+# curl http://localhost:9100/metrics

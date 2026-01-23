@@ -1,0 +1,68 @@
+# Common Observability Module Configuration Example
+# This file shows all available configuration options
+
+observability:
+  # Enable/disable all observability features
+  enabled: true
+
+  # Logging configuration
+  logging:
+    enabled: true
+    mdc-enabled: true
+    json-enabled: true
+    level: INFO
+    additional-mdc-keys:
+      - userId
+      - requestId
+
+  # Metrics configuration
+  metrics:
+    enabled: true
+    prometheus-enabled: true
+    environment: development  # dev, staging, production
+    common-tags:
+      team: platform
+      service-type: api
+    custom-tags:
+      region: kr-central-1
+
+  # Actuator configuration
+  actuator:
+    enabled: true
+    expose-all: false
+    exposed-endpoints:
+      - health
+      - info
+      - metrics
+      - prometheus
+    show-details: when-authorized
+    probes-enabled: true
+
+# Spring Boot Actuator configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    com.koosco: DEBUG
+    org.springframework.web: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId}/%X{spanId}] %-5level %logger{36} - %msg%n"

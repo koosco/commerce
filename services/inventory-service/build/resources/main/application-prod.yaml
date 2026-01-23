@@ -1,0 +1,10 @@
+spring:
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:172.31.32.89:9092}
+    producer:
+      bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:172.31.32.89:9092}
+    consumer:
+      bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:172.31.32.89:9092}
+      group-id: inventory-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false

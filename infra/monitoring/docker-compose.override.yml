@@ -1,0 +1,51 @@
+version: '3.8'
+
+# 로컬 개발 환경 설정 (자동으로 적용됨)
+# docker-compose up 실행 시 자동으로 병합됨
+
+services:
+  prometheus:
+    ports:
+      - "9090:9090"  # 로컬에서만 포트 노출
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus-data:/prometheus  # 메트릭 데이터 영구 저장
+    command:
+      - '--config.file=/etc/prometheus/prometheus.local.yml'  # 로컬 설정 파일 사용
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'  # 로컬: 15일 보관
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--enable-feature=remote-write-receiver'  # k6 메트릭 수신
+    environment:
+      - TZ=Asia/Seoul
+
+  grafana:
+    ports:
+      - "3000:3000"  # 로컬에서만 포트 노출
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123  # 로컬 개발 환경 비밀번호
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-clock-panel
+      - TZ=Asia/Seoul
+    # volumes는 base 파일에서 상속됨 (추가 설정 불필요)
+
+  # 로컬 환경에서만 Node Exporter 실행
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    restart: unless-stopped
+    networks:
+      - monitoring

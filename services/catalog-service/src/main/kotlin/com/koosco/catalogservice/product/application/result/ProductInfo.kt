@@ -1,0 +1,59 @@
+package com.koosco.catalogservice.product.application.result
+
+import com.koosco.catalogservice.product.domain.entity.Product
+import com.koosco.catalogservice.product.domain.entity.ProductOption
+import com.koosco.catalogservice.product.domain.entity.ProductOptionGroup
+import com.koosco.catalogservice.product.domain.enums.ProductStatus
+
+data class ProductInfo(
+    val id: Long,
+    val name: String,
+    val description: String?,
+    val price: Long,
+    val status: ProductStatus,
+    val categoryId: Long?,
+    val thumbnailImageUrl: String?,
+    val brand: String?,
+    val optionGroups: List<ProductOptionGroupInfo> = emptyList(),
+) {
+    data class ProductOptionGroupInfo(
+        val id: Long,
+        val name: String,
+        val ordering: Int,
+        val options: List<ProductOptionInfo>,
+    ) {
+        companion object {
+            fun from(group: ProductOptionGroup): ProductOptionGroupInfo = ProductOptionGroupInfo(
+                id = group.id!!,
+                name = group.name,
+                ordering = group.ordering,
+                options = group.options.map { ProductOptionInfo.from(it) },
+            )
+        }
+    }
+
+    data class ProductOptionInfo(val id: Long, val name: String, val additionalPrice: Long, val ordering: Int) {
+        companion object {
+            fun from(option: ProductOption): ProductOptionInfo = ProductOptionInfo(
+                id = option.id!!,
+                name = option.name,
+                additionalPrice = option.additionalPrice,
+                ordering = option.ordering,
+            )
+        }
+    }
+
+    companion object {
+        fun from(product: Product): ProductInfo = ProductInfo(
+            id = product.id!!,
+            name = product.name,
+            description = product.description,
+            price = product.price,
+            status = product.status,
+            categoryId = product.categoryId,
+            thumbnailImageUrl = product.thumbnailImageUrl,
+            brand = product.brand,
+            optionGroups = product.optionGroups.map { ProductOptionGroupInfo.from(it) },
+        )
+    }
+}
