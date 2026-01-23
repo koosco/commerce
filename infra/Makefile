@@ -23,7 +23,11 @@ help:
 	@echo "  make k8s-ns-create             - Namespace 생성"
 	@echo "  make k8s-ns-delete             - Namespace 삭제"
 	@echo "  make k8s-status                - 전체 상태 확인"
-	@echo "  make k8s-apply-all             - 모든 리소스 적용"
+	@echo "  make k8s-apply-all             - 모든 리소스 적용 (common, services, ingress)"
+	@echo ""
+	@echo "$(YELLOW)Kubernetes Services:$(NC)"
+	@echo "  make k8s-services-apply        - 서비스 manifest 적용 (common + services)"
+	@echo "  make k8s-services-delete       - 서비스 manifest 삭제"
 	@echo ""
 	@echo "$(YELLOW)Kubernetes Deployment:$(NC)"
 	@echo "  make k8s-start                 - 모든 서비스 시작"
@@ -269,8 +273,28 @@ k8s-status:
 k8s-apply-all:
 	@echo "$(YELLOW)Applying all k8s resources ($(ENV) environment)...$(NC)"
 	kubectl apply -f $(NAMESPACE_FILE)
+	kubectl apply -f $(K8S_DIR)/common/ -n $(NAMESPACE)
+	kubectl apply -f $(K8S_DIR)/services/ -n $(NAMESPACE)
 	kubectl apply -f $(INGRESS_FILE) -n $(NAMESPACE)
 	@echo "$(GREEN)✓ All resources applied$(NC)"
+
+# -------------------------------
+# 서비스 manifest 적용 (common + services)
+# -------------------------------
+k8s-services-apply:
+	@echo "$(YELLOW)Applying service manifests...$(NC)"
+	kubectl apply -f $(K8S_DIR)/common/ -n $(NAMESPACE)
+	kubectl apply -f $(K8S_DIR)/services/ -n $(NAMESPACE)
+	@echo "$(GREEN)✓ Service manifests applied$(NC)"
+
+# -------------------------------
+# 서비스 manifest 삭제
+# -------------------------------
+k8s-services-delete:
+	@echo "$(YELLOW)Deleting service manifests...$(NC)"
+	kubectl delete -f $(K8S_DIR)/services/ -n $(NAMESPACE) --ignore-not-found
+	kubectl delete -f $(K8S_DIR)/common/ -n $(NAMESPACE) --ignore-not-found
+	@echo "$(GREEN)✓ Service manifests deleted$(NC)"
 
 # ===============================
 # Kubernetes Deployment 관리
@@ -278,11 +302,12 @@ k8s-apply-all:
 
 # -------------------------------
 # 모든 서비스 중지 (replicas=0)
+# 참고: 외부 DB 사용으로 MariaDB deployment 제거
 # -------------------------------
 k8s-stop:
 	@echo "$(YELLOW)Stopping all services (scaling to 0)...$(NC)"
 	@echo ""
-	@for deploy in auth-service auth-service-mariadb user-service user-service-mariadb catalog-service catalog-service-mariadb inventory-service inventory-service-mariadb order-service order-service-mariadb payment-service payment-service-mariadb; do \
+	@for deploy in auth-service user-service catalog-service inventory-service order-service payment-service; do \
 		replicas=$$(kubectl get deployment/$$deploy -n $(NAMESPACE) -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "0"); \
 		if [ "$$replicas" = "0" ]; then \
 			echo "  $(YELLOW)⊘$(NC) $$deploy: already stopped (replicas=0)"; \
@@ -296,20 +321,11 @@ k8s-stop:
 
 # -------------------------------
 # 모든 서비스 시작
+# 참고: 외부 DB 사용으로 MariaDB deployment 제거
 # -------------------------------
 k8s-start:
 	@echo "$(YELLOW)Starting all services...$(NC)"
 	@echo ""
-	@for deploy in auth-service-mariadb user-service-mariadb catalog-service-mariadb inventory-service-mariadb order-service-mariadb payment-service-mariadb; do \
-		target=1; \
-		replicas=$$(kubectl get deployment/$$deploy -n $(NAMESPACE) -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "0"); \
-		if [ "$$replicas" = "$$target" ]; then \
-			echo "  $(YELLOW)⊘$(NC) $$deploy: already running (replicas=$$target)"; \
-		else \
-			echo "  $(GREEN)→$(NC) $$deploy: starting (replicas=$$replicas → $$target)"; \
-			kubectl scale deployment/$$deploy -n $(NAMESPACE) --replicas=$$target 2>/dev/null || echo "  $(RED)✗$(NC) $$deploy: not found"; \
-		fi \
-	done
 	@for deploy in auth-service user-service catalog-service inventory-service order-service payment-service; do \
 		target=2; \
 		replicas=$$(kubectl get deployment/$$deploy -n $(NAMESPACE) -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "0"); \
@@ -434,6 +450,6 @@ k8s-port-forward:
 	k8s-ns-create k8s-ns-delete k8s-ns-list k8s-ns-info k8s-ns-switch \
 	k8s-ingress-apply k8s-ingress-delete k8s-ingress-delete-all \
 	k8s-ingress-list k8s-ingress-describe k8s-ingress-get \
-	k8s-status k8s-apply-all \
+	k8s-status k8s-apply-all k8s-services-apply k8s-services-delete \
 	k8s-stop k8s-start k8s-scale k8s-restart k8s-deployments k8s-scale-service \
 	k8s-traefik-ip k8s-port-forward

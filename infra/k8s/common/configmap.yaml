@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: commerce-common-config
+  namespace: commerce
+  labels:
+    app.kubernetes.io/part-of: commerce
+data:
+  # Database (외부 Docker Compose MariaDB 사용)
+  DB_HOST: "host.k3d.internal"
+  DB_PORT: "3306"
+
+  # Kafka (외부 Docker Compose Kafka 사용)
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: "host.k3d.internal:9092"
+
+  # Redis (외부 Docker Compose Redis 사용)
+  REDIS_HOST: "host.k3d.internal"
+  REDIS_PORT: "6379"
+
+  # JWT Configuration
+  JWT_EXPIRATION: "86400"
+  JWT_REFRESH_EXPIRATION: "604800"
+
+  # Spring Profile
+  SPRING_PROFILES_ACTIVE: "dev"
+
+  # Logging
+  LOGGING_LEVEL_ROOT: "INFO"
+  LOGGING_LEVEL_COM_KOOSCO: "DEBUG"

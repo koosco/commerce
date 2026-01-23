@@ -21,7 +21,17 @@ infra/
 ├── k8s/                  # Kubernetes resource definitions
 │   ├── namespace.yaml    # Commerce namespace
 │   ├── ingress-dev.yaml  # Development Ingress (Traefik, HTTP)
-│   └── ingress.yaml      # Production Ingress (HTTPS, TLS)
+│   ├── ingress.yaml      # Production Ingress (HTTPS, TLS)
+│   ├── common/           # Shared ConfigMap and Secret
+│   │   ├── configmap.yaml
+│   │   └── secret.yaml
+│   └── services/         # Service Deployment manifests
+│       ├── auth-service.yaml
+│       ├── user-service.yaml
+│       ├── catalog-service.yaml
+│       ├── inventory-service.yaml
+│       ├── order-service.yaml
+│       └── payment-service.yaml
 └── monitoring/           # Observability stack (SSoT for monitoring)
     ├── docker-compose.yml          # Base configuration
     ├── docker-compose.override.yml # Local development overrides
@@ -69,6 +79,9 @@ Apache Kafka provisioning using KRaft mode (no Zookeeper).
 
 Kubernetes resource definitions for the commerce namespace.
 
+**IMPORTANT**: 외부 DB 사용 - Docker Compose MariaDB (`host.k3d.internal:3306`)를 사용합니다.
+k8s 내부에 MariaDB를 배포하지 않습니다.
+
 **Resources**:
 - `namespace.yaml`: Creates the `commerce` namespace with production labels
 - `ingress-dev.yaml`: Development Ingress configuration
@@ -78,6 +91,25 @@ Kubernetes resource definitions for the commerce namespace.
 - `ingress.yaml`: Production Ingress configuration
   - HTTPS with TLS
   - Stricter rate limiting
+
+**common/** - 공통 설정:
+- `configmap.yaml`: 공통 환경 변수 (DB_HOST, KAFKA, REDIS, JWT 설정)
+- `secret.yaml`: 민감 정보 (DB credentials, JWT secret - base64 인코딩)
+
+**services/** - 서비스별 Deployment + Service:
+- 각 서비스는 Deployment(2 replicas)와 ClusterIP Service로 구성
+- `imagePullPolicy: Never` - 로컬 빌드 이미지 사용 (k3d image import)
+- Health probes: liveness (60s 초기 대기), readiness (30s 초기 대기)
+- Resources: 512Mi~1Gi memory, 250m~1000m CPU
+
+| 서비스 | DB 이름 | Kafka | Redis | 추가 환경변수 |
+|--------|---------|-------|-------|---------------|
+| auth-service | commerce-auth | X | X | - |
+| user-service | commerce-user | X | X | AUTH_SERVICE_URL |
+| catalog-service | commerce-catalog | O | X | - |
+| inventory-service | commerce-inventory | O | O | - |
+| order-service | commerce-order | O | X | SPRING_KAFKA_CONSUMER_GROUP_ID |
+| payment-service | commerce-payment | O | X | SPRING_KAFKA_CONSUMER_GROUP_ID |
 
 **Ingress Routing** (Traefik):
 | Path | Service |
@@ -138,12 +170,16 @@ make k8s-ns-delete        # Delete namespace (with confirmation)
 make k8s-ns-switch        # Switch kubectl context to commerce namespace
 
 # Resources
-make k8s-apply-all ENV=dev    # Apply all resources (dev environment)
+make k8s-apply-all ENV=dev    # Apply all resources (namespace, common, services, ingress)
 make k8s-apply-all ENV=prod   # Apply all resources (prod environment)
 make k8s-status               # Check all resource status
 
+# Service Manifests
+make k8s-services-apply       # Apply common + service manifests
+make k8s-services-delete      # Delete service manifests
+
 # Deployments
-make k8s-start            # Start all services (MariaDB: 1 replica, Apps: 2 replicas)
+make k8s-start            # Start all services (2 replicas each)
 make k8s-stop             # Stop all services (scale to 0)
 make k8s-restart          # Rolling restart all services
 make k8s-scale REPLICAS=n # Scale application services
@@ -191,35 +227,65 @@ docker-compose down       # Stop monitoring stack
 
 ### Kubernetes (k3d) Development
 
-1. Ensure k3d cluster is running
-2. Create namespace and apply resources:
+**Prerequisites**:
+- k3d cluster 실행 중
+- Docker Compose 인프라 실행 중 (MariaDB, Redis)
+- 서비스 이미지 빌드 및 import 완료
+
+**Setup Steps**:
+
+1. 외부 인프라 시작 (DB, Redis):
+   ```bash
+   cd docker && docker-compose up -d
+   ```
+
+2. Kafka for k3d 시작:
+   ```bash
+   make kafka-dev
+   ```
+
+3. K8s 리소스 배포:
    ```bash
    make k8s-ns-create
    make k8s-apply-all ENV=dev
    ```
 
-3. Start Kafka for k3d:
-   ```bash
-   make kafka-dev
-   ```
-
-4. Start services:
+4. 서비스 시작:
    ```bash
    make k8s-start
    ```
 
-5. Access services:
+5. 서비스 접근:
    ```bash
    make k8s-port-forward PORT=8080
    # Services available at http://localhost:8080/api/*
    ```
 
+**Troubleshooting**:
+- DB 연결 실패 시: Docker Compose MariaDB가 실행 중인지 확인
+- 이미지 pull 실패 시: `k3d image import <image>:latest -c <cluster>` 실행
+
 ## Service Deployment
 
 Each microservice is deployed as:
 - **Deployment**: Application pods (default 2 replicas for HA)
-- **Service**: ClusterIP service for internal communication
-- **MariaDB**: Separate MariaDB deployment per service (1 replica)
+- **Service**: ClusterIP service for internal communication (port 80 → 8080)
+
+**Database**: 외부 Docker Compose MariaDB 사용 (`host.k3d.internal:3306`)
+- k8s 내부에 MariaDB를 배포하지 않음
+- 각 서비스는 자체 schema 사용 (commerce-auth, commerce-user, etc.)
+
+**Image Build & Deploy**:
+```bash
+# 1. JAR 빌드
+./gradlew :services:auth-service:build
+
+# 2. Docker 이미지 빌드
+cd services/auth-service && docker build -t auth-service:latest .
+
+# 3. k3d 클러스터로 이미지 import
+k3d image import auth-service:latest -c <cluster-name>
+```
 
 Scaling is controlled via Makefile:
 ```bash
