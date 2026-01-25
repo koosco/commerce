@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: catalog-service
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        show_sql: false
+        format_sql: false
+    defer-datasource-initialization: false
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MariaDB
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  sql:
+    init:
+      mode: never
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: "*"
+
+jwt:
+  secret: testSecretKeyForJWTWhichShouldBeAtLeast256BitsLongToEnsureSecurityAndCompliance
+  expiration: 86400
+  refresh-expiration: 604800
+
+catalog:
+  topic:
+    default: koosco.commerce.catalog.default.test
+    mappings:
+      "product.sku.created": koosco.commerce.product.default.test
+
+common:
+  openapi:
+    enabled: false
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false

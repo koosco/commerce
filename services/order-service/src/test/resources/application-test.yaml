@@ -1,0 +1,64 @@
+spring:
+  application:
+    name: order-service
+  web:
+    resources:
+      add-mappings: false
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: "*"
+    listener:
+      ack-mode: manual_immediate
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        show_sql: false
+        format_sql: false
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: false
+
+jwt:
+  secret: testSecretKeyForJWTWhichShouldBeAtLeast256BitsLongToEnsureSecurityAndCompliance
+  expiration: 86400
+  refresh-expiration: 604800
+
+order:
+  topic:
+    default: koosco.commerce.order.default
+    mappings:
+      order.failed: koosco.commerce.order.failed
+      order:
+        placed: koosco.commerce.order.placed
+        confirmed: koosco.commerce.order.confirmed
+        cancelled: koosco.commerce.order.cancelled
+      stock:
+        reserved: koosco.commerce.stock.reserved
+        reservation.failed: koosco.commerce.stock.reservation.failed
+        confirmed: koosco.commerce.stock.confirmed
+        confirm.failed: koosco.commerce.stock.confirm.failed
+        cancelled: koosco.commerce.stock.cancelled
+      payment:
+        created: koosco.commerce.payment.created
+        completed: koosco.commerce.payment.completed
+        failed: koosco.commerce.payment.failed
+
+common:
+  openapi:
+    enabled: false

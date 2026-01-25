@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: payment-service-test
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      properties:
+        spring.json.trusted.packages: "*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    listener:
+      ack-mode: manual_immediate
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MariaDB;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+jwt:
+  secret: testSecretKeyForJWTWhichShouldBeAtLeast256BitsLongToEnsureSecurityAndCompliance
+  expiration: 86400
+  refresh-expiration: 604800
+
+payment:
+  topic:
+    default: koosco.commerce.integration.test
+    mappings:
+      order:
+        placed: koosco.commerce.order.placed.test
+        confirmed: koosco.commerce.order.confirmed.test
+        cancelled: koosco.commerce.order.cancelled.test
+      payment:
+        created: koosco.commerce.payment.created.test
+
+common:
+  openapi:
+    enabled: false

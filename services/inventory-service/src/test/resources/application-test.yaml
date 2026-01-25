@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: inventory-service
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        show_sql: false
+        format_sql: false
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MariaDB
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  kafka:
+    consumer:
+      group-id: inventory-service-test
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+
+inventory:
+  topic:
+    default: koosco.commerce.inventory.default
+    mappings:
+      order:
+        cancelled: koosco.commerce.order.cancelled
+        confirmed: koosco.commerce.order.confirmed
+        placed: koosco.commerce.order.placed
+      product:
+        "sku.created": koosco.commerce.sku.created
+      stock:
+        reserved: koosco.commerce.stock.reserved
+        "reservation.failed": koosco.commerce.stock.reservation.failed
+        confirmed: koosco.commerce.stock.confirmed
+        "confirm.failed": koosco.commerce.stock.confirm.failed
+        cancelled: koosco.commerce.stock.cancelled
+
+jwt:
+  secret: testSecretKeyForJWTWhichShouldBeAtLeast256BitsLongToEnsureSecurityAndCompliance
+  expiration: 86400
+  refresh-expiration: 604800

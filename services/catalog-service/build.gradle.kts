@@ -62,7 +62,21 @@ dependencies {
     // test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    // testcontainers
+    testImplementation(platform("org.testcontainers:testcontainers-bom:1.19.7"))
+    testImplementation("org.testcontainers:testcontainers")
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:kafka")
+    testImplementation("org.springframework.boot:spring-boot-testcontainers")
+
+    // common-core test fixtures (KafkaContainerTestBase)
+    testImplementation(testFixtures(project(":common:common-core")))
+
+    // h2 for tests
+    testRuntimeOnly("com.h2database:h2")
 }
 
 // Querydsl
