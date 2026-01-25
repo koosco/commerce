@@ -1,11 +1,11 @@
 # 이벤트 시스템 개선 계획
 
 > 마지막 업데이트: 2025-01-25
-> 이전 세션에서 이벤트 발행 패턴 통일 완료 후 작성
+> Kafka 통합 테스트 인프라 추가 완료 후 업데이트
 
 ## 완료된 작업
 
-### 이벤트 발행(Producer) 패턴 통일
+### 1. 이벤트 발행(Producer) 패턴 통일
 
 **변경 사항:**
 
@@ -33,6 +33,40 @@
 | catalog-service | O | Integration Event 직접 발행 | 표준 패턴 |
 | user-service | X | - | Feign 동기 호출 (auth-service 연동) |
 | auth-service | X | - | 순수 CRUD |
+
+---
+
+### 2. Kafka 통합 테스트 인프라 추가 ✅
+
+**커밋:** `47b53a1` (2025-01-25)
+
+**변경 사항:**
+
+1. **common-core testFixtures 추가**
+   - `java-test-fixtures` 플러그인 적용
+   - `KafkaContainerTestBase` 공통 테스트 베이스 클래스 제공
+   - Testcontainers 의존성 (kafka, junit-jupiter)
+
+2. **각 서비스 통합 테스트 추가**
+   - `catalog-service`: KafkaProductSkuEventPublisherIntegrationTest
+   - `inventory-service`: KafkaOrderEventConsumerIntegrationTest, KafkaStockEventPublisherIntegrationTest, StockIdempotencyTest
+   - `order-service`: KafkaOrderEventPublisherIntegrationTest, KafkaPaymentEventConsumerIntegrationTest, KafkaStockEventConsumerIntegrationTest
+   - `payment-service`: KafkaOrderPlacedConsumerIntegrationTest, KafkaPaymentEventPublisherIntegrationTest, PaymentIdempotencyTest
+
+3. **테스트 의존성 추가**
+   - testcontainers (kafka, mariadb)
+   - awaitility-kotlin (비동기 테스트)
+   - mockito-kotlin
+   - h2 (단위 테스트용)
+
+---
+
+### 3. Event Schema 문서화 ✅
+
+**커밋:** `47b53a1` (2025-01-25)
+
+**산출물:**
+- `common-core/docs/event-contracts.md` - 서비스 간 이벤트 계약 문서
 
 ---
 
@@ -70,39 +104,13 @@ subagent를 활용해 각 서비스의 consumer 패턴 분석:
 ### 2. Event Schema 검증 강화 (우선순위: 중간)
 
 **점검 항목:**
-- [ ] `common-core`의 CloudEvent 스펙 준수 여부 확인
-- [ ] 서비스 간 이벤트 계약(contract) 문서화
+- [x] `common-core`의 CloudEvent 스펙 준수 여부 확인
+- [x] 서비스 간 이벤트 계약(contract) 문서화 → `event-contracts.md`
 - [ ] 이벤트 버저닝 전략 수립 (schema evolution)
 
-**예상 산출물:**
-- `common-core/docs/event-contracts.md` - 이벤트 계약 문서
-- 각 서비스별 발행/소비 이벤트 목록
-
 ---
 
-### 3. 통합 테스트 추가 (우선순위: 중간)
-
-**점검 항목:**
-- [ ] 이벤트 발행 → 소비 E2E 테스트
-- [ ] Testcontainers로 Kafka 통합 테스트
-- [ ] 멱등성 테스트 (동일 이벤트 중복 처리)
-
-**예상 구조:**
-```kotlin
-@SpringBootTest
-@Testcontainers
-class OrderEventIntegrationTest {
-    @Container
-    val kafka = KafkaContainer(...)
-
-    @Test
-    fun `주문 생성 시 OrderPlacedEvent 발행 확인`() { ... }
-}
-```
-
----
-
-### 4. Observability 강화 (우선순위: 낮음)
+### 3. Observability 강화 (우선순위: 낮음)
 
 **점검 항목:**
 - [ ] correlationId/causationId 활용한 분산 추적
@@ -114,13 +122,17 @@ class OrderEventIntegrationTest {
 ## 권장 진행 순서
 
 ```
+✅ 이벤트 발행(Producer) 패턴 통일
+   ↓
+✅ Kafka 통합 테스트 인프라 추가
+   ↓
+✅ Event Schema 문서화
+   ↓
 1. Kafka Consumer 패턴 통일  ← 다음 작업 추천
    ↓
-2. 통합 테스트 추가
+2. Event Schema 버저닝 전략
    ↓
-3. Event Schema 검증 강화
-   ↓
-4. Observability 강화
+3. Observability 강화
 ```
 
 ---
@@ -139,6 +151,8 @@ subagent를 활용해 빠르게 분석해줘.
 
 ## 관련 파일
 
-- `/Users/koo/CodeSpace/commerce/mono/CLAUDE.md` - 프로젝트 가이드 (이벤트 발행 패턴 문서화됨)
-- `/Users/koo/CodeSpace/commerce/mono/.claude/skills/mono-kafka.md` - Kafka 가이드 스킬
-- `/Users/koo/CodeSpace/commerce/mono/common/common-core/` - 공통 이벤트 인프라
+- `CLAUDE.md` - 프로젝트 가이드 (이벤트 발행/소비 패턴 문서화됨)
+- `.claude/skills/mono-kafka.md` - Kafka 가이드 스킬
+- `common/common-core/` - 공통 이벤트 인프라
+- `common/common-core/docs/event-contracts.md` - 이벤트 계약 문서
+- `common/common-core/src/testFixtures/` - 공통 테스트 픽스처 (KafkaContainerTestBase)
