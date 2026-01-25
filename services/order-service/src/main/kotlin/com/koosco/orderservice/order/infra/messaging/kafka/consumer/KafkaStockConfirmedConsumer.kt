@@ -1,6 +1,7 @@
 package com.koosco.orderservice.order.infra.messaging.kafka.consumer
 
 import com.koosco.common.core.event.CloudEvent
+import com.koosco.common.core.messaging.MessageContext
 import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.orderservice.order.application.command.MarkOrderConfirmedCommand
 import com.koosco.orderservice.order.application.contract.inbound.inventory.StockConfirmedEvent
@@ -25,7 +26,7 @@ class KafkaStockConfirmedConsumer(private val markOrderConfirmedUseCase: MarkOrd
 
     @KafkaListener(
         topics = ["\${order.topic.mappings.stock.confirmed}"],
-        groupId = "order-service",
+        groupId = "\${spring.kafka.consumer.group-id}",
     )
     fun onStockConfirmed(@Valid event: CloudEvent<*>, ack: Acknowledgment) {
         val payload = event.data
@@ -43,9 +44,11 @@ class KafkaStockConfirmedConsumer(private val markOrderConfirmedUseCase: MarkOrd
             return
         }
 
-        logger.info(
-            "Received StockConfirmed: eventId=${event.id}, orderId=${stockConfirmedEvent.orderId}",
+        val context = MessageContext(
+            correlationId = stockConfirmedEvent.correlationId,
+            causationId = event.id,
         )
+        logger.info("Processing StockConfirmedEvent: orderId=${stockConfirmedEvent.orderId}, context=$context")
 
         try {
             markOrderConfirmedUseCase.execute(

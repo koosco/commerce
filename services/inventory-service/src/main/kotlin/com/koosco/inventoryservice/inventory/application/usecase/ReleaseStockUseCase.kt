@@ -1,7 +1,7 @@
 package com.koosco.inventoryservice.inventory.application.usecase
 
 import com.koosco.common.core.annotation.UseCase
-import com.koosco.inventoryservice.common.MessageContext
+import com.koosco.common.core.messaging.MessageContext
 import com.koosco.inventoryservice.inventory.application.command.CancelStockCommand
 import com.koosco.inventoryservice.inventory.application.port.InventoryStockStorePort
 import org.slf4j.LoggerFactory

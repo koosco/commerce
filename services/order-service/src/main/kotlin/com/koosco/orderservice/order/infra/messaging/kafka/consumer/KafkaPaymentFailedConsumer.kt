@@ -1,8 +1,8 @@
 package com.koosco.orderservice.order.infra.messaging.kafka.consumer
 
 import com.koosco.common.core.event.CloudEvent
+import com.koosco.common.core.messaging.MessageContext
 import com.koosco.common.core.util.JsonUtils.objectMapper
-import com.koosco.orderservice.common.MessageContext
 import com.koosco.orderservice.order.application.command.CancelOrderCommand
 import com.koosco.orderservice.order.application.contract.inbound.payment.PaymentFailedEvent
 import com.koosco.orderservice.order.application.usecase.CancelOrderByPaymentFailureUseCase
@@ -28,7 +28,7 @@ class KafkaPaymentFailedConsumer(private val cancelOrderByPaymentFailureUseCase:
 
     @KafkaListener(
         topics = ["\${order.topic.mappings.payment.failed}"],
-        groupId = "order-service",
+        groupId = "\${spring.kafka.consumer.group-id}",
     )
     fun onPaymentFailed(@Valid event: CloudEvent<*>, ack: Acknowledgment) {
         val payload = event.data

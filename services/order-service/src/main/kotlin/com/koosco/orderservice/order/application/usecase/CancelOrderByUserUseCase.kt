@@ -2,7 +2,7 @@ package com.koosco.orderservice.order.application.usecase
 
 import com.koosco.common.core.annotation.UseCase
 import com.koosco.common.core.exception.NotFoundException
-import com.koosco.orderservice.common.MessageContext
+import com.koosco.common.core.messaging.MessageContext
 import com.koosco.orderservice.common.error.OrderErrorCode
 import com.koosco.orderservice.order.application.command.CancelOrderCommand
 import com.koosco.orderservice.order.application.contract.outbound.order.OrderCancelledEvent

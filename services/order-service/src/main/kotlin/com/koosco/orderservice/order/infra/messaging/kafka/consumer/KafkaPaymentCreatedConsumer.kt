@@ -1,8 +1,8 @@
 package com.koosco.orderservice.order.infra.messaging.kafka.consumer
 
 import com.koosco.common.core.event.CloudEvent
+import com.koosco.common.core.messaging.MessageContext
 import com.koosco.common.core.util.JsonUtils.objectMapper
-import com.koosco.orderservice.common.MessageContext
 import com.koosco.orderservice.order.application.command.MarkOrderPaymentCreatedCommand
 import com.koosco.orderservice.order.application.contract.inbound.payment.PaymentCreatedEvent
 import com.koosco.orderservice.order.application.usecase.MarkOrderPaymentCreatedUseCase
@@ -26,7 +26,7 @@ class KafkaPaymentCreatedConsumer(private val markOrderPaymentCreatedUseCase: Ma
 
     @KafkaListener(
         topics = ["\${order.topic.mappings.payment.created}"],
-        groupId = "order-service",
+        groupId = "\${spring.kafka.consumer.group-id}",
     )
     fun onPaymentCreated(@Valid event: CloudEvent<*>, ack: Acknowledgment) {
         val payload = event.data

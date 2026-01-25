@@ -1,6 +1,7 @@
 package com.koosco.orderservice.order.infra.messaging.kafka.consumer
 
 import com.koosco.common.core.event.CloudEvent
+import com.koosco.common.core.messaging.MessageContext
 import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.orderservice.order.application.command.MarkOrderPaymentPendingCommand
 import com.koosco.orderservice.order.application.contract.inbound.inventory.StockReservedEvent
@@ -25,7 +26,7 @@ class KafkaStockReservedConsumer(private val markOrderPaymentPendingUseCase: Mar
 
     @KafkaListener(
         topics = ["\${order.topic.mappings.stock.reserved}"],
-        groupId = "order-service",
+        groupId = "\${spring.kafka.consumer.group-id}",
     )
     fun onStockReserved(@Valid event: CloudEvent<*>, ack: Acknowledgment) {
         val payload = event.data
@@ -42,6 +43,12 @@ class KafkaStockReservedConsumer(private val markOrderPaymentPendingUseCase: Mar
             ack.acknowledge()
             return
         }
+
+        val context = MessageContext(
+            correlationId = stockReserved.correlationId,
+            causationId = event.id,
+        )
+        logger.info("Processing StockReservedEvent: orderId=${stockReserved.orderId}, context=$context")
 
         markOrderPaymentPendingUseCase.execute(
             MarkOrderPaymentPendingCommand(

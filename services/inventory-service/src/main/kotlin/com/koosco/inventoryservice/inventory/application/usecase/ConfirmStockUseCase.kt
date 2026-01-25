@@ -2,7 +2,7 @@ package com.koosco.inventoryservice.inventory.application.usecase
 
 import com.koosco.common.core.annotation.UseCase
 import com.koosco.common.core.exception.NotFoundException
-import com.koosco.inventoryservice.common.MessageContext
+import com.koosco.common.core.messaging.MessageContext
 import com.koosco.inventoryservice.inventory.application.command.ConfirmStockCommand
 import com.koosco.inventoryservice.inventory.application.contract.outbound.inventory.StockConfirmFailedEvent
 import com.koosco.inventoryservice.inventory.application.contract.outbound.inventory.StockConfirmedEvent

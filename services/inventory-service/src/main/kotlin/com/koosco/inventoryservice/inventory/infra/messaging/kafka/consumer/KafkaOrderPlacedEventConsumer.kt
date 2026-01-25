@@ -1,8 +1,8 @@
 package com.koosco.inventoryservice.inventory.infra.messaging.kafka.consumer
 
 import com.koosco.common.core.event.CloudEvent
+import com.koosco.common.core.messaging.MessageContext
 import com.koosco.common.core.util.JsonUtils.objectMapper
-import com.koosco.inventoryservice.common.MessageContext
 import com.koosco.inventoryservice.inventory.application.command.ReserveStockCommand
 import com.koosco.inventoryservice.inventory.application.contract.inbound.order.OrderPlacedEvent
 import com.koosco.inventoryservice.inventory.application.usecase.ReserveStockUseCase
