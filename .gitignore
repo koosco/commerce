@@ -49,3 +49,16 @@ generated-test-sources/
 # KAPT
 .apt_generated/
 .apt_generated_tests/
+
+# Backup files
+*.bak
+
+# Infrastructure data (local development)
+infra/docker/mariadb_data/
+infra/kafka/kafka_data_dev/
+infra/kafka/kafka_data_local/
+infra/kafka/kafka-3.7.0/
+
+# Load test outputs
+load-test/data/
+load-test/results/
