@@ -8,7 +8,6 @@ import com.koosco.orderservice.order.application.port.IntegrationEventPublisher
 import com.koosco.orderservice.order.application.port.OrderRepository
 import com.koosco.orderservice.order.application.result.CreateOrderResult
 import com.koosco.orderservice.order.domain.Order
-import com.koosco.orderservice.order.domain.event.OrderPlaced
 import com.koosco.orderservice.order.domain.vo.OrderAmount
 import com.koosco.orderservice.order.domain.vo.OrderItemSpec
 import org.springframework.transaction.annotation.Transactional
@@ -60,26 +59,20 @@ class CreateOrderUseCase(
 
         savedOrder.place()
 
-        val placedEvent = order.pullDomainEvents()
-            .filterIsInstance<OrderPlaced>()
-            .singleOrNull()
-            ?: throw IllegalStateException()
-
-        // 외부 이벤트 발행
+        // Integration event 직접 생성 및 발행
         integrationEventPublisher.publish(
             OrderPlacedEvent(
-                orderId = placedEvent.orderId,
-                userId = placedEvent.userId,
-                payableAmount = order.payableAmount.amount,
-                items = placedEvent.items.map {
+                orderId = savedOrder.id!!,
+                userId = savedOrder.userId,
+                payableAmount = savedOrder.payableAmount.amount,
+                items = savedOrder.items.map {
                     PlacedItem(
                         skuId = it.skuId,
                         quantity = it.quantity,
-                        unitPrice = it.unitPrice,
+                        unitPrice = it.unitPrice.amount,
                     )
                 },
-
-                correlationId = placedEvent.orderId.toString(),
+                correlationId = savedOrder.id.toString(),
                 causationId = UUID.randomUUID().toString(),
             ),
         )

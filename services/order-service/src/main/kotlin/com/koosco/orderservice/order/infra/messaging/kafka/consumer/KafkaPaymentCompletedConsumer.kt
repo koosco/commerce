@@ -24,7 +24,7 @@ class KafkaPaymentCompletedConsumer(private val markOrderPaidUseCase: MarkOrderP
 
     @KafkaListener(
         topics = ["\${order.topic.mappings.payment.completed}"],
-        groupId = "\${spring.kafka.consumer.group-id:order-service-group}",
+        groupId = "order-service",
     )
     fun onPaymentCompleted(@Valid event: CloudEvent<*>, ack: Acknowledgment) {
         val payload = event.data

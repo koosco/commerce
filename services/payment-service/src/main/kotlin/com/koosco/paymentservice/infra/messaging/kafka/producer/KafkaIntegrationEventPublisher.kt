@@ -2,7 +2,7 @@ package com.koosco.paymentservice.infra.messaging.kafka.producer
 
 import com.koosco.common.core.event.CloudEvent
 import com.koosco.paymentservice.application.contract.PaymentIntegrationEvent
-import com.koosco.paymentservice.application.port.IntegrationEventPublisherPort
+import com.koosco.paymentservice.application.port.IntegrationEventPublisher
 import com.koosco.paymentservice.infra.messaging.kafka.KafkaTopicResolver
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -16,13 +16,13 @@ import org.springframework.stereotype.Component
  * description    :
  */
 @Component
-class KafkaIntegrationEventPublisherAdapter(
+class KafkaIntegrationEventPublisher(
     private val topicResolver: KafkaTopicResolver,
     private val kafkaTemplate: KafkaTemplate<String, CloudEvent<*>>,
 
     @Value("\${spring.application.name}")
     private val source: String,
-) : IntegrationEventPublisherPort {
+) : IntegrationEventPublisher {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 

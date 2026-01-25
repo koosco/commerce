@@ -5,10 +5,12 @@ import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.orderservice.order.application.command.MarkOrderConfirmedCommand
 import com.koosco.orderservice.order.application.contract.inbound.inventory.StockConfirmedEvent
 import com.koosco.orderservice.order.application.usecase.MarkOrderConfirmedUseCase
+import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
+import org.springframework.validation.annotation.Validated
 
 /**
  * fileName       : KafkaStockConfirmedConsumer
@@ -17,14 +19,15 @@ import org.springframework.stereotype.Component
  * description    :
  */
 @Component
+@Validated
 class KafkaStockConfirmedConsumer(private val markOrderConfirmedUseCase: MarkOrderConfirmedUseCase) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @KafkaListener(
         topics = ["\${order.topic.mappings.stock.confirmed}"],
-        groupId = "\${spring.kafka.consumer.group-id:order-service-group}",
+        groupId = "order-service",
     )
-    fun onStockConfirmed(event: CloudEvent<*>, ack: Acknowledgment) {
+    fun onStockConfirmed(@Valid event: CloudEvent<*>, ack: Acknowledgment) {
         val payload = event.data
             ?: run {
                 logger.error("StockConfirmedEvent is null: eventId=${event.id}")

@@ -5,10 +5,12 @@ import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.orderservice.order.application.command.MarkOrderPaymentPendingCommand
 import com.koosco.orderservice.order.application.contract.inbound.inventory.StockReservedEvent
 import com.koosco.orderservice.order.application.usecase.MarkOrderPaymentPendingUseCase
+import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
+import org.springframework.validation.annotation.Validated
 
 /**
  * fileName       : KafkaStockReservedConsumer
@@ -17,14 +19,15 @@ import org.springframework.stereotype.Component
  * description    :
  */
 @Component
+@Validated
 class KafkaStockReservedConsumer(private val markOrderPaymentPendingUseCase: MarkOrderPaymentPendingUseCase) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @KafkaListener(
         topics = ["\${order.topic.mappings.stock.reserved}"],
-        groupId = "\${spring.kafka.consumer.group-id:order-service-group}",
+        groupId = "order-service",
     )
-    fun onStockReserved(event: CloudEvent<*>, ack: Acknowledgment) {
+    fun onStockReserved(@Valid event: CloudEvent<*>, ack: Acknowledgment) {
         val payload = event.data
             ?: run {
                 logger.error("StockReservedEvent is null: eventId=${event.id}")

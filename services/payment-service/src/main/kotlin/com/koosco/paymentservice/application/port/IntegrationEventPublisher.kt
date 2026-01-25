@@ -8,6 +8,6 @@ import com.koosco.paymentservice.application.contract.PaymentIntegrationEvent
  * date           : 2025. 12. 24. 오후 9:05
  * description    :
  */
-interface IntegrationEventPublisherPort {
+interface IntegrationEventPublisher {
     fun publish(event: PaymentIntegrationEvent)
 }

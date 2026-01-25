@@ -119,6 +119,103 @@ Each service follows Clean Architecture with layers:
 - Events follow **CloudEvent** specification (see `common-core`)
 - Consumers must be **idempotent**
 
+### Integration Event Publishing Pattern
+
+모든 서비스는 다음 표준 패턴을 따릅니다:
+
+**디렉토리 구조**
+```
+services/{service}/
+├── application/
+│   ├── port/
+│   │   └── IntegrationEventPublisher.kt    # Port 인터페이스
+│   └── contract/
+│       └── {Service}IntegrationEvent.kt    # 이벤트 계약
+└── infra/
+    └── messaging/kafka/producer/
+        └── KafkaIntegrationEventPublisher.kt  # Kafka 어댑터
+```
+
+**네이밍 컨벤션**
+- Port: `IntegrationEventPublisher` (Port 접미사 사용 금지)
+- Adapter: `KafkaIntegrationEventPublisher` (Adapter 접미사 사용 금지)
+
+**발행 패턴**
+```kotlin
+@UseCase
+class CreateOrderUseCase(
+    private val orderRepository: OrderRepository,
+    private val integrationEventPublisher: IntegrationEventPublisher,
+) {
+    @Transactional
+    fun execute(command: CreateOrderCommand): CreateOrderResult {
+        val savedOrder = orderRepository.save(order)
+
+        // Integration Event 직접 생성 및 발행
+        integrationEventPublisher.publish(
+            OrderPlacedEvent(
+                orderId = savedOrder.id!!,
+                userId = savedOrder.userId,
+                correlationId = savedOrder.id.toString(),
+                causationId = UUID.randomUUID().toString(),
+            ),
+        )
+
+        return CreateOrderResult(savedOrder.id!!)
+    }
+}
+```
+
+**핵심 원칙**
+1. `@Transactional` 메서드 내에서 이벤트 발행
+2. `correlationId`: 주문 ID 등 비즈니스 식별자
+3. `causationId`: UUID로 생성 (이벤트 추적용)
+4. CloudEvent 표준 준수 (`common-core` 활용)
+
+### Integration Event Consuming Pattern
+
+모든 서비스는 다음 표준 Consumer 패턴을 따릅니다:
+
+**디렉토리 구조**
+```
+services/{service}/
+├── application/
+│   └── contract/
+│       └── inbound/
+│           └── {Source}Event.kt    # 수신 이벤트 DTO
+├── common/
+│   └── MessageContext.kt           # 상관관계 추적
+└── infra/
+    └── messaging/kafka/consumer/
+        └── Kafka{EventName}Consumer.kt
+```
+
+**Consumer 표준 패턴**
+```kotlin
+@Component
+@Validated
+class KafkaOrderPlacedEventConsumer(private val useCase: ReserveStockUseCase) {
+    @KafkaListener(
+        topics = ["\${service.topic.mappings.order.placed}"],
+        groupId = "\${spring.kafka.consumer.group-id}",  // property 참조 필수
+    )
+    fun onOrderPlaced(@Valid event: CloudEvent<*>, ack: Acknowledgment) {
+        // 1. Null/역직렬화 실패 → ack 후 skip (poison message)
+        // 2. MessageContext 생성 (correlationId, causationId)
+        // 3. Command 변환 및 UseCase 실행
+        // 4. 비즈니스 예외 → ack (재시도 불필요)
+        // 5. 인프라 예외 → throw (재시도)
+    }
+}
+```
+
+**핵심 규칙**
+1. 클래스에 `@Validated`, 파라미터에 `@Valid` 필수
+2. `groupId`는 property 참조 (`${spring.kafka.consumer.group-id}`)
+3. 수동 ack 모드 (`MANUAL_IMMEDIATE`)
+4. poison message는 ack 후 skip
+5. 비즈니스 예외와 인프라 예외 구분 처리
+
 ### Data Flow
 ```
 API (request) → Application (command) → Application (result) → API (response)
@@ -224,6 +321,9 @@ See `load-test/CLAUDE.md` for detailed guidance.
 2. **No synchronous inter-service calls**: Use Kafka for all service communication
 3. **Idempotent consumers**: All Kafka consumers must handle duplicate messages
 4. **No backward-incompatible changes** to common modules without coordination
+5. **Event publishing naming**: Port는 `IntegrationEventPublisher`, Adapter는 `KafkaIntegrationEventPublisher`로 통일
+6. **No Domain Event extraction pattern**: `pullDomainEvents()` 패턴 사용 금지, Integration Event 직접 발행
+7. **Consumer group ID**: property 참조 필수 (`${spring.kafka.consumer.group-id}`), hardcoding 금지
 
 ## Code Guidelines
 
@@ -249,8 +349,29 @@ throw NotFoundException(OrderErrorCode.ORDER_NOT_FOUND)
 // API response
 return ApiResponse.success(data)
 
-// Event publishing
-eventPublisher.publishDomainEvent(event, "urn:koosco:order-service")
+// Event publishing (직접 발행 패턴)
+integrationEventPublisher.publish(
+    OrderPlacedEvent(
+        orderId = savedOrder.id!!,
+        correlationId = savedOrder.id.toString(),
+        causationId = UUID.randomUUID().toString(),
+    ),
+)
+
+// Event consuming (Consumer 패턴)
+@Component
+@Validated
+class KafkaEventConsumer(private val useCase: UseCase) {
+    @KafkaListener(topics = ["..."], groupId = "\${spring.kafka.consumer.group-id}")
+    fun onEvent(@Valid event: CloudEvent<*>, ack: Acknowledgment) {
+        val context = MessageContext(
+            correlationId = eventDto.correlationId,
+            causationId = event.id,  // 멱등성 키로 활용
+        )
+        useCase.execute(command, context)
+        ack.acknowledge()
+    }
+}
 
 // Transaction management
 transactionRunner.run { orderRepository.save(order) }
@@ -310,3 +431,23 @@ Each service has its own CLAUDE.md with specific guidance:
 - `services/inventory-service/` - Stock management (Redis + MariaDB hybrid)
 - `services/order-service/` - Order saga, state machine
 - `services/payment-service/` - Toss Payments integration
+
+### Event Publishing by Service
+
+| 서비스 | Kafka 발행 | 패턴 | 비고 |
+|--------|-----------|------|------|
+| order-service | O | Integration Event 직접 발행 | `@Transactional` 내 발행 |
+| inventory-service | O | Integration Event 직접 발행 | 비트랜잭셔널 (Redis 특성) |
+| payment-service | O | Integration Event 직접 발행 | 멱등성 저장소 사용 |
+| catalog-service | O | Integration Event 직접 발행 | 표준 패턴 |
+| user-service | X | - | Feign 동기 호출 (auth-service 연동) |
+| auth-service | X | - | 순수 CRUD |
+
+### Event Consuming by Service
+
+| 서비스 | 소비 이벤트 | 멱등성 | 비고 |
+|--------|------------|--------|------|
+| order-service | PaymentCreated/Completed/Failed, StockReserved/Confirmed | 상태 전이 | 5개 Consumer |
+| inventory-service | OrderPlaced/Confirmed/Cancelled, ProductSkuCreated | 상태 전이 | 4개 Consumer |
+| payment-service | OrderPlaced | **DB 멱등성** | IdempotencyRepository 사용 |
+| catalog-service | - | - | Consumer 없음 (Producer only) |

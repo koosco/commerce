@@ -10,7 +10,6 @@ import com.koosco.orderservice.order.application.port.IntegrationEventPublisher
 import com.koosco.orderservice.order.application.port.OrderRepository
 import com.koosco.orderservice.order.domain.OrderStatus
 import com.koosco.orderservice.order.domain.enums.OrderCancelReason
-import com.koosco.orderservice.order.domain.event.OrderCancelled
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 
@@ -44,14 +43,12 @@ class CancelOrderByUserUseCase(
 
         orderRepository.save(order)
 
-        val cancelled = order.pullDomainEvents().filterIsInstance<OrderCancelled>().singleOrNull()
-            ?: throw IllegalStateException("OrderCancelledEvent not created")
-
+        // Integration event 직접 생성 및 발행
         integrationEventPublisher.publish(
             OrderCancelledEvent(
-                orderId = cancelled.orderId,
-                reason = cancelled.reason,
-                items = cancelled.items.map { OrderCancelledEvent.CancelledItem(it.skuId, it.quantity) },
+                orderId = order.id!!,
+                reason = OrderCancelReason.USER_REQUEST,
+                items = order.items.map { OrderCancelledEvent.CancelledItem(it.skuId, it.quantity) },
                 correlationId = context.correlationId,
                 causationId = context.causationId,
             ),

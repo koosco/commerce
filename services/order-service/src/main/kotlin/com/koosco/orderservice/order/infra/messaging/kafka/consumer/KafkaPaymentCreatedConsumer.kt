@@ -6,10 +6,12 @@ import com.koosco.orderservice.common.MessageContext
 import com.koosco.orderservice.order.application.command.MarkOrderPaymentCreatedCommand
 import com.koosco.orderservice.order.application.contract.inbound.payment.PaymentCreatedEvent
 import com.koosco.orderservice.order.application.usecase.MarkOrderPaymentCreatedUseCase
+import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
+import org.springframework.validation.annotation.Validated
 
 /**
  * fileName       : KafkaPaymentCreatedConsumer
@@ -18,14 +20,15 @@ import org.springframework.stereotype.Component
  * description    :
  */
 @Component
+@Validated
 class KafkaPaymentCreatedConsumer(private val markOrderPaymentCreatedUseCase: MarkOrderPaymentCreatedUseCase) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @KafkaListener(
         topics = ["\${order.topic.mappings.payment.created}"],
-        groupId = "\${spring.application.name}",
+        groupId = "order-service",
     )
-    fun onPaymentCreated(event: CloudEvent<*>, ack: Acknowledgment) {
+    fun onPaymentCreated(@Valid event: CloudEvent<*>, ack: Acknowledgment) {
         val payload = event.data
             ?: run {
                 logger.error("PaymentCreatedEvent data is null: eventId=${event.id}")

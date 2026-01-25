@@ -4,7 +4,7 @@ import com.koosco.common.core.annotation.UseCase
 import com.koosco.paymentservice.application.command.CreatePaymentCommand
 import com.koosco.paymentservice.application.contract.outbound.payment.PaymentCreatedEvent
 import com.koosco.paymentservice.application.port.IdempotencyRepositoryPort
-import com.koosco.paymentservice.application.port.IntegrationEventPublisherPort
+import com.koosco.paymentservice.application.port.IntegrationEventPublisher
 import com.koosco.paymentservice.application.port.PaymentRepositoryPort
 import com.koosco.paymentservice.common.MessageContext
 import com.koosco.paymentservice.domain.entity.Payment
@@ -25,7 +25,7 @@ import java.util.UUID
 class CreatePaymentUseCase(
     private val idempotencyRepository: IdempotencyRepositoryPort,
     private val paymentRepository: PaymentRepositoryPort,
-    private val integrationEventPublisher: IntegrationEventPublisherPort,
+    private val integrationEventPublisher: IntegrationEventPublisher,
 ) {
 
     @Transactional

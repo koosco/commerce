@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
+import org.springframework.validation.annotation.Validated
 
 /**
  * fileName       : KafkaOrderPlacedEventConsumer
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component
  * description    : OrderCreatedEvent 처리 리스너
  */
 @Component
+@Validated
 class KafkaOrderPlacedEventConsumer(private val reserveStockUseCase: ReserveStockUseCase) {
     private val logger = LoggerFactory.getLogger(javaClass)
 

@@ -27,7 +27,7 @@ class KafkaProductSkuCreatedConsumer(private val initializeStockUseCase: Initial
      */
     @KafkaListener(
         topics = ["\${inventory.topic.mappings.product.sku.created}"],
-        groupId = "inventory-service",
+        groupId = "\${spring.kafka.consumer.group-id}",
     )
     fun onProductSkuCreated(@Valid event: CloudEvent<*>, ack: Acknowledgment) {
         val payload = event.data
