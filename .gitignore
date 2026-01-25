@@ -30,7 +30,7 @@ Thumbs.db
 
 # Environment
 .env
-.env.local
+.env.*
 *.local
 
 # Logs
@@ -54,6 +54,7 @@ generated-test-sources/
 *.bak
 
 # Infrastructure data (local development)
+infra/data/
 infra/docker/mariadb_data/
 infra/kafka/kafka_data_dev/
 infra/kafka/kafka_data_local/
