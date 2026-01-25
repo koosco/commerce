@@ -1,7 +1,7 @@
 # 이벤트 시스템 개선 계획
 
 > 마지막 업데이트: 2025-01-25
-> Kafka 통합 테스트 인프라 추가 완료 후 업데이트
+> Kafka Consumer 패턴 통일 완료 후 업데이트
 
 ## 완료된 작업
 
@@ -70,52 +70,68 @@
 
 ---
 
+### 4. Kafka Consumer 패턴 통일 ✅
+
+**커밋:** `911b11b` (2025-01-25)
+
+**변경 사항:**
+
+1. **MessageContext를 common-core로 이동**
+   - `common/common-core/src/main/kotlin/com/koosco/common/core/messaging/MessageContext.kt` 생성
+   - 각 서비스의 중복 MessageContext 파일 삭제 (3개)
+
+2. **groupId 표준화**
+   - order-service 5개 consumer: `"order-service"` → `"${spring.kafka.consumer.group-id}"`
+   - payment-service 1개 consumer: `"${spring.application.name}"` → `"${spring.kafka.consumer.group-id}"`
+   - inventory-service: 이미 표준 준수
+
+3. **MessageContext 로깅 추가**
+   - `KafkaStockReservedConsumer`, `KafkaStockConfirmedConsumer`에 추적 로깅 추가
+
+**현재 Consumer 패턴:**
+
+| 서비스 | Consumer 수 | groupId | MessageContext | 멱등성 |
+|--------|------------|---------|----------------|--------|
+| order-service | 5개 | `${property}` ✅ | common-core ✅ | 상태 전이 |
+| inventory-service | 4개 | `${property}` ✅ | common-core ✅ | 상태 전이 |
+| payment-service | 1개 | `${property}` ✅ | common-core ✅ | DB 멱등성 |
+
+---
+
 ## 추천 다음 작업
 
-### 1. Kafka Consumer 패턴 통일 (우선순위: 높음 ⭐)
-
-발행(Producer)을 통일했으니, **소비(Consumer) 패턴**도 점검이 필요합니다.
+### 1. Event Schema 버저닝 전략 (우선순위: 높음 ⭐)
 
 **점검 항목:**
-- [ ] 멱등성 처리 방식 통일 (IdempotencyRepository vs. 다른 방식)
-- [ ] Consumer 디렉토리 구조 통일
-- [ ] 에러 핸들링 패턴 (DLQ, retry 정책)
-- [ ] Consumer 그룹 네이밍 컨벤션
-
-**예상 작업:**
-```
-services/{service}/
-└── infra/
-    └── messaging/kafka/consumer/
-        └── {Event}Consumer.kt
-```
-
-**실행 방법:**
-```
-subagent를 활용해 각 서비스의 consumer 패턴 분석:
-- order-service consumer 패턴
-- inventory-service consumer 패턴
-- payment-service consumer 패턴
-- catalog-service consumer 패턴
-```
-
----
-
-### 2. Event Schema 검증 강화 (우선순위: 중간)
-
-**점검 항목:**
-- [x] `common-core`의 CloudEvent 스펙 준수 여부 확인
-- [x] 서비스 간 이벤트 계약(contract) 문서화 → `event-contracts.md`
 - [ ] 이벤트 버저닝 전략 수립 (schema evolution)
+- [ ] 하위 호환성 보장 방안
+- [ ] 필드 추가/삭제 시 처리 방법
 
 ---
 
-### 3. Observability 강화 (우선순위: 낮음)
+### 2. Observability 강화 (우선순위: 중간)
 
 **점검 항목:**
-- [ ] correlationId/causationId 활용한 분산 추적
-- [ ] 이벤트 발행/소비 메트릭 추가
+- [ ] correlationId/causationId 활용한 분산 추적 개선
+- [ ] 이벤트 발행/소비 메트릭 추가 (Micrometer)
 - [ ] Grafana 대시보드에 이벤트 처리량 시각화
+
+---
+
+### 3. DLQ 및 재처리 전략 (우선순위: 낮음)
+
+**점검 항목:**
+- [ ] Dead Letter Queue 설정
+- [ ] 재처리 전략 수립 (exponential backoff)
+- [ ] 실패 이벤트 모니터링/알림
+
+---
+
+### 4. 멱등성 패턴 확산 (우선순위: 낮음)
+
+**점검 항목:**
+- [ ] payment-service의 IdempotencyRepository 패턴을 다른 서비스에 적용
+- [ ] common-core에 공통 멱등성 유틸리티 추가 검토
 
 ---
 
@@ -128,23 +144,27 @@ subagent를 활용해 각 서비스의 consumer 패턴 분석:
    ↓
 ✅ Event Schema 문서화
    ↓
-1. Kafka Consumer 패턴 통일  ← 다음 작업 추천
+✅ Kafka Consumer 패턴 통일
    ↓
-2. Event Schema 버저닝 전략
+1. Event Schema 버저닝 전략  ← 다음 추천
    ↓
-3. Observability 강화
+2. Observability 강화
+   ↓
+3. DLQ 및 재처리 전략
 ```
 
 ---
 
 ## 세션 시작 시 명령어
 
-다음 세션에서 Consumer 패턴 통일 작업을 시작하려면:
+다음 세션에서 이벤트 버저닝 전략 작업을 시작하려면:
 
 ```
-각 서비스의 Kafka Consumer 패턴을 분석하고 통일할 방안을 계획해줘.
-subagent를 활용해 빠르게 분석해줘.
-참고: .claude/docs/next-steps-event-system.md
+이벤트 스키마 버저닝 전략을 수립해줘.
+- 하위 호환성 보장 방안
+- 필드 추가/삭제 시 처리 방법
+- 버전 관리 컨벤션
+참고: common-core/docs/event-contracts.md
 ```
 
 ---
@@ -153,6 +173,8 @@ subagent를 활용해 빠르게 분석해줘.
 
 - `CLAUDE.md` - 프로젝트 가이드 (이벤트 발행/소비 패턴 문서화됨)
 - `.claude/skills/mono-kafka.md` - Kafka 가이드 스킬
+- `.claude/docs/consumer-unification-plan.md` - Consumer 통일 계획 문서 (완료)
 - `common/common-core/` - 공통 이벤트 인프라
+- `common/common-core/src/main/kotlin/.../messaging/MessageContext.kt` - 공통 MessageContext
 - `common/common-core/docs/event-contracts.md` - 이벤트 계약 문서
 - `common/common-core/src/testFixtures/` - 공통 테스트 픽스처 (KafkaContainerTestBase)
