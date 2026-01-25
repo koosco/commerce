@@ -6,7 +6,9 @@ import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.inventoryservice.inventory.application.command.ReserveStockCommand
 import com.koosco.inventoryservice.inventory.application.contract.inbound.order.OrderPlacedEvent
 import com.koosco.inventoryservice.inventory.application.usecase.ReserveStockUseCase
+import com.koosco.inventoryservice.inventory.domain.entity.InventoryEventIdempotency.Companion.Actions
 import com.koosco.inventoryservice.inventory.domain.exception.NotEnoughStockException
+import com.koosco.inventoryservice.inventory.infra.idempotency.IdempotencyChecker
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -15,14 +17,14 @@ import org.springframework.stereotype.Component
 import org.springframework.validation.annotation.Validated
 
 /**
- * fileName       : KafkaOrderPlacedEventConsumer
- * author         : koo
- * date           : 2025. 12. 19. 오후 12:38
- * description    : OrderCreatedEvent 처리 리스너
+ * OrderPlacedEvent 처리 - 재고 예약
  */
 @Component
 @Validated
-class KafkaOrderPlacedEventConsumer(private val reserveStockUseCase: ReserveStockUseCase) {
+class KafkaOrderPlacedEventConsumer(
+    private val reserveStockUseCase: ReserveStockUseCase,
+    private val idempotencyChecker: IdempotencyChecker,
+) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @KafkaListener(
@@ -42,6 +44,13 @@ class KafkaOrderPlacedEventConsumer(private val reserveStockUseCase: ReserveStoc
         } catch (e: Exception) {
             logger.error("Failed to deserialize OrderPlacedEvent: eventId=${event.id}", e)
             ack.acknowledge() // poison message → skip
+            return
+        }
+
+        // Idempotency fast-path check
+        if (idempotencyChecker.isAlreadyProcessed(event.id, Actions.RESERVE_STOCK)) {
+            logger.info("Event already processed: eventId=${event.id}, orderId=${orderPlaced.orderId}")
+            ack.acknowledge()
             return
         }
 
@@ -70,14 +79,21 @@ class KafkaOrderPlacedEventConsumer(private val reserveStockUseCase: ReserveStoc
         try {
             reserveStockUseCase.execute(command, context)
 
+            // Record idempotency after successful processing
+            idempotencyChecker.recordProcessed(
+                eventId = event.id,
+                action = Actions.RESERVE_STOCK,
+                referenceId = orderPlaced.orderId.toString(),
+            )
+
             ack.acknowledge()
             logger.info(
-                "Successfully reserved stock for ORDER: eventId=${event.id}, orderId=${orderPlaced.orderId}, items=${orderPlaced.items}",
+                "Successfully reserved stock for ORDER: eventId=${event.id}, orderId=${orderPlaced.orderId}",
             )
         } catch (_: NotEnoughStockException) {
-            // 재고 부족 -> 재시도하지 않음 -> TODO : notification 처리
+            // 재고 부족 -> 재시도하지 않음
             logger.warn(
-                "Stock reservation failed: eventId=${event.id}, orderId=${orderPlaced.orderId}",
+                "Stock reservation failed (not enough stock): eventId=${event.id}, orderId=${orderPlaced.orderId}",
             )
             ack.acknowledge()
         } catch (e: Exception) {
@@ -85,7 +101,6 @@ class KafkaOrderPlacedEventConsumer(private val reserveStockUseCase: ReserveStoc
                 "Failed to process OrderPlacedEvent: eventId=${event.id}, orderId=${orderPlaced.orderId}",
                 e,
             )
-            // ❗ ack 안 함 → retry / DLQ
             throw e
         }
     }

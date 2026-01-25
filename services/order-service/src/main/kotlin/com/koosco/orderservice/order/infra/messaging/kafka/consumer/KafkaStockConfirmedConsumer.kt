@@ -6,6 +6,8 @@ import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.orderservice.order.application.command.MarkOrderConfirmedCommand
 import com.koosco.orderservice.order.application.contract.inbound.inventory.StockConfirmedEvent
 import com.koosco.orderservice.order.application.usecase.MarkOrderConfirmedUseCase
+import com.koosco.orderservice.order.domain.entity.OrderEventIdempotency.Companion.Actions
+import com.koosco.orderservice.order.infra.idempotency.IdempotencyChecker
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -14,14 +16,14 @@ import org.springframework.stereotype.Component
 import org.springframework.validation.annotation.Validated
 
 /**
- * fileName       : KafkaStockConfirmedConsumer
- * author         : koo
- * date           : 2025. 12. 23. 오전 12:51
- * description    :
+ * 재고 확정 완료 이벤트 핸들러
  */
 @Component
 @Validated
-class KafkaStockConfirmedConsumer(private val markOrderConfirmedUseCase: MarkOrderConfirmedUseCase) {
+class KafkaStockConfirmedConsumer(
+    private val markOrderConfirmedUseCase: MarkOrderConfirmedUseCase,
+    private val idempotencyChecker: IdempotencyChecker,
+) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @KafkaListener(
@@ -44,6 +46,13 @@ class KafkaStockConfirmedConsumer(private val markOrderConfirmedUseCase: MarkOrd
             return
         }
 
+        // Idempotency fast-path check
+        if (idempotencyChecker.isAlreadyProcessed(event.id, Actions.MARK_CONFIRMED)) {
+            logger.info("Event already processed: eventId=${event.id}, orderId=${stockConfirmedEvent.orderId}")
+            ack.acknowledge()
+            return
+        }
+
         val context = MessageContext(
             correlationId = stockConfirmedEvent.correlationId,
             causationId = event.id,
@@ -61,6 +70,13 @@ class KafkaStockConfirmedConsumer(private val markOrderConfirmedUseCase: MarkOrd
                 ),
             )
 
+            // Record idempotency after successful processing
+            idempotencyChecker.recordProcessed(
+                eventId = event.id,
+                action = Actions.MARK_CONFIRMED,
+                orderId = stockConfirmedEvent.orderId,
+            )
+
             ack.acknowledge()
 
             logger.info(
@@ -71,6 +87,7 @@ class KafkaStockConfirmedConsumer(private val markOrderConfirmedUseCase: MarkOrd
                 "Failed to process StockConfirmed event: eventId=${event.id}, orderId=${stockConfirmedEvent.orderId}",
                 e,
             )
+            throw e
         }
     }
 }

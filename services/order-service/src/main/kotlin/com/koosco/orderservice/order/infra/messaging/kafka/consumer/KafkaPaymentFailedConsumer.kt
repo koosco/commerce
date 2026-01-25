@@ -6,7 +6,9 @@ import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.orderservice.order.application.command.CancelOrderCommand
 import com.koosco.orderservice.order.application.contract.inbound.payment.PaymentFailedEvent
 import com.koosco.orderservice.order.application.usecase.CancelOrderByPaymentFailureUseCase
+import com.koosco.orderservice.order.domain.entity.OrderEventIdempotency.Companion.Actions
 import com.koosco.orderservice.order.domain.enums.OrderCancelReason
+import com.koosco.orderservice.order.infra.idempotency.IdempotencyChecker
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -15,16 +17,15 @@ import org.springframework.stereotype.Component
 import org.springframework.validation.annotation.Validated
 
 /**
- * fileName       : KafkaPaymentFailedConsumer
- * author         : koo
- * date           : 2025. 12. 23. 오전 2:45
- * description    :
+ * 결제 실패 이벤트 핸들러
  */
 @Component
 @Validated
-class KafkaPaymentFailedConsumer(private val cancelOrderByPaymentFailureUseCase: CancelOrderByPaymentFailureUseCase) {
-
-    private val logger = LoggerFactory.getLogger(KafkaPaymentCompletedConsumer::class.java)
+class KafkaPaymentFailedConsumer(
+    private val cancelOrderByPaymentFailureUseCase: CancelOrderByPaymentFailureUseCase,
+    private val idempotencyChecker: IdempotencyChecker,
+) {
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     @KafkaListener(
         topics = ["\${order.topic.mappings.payment.failed}"],
@@ -38,7 +39,7 @@ class KafkaPaymentFailedConsumer(private val cancelOrderByPaymentFailureUseCase:
                 return
             }
 
-        val paymentCompleted = try {
+        val paymentFailed = try {
             objectMapper.convertValue(payload, PaymentFailedEvent::class.java)
         } catch (e: Exception) {
             logger.error("Failed to deserialize PaymentFailedEvent: eventId=${event.id}", e)
@@ -46,24 +47,49 @@ class KafkaPaymentFailedConsumer(private val cancelOrderByPaymentFailureUseCase:
             return
         }
 
+        // Idempotency fast-path check
+        if (idempotencyChecker.isAlreadyProcessed(event.id, Actions.CANCEL_BY_PAYMENT_FAILURE)) {
+            logger.info("Event already processed: eventId=${event.id}, orderId=${paymentFailed.orderId}")
+            ack.acknowledge()
+            return
+        }
+
         logger.info(
-            "Received PaymentFailedEvent: eventId=${event.id}, " +
-                "orderId=${paymentCompleted.orderId}, paymentId=...",
+            "Received PaymentFailedEvent: eventId=${event.id}, orderId=${paymentFailed.orderId}",
         )
 
         val context = MessageContext(
-            correlationId = paymentCompleted.correlationId,
+            correlationId = paymentFailed.correlationId,
             causationId = event.id,
         )
 
-        cancelOrderByPaymentFailureUseCase.execute(
-            CancelOrderCommand(
-                orderId = paymentCompleted.orderId,
-                reason = OrderCancelReason.valueOf(paymentCompleted.reason),
-            ),
-            context,
-        )
+        try {
+            cancelOrderByPaymentFailureUseCase.execute(
+                CancelOrderCommand(
+                    orderId = paymentFailed.orderId,
+                    reason = OrderCancelReason.valueOf(paymentFailed.reason),
+                ),
+                context,
+            )
 
-        ack.acknowledge()
+            // Record idempotency after successful processing
+            idempotencyChecker.recordProcessed(
+                eventId = event.id,
+                action = Actions.CANCEL_BY_PAYMENT_FAILURE,
+                orderId = paymentFailed.orderId,
+            )
+
+            ack.acknowledge()
+
+            logger.info(
+                "Successfully cancelled order: eventId=${event.id}, orderId=${paymentFailed.orderId}",
+            )
+        } catch (e: Exception) {
+            logger.error(
+                "Failed to process PaymentFailed event: eventId=${event.id}, orderId=${paymentFailed.orderId}",
+                e,
+            )
+            throw e
+        }
     }
 }

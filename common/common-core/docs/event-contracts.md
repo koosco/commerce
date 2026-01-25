@@ -76,12 +76,12 @@ val cloudEvent = orderPlacedEvent.toCloudEvent("order-service")
 
 ### 2.1 Event Summary
 
-| Service | Publishes | Consumes | Idempotency |
-|---------|-----------|----------|-------------|
-| order-service | 3 | 7 | State transition |
-| inventory-service | 4 | 4 | State transition |
-| payment-service | 1 | 1 | DB idempotency (IdempotencyRepository) |
-| catalog-service | 1 | 0 | N/A |
+| Service | Publishes | Consumes | Idempotency | Outbox |
+|---------|-----------|----------|-------------|--------|
+| order-service | 3 | 7 | DB (OrderEventIdempotency) | ✅ |
+| inventory-service | 4 | 4 | DB (InventoryEventIdempotency) | ✅ |
+| payment-service | 1 | 1 | DB (PaymentIdempotency) | ✅ |
+| catalog-service | 1 | 0 | N/A | ✅ |
 
 ### 2.2 order-service
 
@@ -519,7 +519,166 @@ service:
 
 ---
 
-## 6. 파일 위치 참조
+## 6. Outbox Pattern & CDC
+
+### 6.1 아키텍처 개요
+
+모든 서비스는 Outbox 패턴 + Debezium CDC를 사용하여 이벤트-트랜잭션 원자성을 보장합니다.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ UseCase (@Transactional)                                    │
+│  1. domainRepository.save(entity)                           │
+│  2. outboxRepository.save(outboxEntry)  ← 같은 트랜잭션     │
+│  3. 커밋 (원자성 보장)                                      │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Debezium CDC Connector                                       │
+│  - Outbox 테이블 binlog 감시                                 │
+│  - INSERT 감지 시 Kafka로 즉시 발행                          │
+│  - Outbox Transformation 적용                                │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Kafka Topics                                                 │
+│  - order.placed, order.confirmed, ...                        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 6.2 Outbox 테이블 구조
+
+각 서비스별 Outbox 테이블:
+
+| 서비스 | 테이블명 | aggregateType |
+|--------|----------|---------------|
+| order-service | `order_outbox` | Order |
+| payment-service | `payment_outbox` | Payment |
+| inventory-service | `inventory_outbox` | Inventory |
+| catalog-service | `catalog_outbox` | Catalog |
+
+**공통 필드:**
+```sql
+CREATE TABLE {service}_outbox (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    aggregate_id VARCHAR(255) NOT NULL,      -- 비즈니스 ID (orderId, skuId 등)
+    aggregate_type VARCHAR(100) NOT NULL,    -- Order, Payment, Inventory, Catalog
+    event_type VARCHAR(255) NOT NULL,        -- order.placed, stock.reserved 등
+    payload TEXT NOT NULL,                   -- CloudEvent JSON
+    topic VARCHAR(255) NOT NULL,             -- Kafka 토픽
+    partition_key VARCHAR(255) NOT NULL,     -- 파티션 키
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    INDEX idx_outbox_status (status, created_at)
+) ENGINE=InnoDB;
+```
+
+### 6.3 OutboxIntegrationEventPublisher 패턴
+
+```kotlin
+@Component
+class OutboxIntegrationEventPublisher(
+    private val outboxRepository: OrderOutboxRepository,
+    private val topicResolver: KafkaTopicResolver,
+    private val objectMapper: ObjectMapper,
+    @Value("\${spring.application.name}") private val source: String,
+) : IntegrationEventPublisher {
+
+    override fun publish(event: OrderIntegrationEvent) {
+        val cloudEvent = event.toCloudEvent(source)
+        val topic = topicResolver.resolve(event)
+
+        val outboxEntry = OrderOutboxEntry.create(
+            aggregateId = event.orderId.toString(),
+            eventType = event.getEventType(),
+            payload = objectMapper.writeValueAsString(cloudEvent),
+            topic = topic,
+            partitionKey = event.getPartitionKey(),
+        )
+
+        outboxRepository.save(outboxEntry)
+    }
+}
+```
+
+### 6.4 멱등성 (Idempotency) 테이블
+
+Consumer에서 중복 이벤트 처리 방지:
+
+| 서비스 | 테이블명 | 식별자 |
+|--------|----------|--------|
+| order-service | `order_event_idempotency` | orderId |
+| inventory-service | `inventory_event_idempotency` | referenceId (orderId/skuId) |
+| payment-service | `payment_idempotency` | (기존 유지) |
+
+**테이블 구조:**
+```sql
+CREATE TABLE {service}_event_idempotency (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    event_id VARCHAR(255) NOT NULL,          -- CloudEvent.id
+    action VARCHAR(100) NOT NULL,            -- MARK_ORDER_PAID, RESERVE_STOCK 등
+    reference_id VARCHAR(255) NOT NULL,      -- orderId, skuId 등
+    processed_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    UNIQUE KEY uq_idempotency (event_id, action),
+    INDEX idx_reference (reference_id)
+) ENGINE=InnoDB;
+```
+
+### 6.5 Consumer 멱등성 패턴
+
+```kotlin
+@Component
+@Validated
+class KafkaOrderPlacedEventConsumer(
+    private val useCase: ReserveStockUseCase,
+    private val idempotencyChecker: IdempotencyChecker,
+) {
+    @KafkaListener(
+        topics = ["\${service.topic.mappings.order.placed}"],
+        groupId = "\${spring.kafka.consumer.group-id}",
+    )
+    fun onOrderPlaced(@Valid event: CloudEvent<*>, ack: Acknowledgment) {
+        // 1. Fast-path 중복 체크
+        if (idempotencyChecker.isAlreadyProcessed(event.id, Actions.RESERVE_STOCK)) {
+            ack.acknowledge()
+            return
+        }
+
+        // 2. Use case 실행
+        try {
+            useCase.execute(command, context)
+
+            // 3. 멱등성 레코드 저장
+            idempotencyChecker.recordProcessed(
+                eventId = event.id,
+                action = Actions.RESERVE_STOCK,
+                referenceId = orderPlaced.orderId.toString(),
+            )
+
+            ack.acknowledge()
+        } catch (e: Exception) {
+            throw e  // 재시도
+        }
+    }
+}
+```
+
+### 6.6 Debezium 설정
+
+Outbox Connector 등록:
+```bash
+# infra 디렉토리에서
+make debezium-outbox-register
+make debezium-outbox-status
+```
+
+설정 파일: `infra/config/debezium/outbox-connector.json`
+
+---
+
+## 7. 파일 위치 참조
 
 | Service | 이벤트 계약 위치 |
 |---------|------------------|

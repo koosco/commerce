@@ -6,6 +6,8 @@ import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.orderservice.order.application.command.MarkOrderPaymentPendingCommand
 import com.koosco.orderservice.order.application.contract.inbound.inventory.StockReservedEvent
 import com.koosco.orderservice.order.application.usecase.MarkOrderPaymentPendingUseCase
+import com.koosco.orderservice.order.domain.entity.OrderEventIdempotency.Companion.Actions
+import com.koosco.orderservice.order.infra.idempotency.IdempotencyChecker
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -14,14 +16,14 @@ import org.springframework.stereotype.Component
 import org.springframework.validation.annotation.Validated
 
 /**
- * fileName       : KafkaStockReservedConsumer
- * author         : koo
- * date           : 2025. 12. 22. 오전 6:18
- * description    :
+ * 재고 예약 완료 이벤트 핸들러
  */
 @Component
 @Validated
-class KafkaStockReservedConsumer(private val markOrderPaymentPendingUseCase: MarkOrderPaymentPendingUseCase) {
+class KafkaStockReservedConsumer(
+    private val markOrderPaymentPendingUseCase: MarkOrderPaymentPendingUseCase,
+    private val idempotencyChecker: IdempotencyChecker,
+) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @KafkaListener(
@@ -44,18 +46,44 @@ class KafkaStockReservedConsumer(private val markOrderPaymentPendingUseCase: Mar
             return
         }
 
+        // Idempotency fast-path check
+        if (idempotencyChecker.isAlreadyProcessed(event.id, Actions.MARK_PAYMENT_PENDING)) {
+            logger.info("Event already processed: eventId=${event.id}, orderId=${stockReserved.orderId}")
+            ack.acknowledge()
+            return
+        }
+
         val context = MessageContext(
             correlationId = stockReserved.correlationId,
             causationId = event.id,
         )
         logger.info("Processing StockReservedEvent: orderId=${stockReserved.orderId}, context=$context")
 
-        markOrderPaymentPendingUseCase.execute(
-            MarkOrderPaymentPendingCommand(
-                orderId = stockReserved.orderId,
-            ),
-        )
+        try {
+            markOrderPaymentPendingUseCase.execute(
+                MarkOrderPaymentPendingCommand(
+                    orderId = stockReserved.orderId,
+                ),
+            )
 
-        ack.acknowledge()
+            // Record idempotency after successful processing
+            idempotencyChecker.recordProcessed(
+                eventId = event.id,
+                action = Actions.MARK_PAYMENT_PENDING,
+                orderId = stockReserved.orderId,
+            )
+
+            ack.acknowledge()
+
+            logger.info(
+                "Successfully marked payment pending: eventId=${event.id}, orderId=${stockReserved.orderId}",
+            )
+        } catch (e: Exception) {
+            logger.error(
+                "Failed to process StockReserved event: eventId=${event.id}, orderId=${stockReserved.orderId}",
+                e,
+            )
+            throw e
+        }
     }
 }

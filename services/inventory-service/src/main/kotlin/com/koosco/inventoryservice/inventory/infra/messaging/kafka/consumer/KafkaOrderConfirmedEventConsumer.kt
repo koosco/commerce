@@ -6,7 +6,9 @@ import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.inventoryservice.inventory.application.command.ConfirmStockCommand
 import com.koosco.inventoryservice.inventory.application.contract.inbound.order.OrderConfirmedEvent
 import com.koosco.inventoryservice.inventory.application.usecase.ConfirmStockUseCase
+import com.koosco.inventoryservice.inventory.domain.entity.InventoryEventIdempotency.Companion.Actions
 import com.koosco.inventoryservice.inventory.domain.exception.NotEnoughStockException
+import com.koosco.inventoryservice.inventory.infra.idempotency.IdempotencyChecker
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -15,14 +17,14 @@ import org.springframework.stereotype.Component
 import org.springframework.validation.annotation.Validated
 
 /**
- * fileName       : KafkaOrderConfirmedEventConsumer
- * author         : koo
- * date           : 2025. 12. 19. 오후 2:27
- * description    :
+ * OrderConfirmedEvent 처리 - 재고 확정
  */
 @Component
 @Validated
-class KafkaOrderConfirmedEventConsumer(private val confirmStockUseCase: ConfirmStockUseCase) {
+class KafkaOrderConfirmedEventConsumer(
+    private val confirmStockUseCase: ConfirmStockUseCase,
+    private val idempotencyChecker: IdempotencyChecker,
+) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @KafkaListener(
@@ -45,8 +47,15 @@ class KafkaOrderConfirmedEventConsumer(private val confirmStockUseCase: ConfirmS
             return
         }
 
+        // Idempotency fast-path check
+        if (idempotencyChecker.isAlreadyProcessed(event.id, Actions.CONFIRM_STOCK)) {
+            logger.info("Event already processed: eventId=${event.id}, orderId=${orderConfirmed.orderId}")
+            ack.acknowledge()
+            return
+        }
+
         logger.info(
-            "Received OrderConfirmedEvent: eventId=${event.id}, orderId=${orderConfirmed.orderId}, items=${orderConfirmed.items}",
+            "Received OrderConfirmedEvent: eventId=${event.id}, orderId=${orderConfirmed.orderId}",
         )
 
         val context = MessageContext(
@@ -67,9 +76,16 @@ class KafkaOrderConfirmedEventConsumer(private val confirmStockUseCase: ConfirmS
         try {
             confirmStockUseCase.execute(command, context)
 
+            // Record idempotency after successful processing
+            idempotencyChecker.recordProcessed(
+                eventId = event.id,
+                action = Actions.CONFIRM_STOCK,
+                referenceId = orderConfirmed.orderId.toString(),
+            )
+
             ack.acknowledge()
             logger.info(
-                "Successfully confirmed stock for ORDER: eventId=${event.id}, orderId=${orderConfirmed.orderId}, items=${orderConfirmed.items}",
+                "Successfully confirmed stock: eventId=${event.id}, orderId=${orderConfirmed.orderId}",
             )
         } catch (_: NotEnoughStockException) {
             logger.warn(
@@ -78,7 +94,7 @@ class KafkaOrderConfirmedEventConsumer(private val confirmStockUseCase: ConfirmS
             ack.acknowledge()
         } catch (e: Exception) {
             logger.error(
-                "Failed to process OrderConfirmedEvent event: eventId=${event.id}, orderId=${orderConfirmed.orderId}",
+                "Failed to process OrderConfirmedEvent: eventId=${event.id}, orderId=${orderConfirmed.orderId}",
                 e,
             )
             throw e

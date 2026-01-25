@@ -5,6 +5,8 @@ import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.inventoryservice.inventory.application.command.InitStockCommand
 import com.koosco.inventoryservice.inventory.application.contract.inbound.catalog.ProductSkuCreatedEvent
 import com.koosco.inventoryservice.inventory.application.usecase.InitializeStockUseCase
+import com.koosco.inventoryservice.inventory.domain.entity.InventoryEventIdempotency.Companion.Actions
+import com.koosco.inventoryservice.inventory.infra.idempotency.IdempotencyChecker
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -13,18 +15,16 @@ import org.springframework.stereotype.Component
 import org.springframework.validation.annotation.Validated
 
 /**
- * Catalog Service에서 개별 발행되는 SkuCreatedEvent를 처리하여 재고를 초기
- * 각 SKU마다 개별적으로 이벤트가 발행
+ * ProductSkuCreatedEvent 처리 - 재고 초기화
  */
 @Component
 @Validated
-class KafkaProductSkuCreatedConsumer(private val initializeStockUseCase: InitializeStockUseCase) {
+class KafkaProductSkuCreatedConsumer(
+    private val initializeStockUseCase: InitializeStockUseCase,
+    private val idempotencyChecker: IdempotencyChecker,
+) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    /**
-     * SKU 생성 이벤트 리스너
-     * 각 SKU가 생성될 때마다 개별적으로 재고를 초기화합니다.
-     */
     @KafkaListener(
         topics = ["\${inventory.topic.mappings.product.sku.created}"],
         groupId = "\${spring.kafka.consumer.group-id}",
@@ -32,7 +32,7 @@ class KafkaProductSkuCreatedConsumer(private val initializeStockUseCase: Initial
     fun onProductSkuCreated(@Valid event: CloudEvent<*>, ack: Acknowledgment) {
         val payload = event.data
             ?: run {
-                logger.error("ProductSkuCreated is null: eventId=${event.id}")
+                logger.error("ProductSkuCreatedEvent is null: eventId=${event.id}")
                 ack.acknowledge()
                 return
             }
@@ -45,32 +45,43 @@ class KafkaProductSkuCreatedConsumer(private val initializeStockUseCase: Initial
             return
         }
 
+        // Idempotency fast-path check (use skuId as orderId for this case)
+        if (idempotencyChecker.isAlreadyProcessed(event.id, Actions.INITIALIZE_STOCK)) {
+            logger.info("Event already processed: eventId=${event.id}, skuId=${skuCreated.skuId}")
+            ack.acknowledge()
+            return
+        }
+
         logger.info(
-            "Received ProductSkuCreatedEvent: eventId=${event.id}, " +
-                "skuId=${skuCreated.skuId}, productId=${skuCreated.productId}, initialQuantity=${skuCreated.initialQuantity}",
+            "Received ProductSkuCreatedEvent: eventId=${event.id}, skuId=${skuCreated.skuId}, productId=${skuCreated.productId}",
         )
 
         try {
-            // 재고 초기화
             initializeStockUseCase.execute(
                 InitStockCommand(
                     skuCreated.skuId,
                     skuCreated.initialQuantity,
                 ),
             )
+
+            // Record idempotency after successful processing
+            idempotencyChecker.recordProcessed(
+                eventId = event.id,
+                action = Actions.INITIALIZE_STOCK,
+                referenceId = skuCreated.skuId,
+            )
+
             ack.acknowledge()
 
             logger.info(
-                "Successfully initialized stock for ProductSku: eventId=${event.id}, skuId=${skuCreated.skuId}, " +
-                    "productId=${skuCreated.productId}, initialQuantity=${skuCreated.initialQuantity}",
+                "Successfully initialized stock: eventId=${event.id}, skuId=${skuCreated.skuId}, quantity=${skuCreated.initialQuantity}",
             )
         } catch (e: Exception) {
             logger.error(
-                "Failed to process SKU created event: ${event.id}, " +
-                    "skuId=${skuCreated.skuId}, productId=${skuCreated.productId}",
+                "Failed to process ProductSkuCreatedEvent: eventId=${event.id}, skuId=${skuCreated.skuId}",
                 e,
             )
-            // TODO: 이 SKU에 대해 재고가 ‘최소 1번’은 초기화되어 있어야 한다 -> 재시도 후 DLQ 처리
+            throw e
         }
     }
 }

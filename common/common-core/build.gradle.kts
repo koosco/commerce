@@ -28,6 +28,9 @@ dependencies {
     api("org.springframework:spring-context")
     api("org.springframework:spring-tx")
 
+    // JPA annotations (for @MappedSuperclass entities - outbox, idempotency)
+    compileOnly("jakarta.persistence:jakarta.persistence-api")
+
     // spring web mvc
     compileOnly("org.springframework:spring-webmvc")
     compileOnly("jakarta.servlet:jakarta.servlet-api")

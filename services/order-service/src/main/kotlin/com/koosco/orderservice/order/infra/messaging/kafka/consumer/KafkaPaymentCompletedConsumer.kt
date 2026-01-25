@@ -6,6 +6,8 @@ import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.orderservice.order.application.command.MarkOrderPaidCommand
 import com.koosco.orderservice.order.application.contract.inbound.payment.PaymentCompletedEvent
 import com.koosco.orderservice.order.application.usecase.MarkOrderPaidUseCase
+import com.koosco.orderservice.order.domain.entity.OrderEventIdempotency.Companion.Actions
+import com.koosco.orderservice.order.infra.idempotency.IdempotencyChecker
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -18,8 +20,10 @@ import org.springframework.validation.annotation.Validated
  */
 @Component
 @Validated
-class KafkaPaymentCompletedConsumer(private val markOrderPaidUseCase: MarkOrderPaidUseCase) {
-
+class KafkaPaymentCompletedConsumer(
+    private val markOrderPaidUseCase: MarkOrderPaidUseCase,
+    private val idempotencyChecker: IdempotencyChecker,
+) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @KafkaListener(
@@ -42,9 +46,15 @@ class KafkaPaymentCompletedConsumer(private val markOrderPaidUseCase: MarkOrderP
             return
         }
 
+        // Idempotency fast-path check
+        if (idempotencyChecker.isAlreadyProcessed(event.id, Actions.MARK_PAID)) {
+            logger.info("Event already processed: eventId=${event.id}, orderId=${paymentCompleted.orderId}")
+            ack.acknowledge()
+            return
+        }
+
         logger.info(
-            "Received PaymentCompleted: eventId=${event.id}, " +
-                "orderId=${paymentCompleted.orderId}, paymentId=...",
+            "Received PaymentCompleted: eventId=${event.id}, orderId=${paymentCompleted.orderId}",
         )
 
         val context = MessageContext(
@@ -53,7 +63,6 @@ class KafkaPaymentCompletedConsumer(private val markOrderPaidUseCase: MarkOrderP
         )
 
         try {
-            // 주문 확정
             markOrderPaidUseCase.execute(
                 MarkOrderPaidCommand(
                     orderId = paymentCompleted.orderId,
@@ -62,18 +71,25 @@ class KafkaPaymentCompletedConsumer(private val markOrderPaidUseCase: MarkOrderP
                 context,
             )
 
+            // Record idempotency after successful processing
+            idempotencyChecker.recordProcessed(
+                eventId = event.id,
+                action = Actions.MARK_PAID,
+                orderId = paymentCompleted.orderId,
+            )
+
             ack.acknowledge()
 
             logger.info(
-                "Successfully confirm order for Order: eventId=${event.id}, orderId=${paymentCompleted.orderId}...",
+                "Successfully marked order as paid: eventId=${event.id}, orderId=${paymentCompleted.orderId}",
             )
         } catch (e: Exception) {
             logger.error(
-                "Failed to process Payment Completed event: ${event.id}, orderId=${paymentCompleted.orderId}",
+                "Failed to process PaymentCompleted event: eventId=${event.id}, orderId=${paymentCompleted.orderId}",
                 e,
             )
+            // Don't ack - will retry
+            throw e
         }
-        // 일단 바로 환불 진행하도록 진행
-        // TODO : 실패시 재처리 시도 후 환불 수행
     }
 }

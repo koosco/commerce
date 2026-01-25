@@ -6,7 +6,9 @@ import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.inventoryservice.inventory.application.command.CancelStockCommand
 import com.koosco.inventoryservice.inventory.application.contract.inbound.order.OrderCancelledEvent
 import com.koosco.inventoryservice.inventory.application.usecase.ReleaseStockUseCase
+import com.koosco.inventoryservice.inventory.domain.entity.InventoryEventIdempotency.Companion.Actions
 import com.koosco.inventoryservice.inventory.domain.enums.StockCancelReason.Companion.mapCancelReason
+import com.koosco.inventoryservice.inventory.infra.idempotency.IdempotencyChecker
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -15,14 +17,14 @@ import org.springframework.stereotype.Component
 import org.springframework.validation.annotation.Validated
 
 /**
- * fileName       : KafkaOrderCancelledEventConsumer
- * author         : koo
- * date           : 2025. 12. 19. 오후 3:47
- * description    :
+ * OrderCancelledEvent 처리 - 재고 해제
  */
 @Component
 @Validated
-class KafkaOrderCancelledEventConsumer(private val releaseStockUseCase: ReleaseStockUseCase) {
+class KafkaOrderCancelledEventConsumer(
+    private val releaseStockUseCase: ReleaseStockUseCase,
+    private val idempotencyChecker: IdempotencyChecker,
+) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @KafkaListener(
@@ -32,7 +34,7 @@ class KafkaOrderCancelledEventConsumer(private val releaseStockUseCase: ReleaseS
     fun onOrderCancelled(@Valid event: CloudEvent<*>, ack: Acknowledgment) {
         val payload = event.data
             ?: run {
-                logger.error("OrderCanceled is null: eventId=${event.id}")
+                logger.error("OrderCancelledEvent is null: eventId=${event.id}")
                 ack.acknowledge()
                 return
             }
@@ -45,8 +47,15 @@ class KafkaOrderCancelledEventConsumer(private val releaseStockUseCase: ReleaseS
             return
         }
 
+        // Idempotency fast-path check
+        if (idempotencyChecker.isAlreadyProcessed(event.id, Actions.RELEASE_STOCK)) {
+            logger.info("Event already processed: eventId=${event.id}, orderId=${orderCancelled.orderId}")
+            ack.acknowledge()
+            return
+        }
+
         logger.info(
-            "Received OrderCanceled: eventId=${event.id}, orderId=${orderCancelled.orderId}, items=${orderCancelled.items}, reason=${orderCancelled.reason}",
+            "Received OrderCancelledEvent: eventId=${event.id}, orderId=${orderCancelled.orderId}, reason=${orderCancelled.reason}",
         )
 
         val context = MessageContext(
@@ -68,16 +77,22 @@ class KafkaOrderCancelledEventConsumer(private val releaseStockUseCase: ReleaseS
         try {
             releaseStockUseCase.execute(command, context)
 
+            // Record idempotency after successful processing
+            idempotencyChecker.recordProcessed(
+                eventId = event.id,
+                action = Actions.RELEASE_STOCK,
+                referenceId = orderCancelled.orderId.toString(),
+            )
+
             ack.acknowledge()
             logger.info(
-                "Stock reservation cancelled: eventId=${event.id}, orderId=${orderCancelled.orderId}, items=${orderCancelled.items}",
+                "Stock reservation released: eventId=${event.id}, orderId=${orderCancelled.orderId}",
             )
         } catch (e: Exception) {
             logger.error(
-                "Failed to process OrderCanceled event: eventId=${event.id}, orderId=${orderCancelled.orderId}",
+                "Failed to process OrderCancelledEvent: eventId=${event.id}, orderId=${orderCancelled.orderId}",
                 e,
             )
-            // TODO: 주문 취소에 따른 재고 증가는 반드시 일어나야하므로 재시도 후 DLQ 처리
             throw e
         }
     }
