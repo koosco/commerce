@@ -1,6 +1,6 @@
 package com.koosco.catalogservice.product.application.usecase
 
-import com.koosco.catalogservice.common.exception.CatalogErrorCode
+import com.koosco.catalogservice.common.error.CatalogErrorCode
 import com.koosco.catalogservice.product.application.command.GetProductDetailCommand
 import com.koosco.catalogservice.product.application.port.ProductRepository
 import com.koosco.catalogservice.product.application.result.ProductInfo

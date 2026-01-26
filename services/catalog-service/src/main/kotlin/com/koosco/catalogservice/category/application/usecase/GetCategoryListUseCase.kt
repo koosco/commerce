@@ -2,7 +2,7 @@ package com.koosco.catalogservice.category.application.usecase
 
 import com.koosco.catalogservice.category.application.dto.CategoryInfo
 import com.koosco.catalogservice.category.application.dto.GetCategoryListCommand
-import com.koosco.catalogservice.category.application.repository.CategoryRepository
+import com.koosco.catalogservice.category.application.port.CategoryRepository
 import com.koosco.common.core.annotation.UseCase
 import org.springframework.transaction.annotation.Transactional
 

@@ -1,4 +1,4 @@
-package com.koosco.catalogservice.category.application.repository
+package com.koosco.catalogservice.category.application.port
 
 import com.koosco.catalogservice.category.domain.Category
 

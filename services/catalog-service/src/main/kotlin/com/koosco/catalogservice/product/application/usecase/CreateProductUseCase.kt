@@ -1,6 +1,6 @@
 package com.koosco.catalogservice.product.application.usecase
 
-import com.koosco.catalogservice.category.application.repository.CategoryRepository
+import com.koosco.catalogservice.category.application.port.CategoryRepository
 import com.koosco.catalogservice.product.application.command.CreateProductCommand
 import com.koosco.catalogservice.product.application.contract.outbound.ProductSkuCreatedEvent
 import com.koosco.catalogservice.product.application.port.IntegrationEventPublisher

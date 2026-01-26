@@ -1,6 +1,6 @@
 package com.koosco.catalogservice.category.infra.persist
 
-import com.koosco.catalogservice.category.application.repository.CategoryRepository
+import com.koosco.catalogservice.category.application.port.CategoryRepository
 import com.koosco.catalogservice.category.domain.Category
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository

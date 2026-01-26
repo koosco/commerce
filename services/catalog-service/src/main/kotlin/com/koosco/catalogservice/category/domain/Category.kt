@@ -1,7 +1,7 @@
 package com.koosco.catalogservice.category.domain
 
 import com.koosco.catalogservice.category.application.dto.CreateCategoryTreeCommand
-import com.koosco.catalogservice.common.exception.CatalogErrorCode
+import com.koosco.catalogservice.common.error.CatalogErrorCode
 import com.koosco.common.core.exception.ConflictException
 import jakarta.persistence.*
 import java.time.LocalDateTime

@@ -1,4 +1,4 @@
-package com.koosco.catalogservice.common.exception
+package com.koosco.catalogservice.common.error
 
 import com.koosco.common.core.error.ErrorCode
 import org.springframework.http.HttpStatus
