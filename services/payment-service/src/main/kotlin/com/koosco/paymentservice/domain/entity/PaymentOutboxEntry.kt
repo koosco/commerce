@@ -1,17 +1,25 @@
 package com.koosco.paymentservice.domain.entity
 
-import com.koosco.common.core.outbox.OutboxEntry
 import com.koosco.common.core.outbox.OutboxStatus
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
 import jakarta.persistence.Index
 import jakarta.persistence.Table
+import java.time.Instant
 
 /**
  * Outbox entry for payment-service events.
  *
  * Stores events to be published to Kafka via CDC (Debezium).
  * Ensures atomicity between payment state changes and event publishing.
+ *
+ * Note: Does not extend common-core OutboxEntry due to Hibernate limitations
+ * with @MappedSuperclass across modules.
  */
 @Entity
 @Table(
@@ -21,29 +29,34 @@ import jakarta.persistence.Table
     ],
 )
 class PaymentOutboxEntry(
-    aggregateId: String,
-    eventType: String,
-    payload: String,
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long = 0,
 
-    /**
-     * The Kafka topic to publish this event to.
-     * Used by Debezium Outbox Event Router.
-     */
+    @Column(name = "aggregate_id", nullable = false)
+    val aggregateId: String,
+
+    @Column(name = "aggregate_type", nullable = false, length = 100)
+    val aggregateType: String = "Payment",
+
+    @Column(name = "event_type", nullable = false)
+    val eventType: String,
+
+    @Column(name = "payload", columnDefinition = "TEXT", nullable = false)
+    val payload: String,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    var status: OutboxStatus = OutboxStatus.PENDING,
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    val createdAt: Instant = Instant.now(),
+
     @Column(name = "topic", nullable = false)
     val topic: String,
 
-    /**
-     * The partition key for Kafka message.
-     * Ensures ordering for events with the same key.
-     */
     @Column(name = "partition_key", nullable = false)
     val partitionKey: String,
-) : OutboxEntry(
-    aggregateId = aggregateId,
-    aggregateType = "Payment",
-    eventType = eventType,
-    payload = payload,
-    status = OutboxStatus.PENDING,
 ) {
     companion object {
         fun create(

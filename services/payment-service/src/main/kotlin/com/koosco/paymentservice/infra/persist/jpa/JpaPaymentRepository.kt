@@ -11,5 +11,9 @@ import java.util.UUID
  * description    :
  */
 interface JpaPaymentRepository : JpaRepository<Payment, UUID> {
+    fun findByPaymentId(paymentId: UUID): Payment?
+
+    fun findByOrderId(orderId: Long): Payment?
+
     fun existsByOrderId(orderId: Long): Boolean
 }

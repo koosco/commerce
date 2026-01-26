@@ -62,12 +62,12 @@ payment:
   topic:
     default: koosco.commerce.integration.order
     mappings:
-      order:
-        placed: koosco.commerce.order.placed
-        confirmed: koosco.commerce.order.confirmed
-        cancelled: koosco.commerce.order.cancelled
-      payment:
-        created: koosco.commerce.payment.created
+      order.placed: koosco.commerce.order.placed
+      order.confirmed: koosco.commerce.order.confirmed
+      order.cancelled: koosco.commerce.order.cancelled
+      payment.created: koosco.commerce.payment.created
+      payment.completed: koosco.commerce.payment.completed
+      payment.failed: koosco.commerce.payment.failed
 
 common:
   openapi:

@@ -3,10 +3,10 @@ package com.koosco.paymentservice.integration.kafka
 import com.koosco.common.core.event.CloudEvent
 import com.koosco.common.core.test.KafkaContainerTestBase
 import com.koosco.paymentservice.application.contract.inbound.order.OrderPlacedEvent
-import com.koosco.paymentservice.application.port.IdempotencyRepositoryPort
+import com.koosco.paymentservice.application.port.IdempotencyRepository
 import com.koosco.paymentservice.application.port.IntegrationEventPublisher
 import com.koosco.paymentservice.application.port.PaymentGateway
-import com.koosco.paymentservice.application.port.PaymentRepositoryPort
+import com.koosco.paymentservice.application.port.PaymentRepository
 import com.koosco.paymentservice.domain.entity.Payment
 import com.koosco.paymentservice.domain.entity.PaymentIdempotency
 import com.koosco.paymentservice.domain.enums.PaymentAction
@@ -50,10 +50,10 @@ class PaymentIdempotencyTest : KafkaContainerTestBase() {
     private lateinit var orderPlacedTopic: String
 
     @MockBean
-    private lateinit var paymentRepositoryPort: PaymentRepositoryPort
+    private lateinit var paymentRepository: PaymentRepository
 
     @SpyBean
-    private lateinit var idempotencyRepositoryPort: IdempotencyRepositoryPort
+    private lateinit var idempotencyRepository: IdempotencyRepository
 
     @Autowired
     private lateinit var jpaIdempotencyRepository: JpaIdempotencyRepository
@@ -92,8 +92,8 @@ class PaymentIdempotencyTest : KafkaContainerTestBase() {
             data = orderPlacedEvent,
         )
 
-        whenever(paymentRepositoryPort.existsByOrderId(orderId)).thenReturn(false)
-        whenever(paymentRepositoryPort.save(any())).thenAnswer { invocation ->
+        whenever(paymentRepository.existsByOrderId(orderId)).thenReturn(false)
+        whenever(paymentRepository.save(any())).thenAnswer { invocation ->
             invocation.getArgument<Payment>(0)
         }
 
@@ -146,7 +146,7 @@ class PaymentIdempotencyTest : KafkaContainerTestBase() {
             data = orderPlacedEvent,
         )
 
-        whenever(paymentRepositoryPort.existsByOrderId(orderId)).thenReturn(false)
+        whenever(paymentRepository.existsByOrderId(orderId)).thenReturn(false)
 
         // When
         kafkaTemplate.send(orderPlacedTopic, orderId.toString(), cloudEvent)
@@ -158,7 +158,7 @@ class PaymentIdempotencyTest : KafkaContainerTestBase() {
             .untilAsserted {
                 // Verify that payment repository save was never called
                 // because DataIntegrityViolationException was caught
-                verify(paymentRepositoryPort, never()).save(any())
+                verify(paymentRepository, never()).save(any())
             }
     }
 
@@ -204,8 +204,8 @@ class PaymentIdempotencyTest : KafkaContainerTestBase() {
             data = event2,
         )
 
-        whenever(paymentRepositoryPort.existsByOrderId(any())).thenReturn(false)
-        whenever(paymentRepositoryPort.save(any())).thenAnswer { invocation ->
+        whenever(paymentRepository.existsByOrderId(any())).thenReturn(false)
+        whenever(paymentRepository.save(any())).thenAnswer { invocation ->
             invocation.getArgument<Payment>(0)
         }
 
@@ -217,7 +217,7 @@ class PaymentIdempotencyTest : KafkaContainerTestBase() {
         await()
             .atMost(20, TimeUnit.SECONDS)
             .untilAsserted {
-                verify(paymentRepositoryPort, times(2)).save(any())
+                verify(paymentRepository, times(2)).save(any())
 
                 val savedIdempotencies = jpaIdempotencyRepository.findAll()
                 assertThat(savedIdempotencies).hasSize(2)
@@ -248,8 +248,8 @@ class PaymentIdempotencyTest : KafkaContainerTestBase() {
             data = orderPlacedEvent,
         )
 
-        whenever(paymentRepositoryPort.existsByOrderId(orderId)).thenReturn(false)
-        whenever(paymentRepositoryPort.save(any())).thenAnswer { invocation ->
+        whenever(paymentRepository.existsByOrderId(orderId)).thenReturn(false)
+        whenever(paymentRepository.save(any())).thenAnswer { invocation ->
             invocation.getArgument<Payment>(0)
         }
 
@@ -327,8 +327,8 @@ class PaymentIdempotencyTest : KafkaContainerTestBase() {
             data = orderPlacedEvent,
         )
 
-        whenever(paymentRepositoryPort.existsByOrderId(orderId)).thenReturn(false)
-        whenever(paymentRepositoryPort.save(any())).thenAnswer { invocation ->
+        whenever(paymentRepository.existsByOrderId(orderId)).thenReturn(false)
+        whenever(paymentRepository.save(any())).thenAnswer { invocation ->
             invocation.getArgument<Payment>(0)
         }
 
@@ -375,7 +375,7 @@ class PaymentIdempotencyTest : KafkaContainerTestBase() {
             .during(3, TimeUnit.SECONDS)
             .atMost(5, TimeUnit.SECONDS)
             .untilAsserted {
-                verify(paymentRepositoryPort, never()).save(any())
+                verify(paymentRepository, never()).save(any())
             }
     }
 }

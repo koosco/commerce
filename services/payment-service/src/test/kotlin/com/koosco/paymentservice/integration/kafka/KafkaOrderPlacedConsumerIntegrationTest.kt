@@ -3,10 +3,10 @@ package com.koosco.paymentservice.integration.kafka
 import com.koosco.common.core.event.CloudEvent
 import com.koosco.common.core.test.KafkaContainerTestBase
 import com.koosco.paymentservice.application.contract.inbound.order.OrderPlacedEvent
-import com.koosco.paymentservice.application.port.IdempotencyRepositoryPort
+import com.koosco.paymentservice.application.port.IdempotencyRepository
 import com.koosco.paymentservice.application.port.IntegrationEventPublisher
 import com.koosco.paymentservice.application.port.PaymentGateway
-import com.koosco.paymentservice.application.port.PaymentRepositoryPort
+import com.koosco.paymentservice.application.port.PaymentRepository
 import com.koosco.paymentservice.domain.entity.Payment
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.DisplayName
@@ -45,10 +45,10 @@ class KafkaOrderPlacedConsumerIntegrationTest : KafkaContainerTestBase() {
     private lateinit var orderPlacedTopic: String
 
     @MockBean
-    private lateinit var paymentRepositoryPort: PaymentRepositoryPort
+    private lateinit var paymentRepository: PaymentRepository
 
     @MockBean
-    private lateinit var idempotencyRepositoryPort: IdempotencyRepositoryPort
+    private lateinit var idempotencyRepository: IdempotencyRepository
 
     @MockBean
     private lateinit var paymentGateway: PaymentGateway
@@ -83,11 +83,11 @@ class KafkaOrderPlacedConsumerIntegrationTest : KafkaContainerTestBase() {
             data = orderPlacedEvent,
         )
 
-        whenever(paymentRepositoryPort.existsByOrderId(orderId)).thenReturn(false)
-        whenever(paymentRepositoryPort.save(any())).thenAnswer { invocation ->
+        whenever(paymentRepository.existsByOrderId(orderId)).thenReturn(false)
+        whenever(paymentRepository.save(any())).thenAnswer { invocation ->
             invocation.getArgument<Payment>(0)
         }
-        doNothing().whenever(idempotencyRepositoryPort).save(any())
+        doNothing().whenever(idempotencyRepository).save(any())
 
         // When
         kafkaTemplate.send(orderPlacedTopic, orderId.toString(), cloudEvent)
@@ -96,7 +96,7 @@ class KafkaOrderPlacedConsumerIntegrationTest : KafkaContainerTestBase() {
         await()
             .atMost(15, TimeUnit.SECONDS)
             .untilAsserted {
-                verify(paymentRepositoryPort, times(1)).save(any())
+                verify(paymentRepository, times(1)).save(any())
             }
     }
 
@@ -128,8 +128,8 @@ class KafkaOrderPlacedConsumerIntegrationTest : KafkaContainerTestBase() {
         )
 
         // Payment already exists
-        whenever(paymentRepositoryPort.existsByOrderId(orderId)).thenReturn(true)
-        doNothing().whenever(idempotencyRepositoryPort).save(any())
+        whenever(paymentRepository.existsByOrderId(orderId)).thenReturn(true)
+        doNothing().whenever(idempotencyRepository).save(any())
 
         // When
         kafkaTemplate.send(orderPlacedTopic, orderId.toString(), cloudEvent)
@@ -138,11 +138,11 @@ class KafkaOrderPlacedConsumerIntegrationTest : KafkaContainerTestBase() {
         await()
             .atMost(10, TimeUnit.SECONDS)
             .untilAsserted {
-                verify(idempotencyRepositoryPort, times(1)).save(any())
+                verify(idempotencyRepository, times(1)).save(any())
             }
 
         // Payment should not be saved again
-        verify(paymentRepositoryPort, never()).save(any())
+        verify(paymentRepository, never()).save(any())
     }
 
     @Test
@@ -170,11 +170,11 @@ class KafkaOrderPlacedConsumerIntegrationTest : KafkaContainerTestBase() {
             data = orderPlacedEvent,
         )
 
-        whenever(paymentRepositoryPort.existsByOrderId(orderId)).thenReturn(false)
-        whenever(paymentRepositoryPort.save(any())).thenAnswer { invocation ->
+        whenever(paymentRepository.existsByOrderId(orderId)).thenReturn(false)
+        whenever(paymentRepository.save(any())).thenAnswer { invocation ->
             invocation.getArgument<Payment>(0)
         }
-        doNothing().whenever(idempotencyRepositoryPort).save(any())
+        doNothing().whenever(idempotencyRepository).save(any())
 
         // When
         kafkaTemplate.send(orderPlacedTopic, orderId.toString(), cloudEvent)
@@ -183,7 +183,7 @@ class KafkaOrderPlacedConsumerIntegrationTest : KafkaContainerTestBase() {
         await()
             .atMost(15, TimeUnit.SECONDS)
             .untilAsserted {
-                verify(idempotencyRepositoryPort, times(1)).save(any())
+                verify(idempotencyRepository, times(1)).save(any())
             }
     }
 
@@ -204,7 +204,7 @@ class KafkaOrderPlacedConsumerIntegrationTest : KafkaContainerTestBase() {
         // Then - should not throw exception and acknowledge the message
         // Wait a bit and verify no payment was created
         Thread.sleep(3000)
-        verify(paymentRepositoryPort, never()).save(any())
+        verify(paymentRepository, never()).save(any())
     }
 
     @Test
@@ -227,7 +227,7 @@ class KafkaOrderPlacedConsumerIntegrationTest : KafkaContainerTestBase() {
 
         // Then - should skip the poison message without crashing
         Thread.sleep(3000)
-        verify(paymentRepositoryPort, never()).save(any())
+        verify(paymentRepository, never()).save(any())
     }
 
     @Test
@@ -246,11 +246,11 @@ class KafkaOrderPlacedConsumerIntegrationTest : KafkaContainerTestBase() {
             )
         }
 
-        whenever(paymentRepositoryPort.existsByOrderId(any())).thenReturn(false)
-        whenever(paymentRepositoryPort.save(any())).thenAnswer { invocation ->
+        whenever(paymentRepository.existsByOrderId(any())).thenReturn(false)
+        whenever(paymentRepository.save(any())).thenAnswer { invocation ->
             invocation.getArgument<Payment>(0)
         }
-        doNothing().whenever(idempotencyRepositoryPort).save(any())
+        doNothing().whenever(idempotencyRepository).save(any())
 
         // When
         events.forEach { event ->
@@ -267,7 +267,7 @@ class KafkaOrderPlacedConsumerIntegrationTest : KafkaContainerTestBase() {
         await()
             .atMost(20, TimeUnit.SECONDS)
             .untilAsserted {
-                verify(paymentRepositoryPort, times(3)).save(any())
+                verify(paymentRepository, times(3)).save(any())
             }
     }
 
@@ -296,11 +296,11 @@ class KafkaOrderPlacedConsumerIntegrationTest : KafkaContainerTestBase() {
             data = orderPlacedEvent,
         )
 
-        whenever(paymentRepositoryPort.existsByOrderId(orderId)).thenReturn(false)
-        whenever(paymentRepositoryPort.save(any())).thenAnswer { invocation ->
+        whenever(paymentRepository.existsByOrderId(orderId)).thenReturn(false)
+        whenever(paymentRepository.save(any())).thenAnswer { invocation ->
             invocation.getArgument<Payment>(0)
         }
-        doNothing().whenever(idempotencyRepositoryPort).save(any())
+        doNothing().whenever(idempotencyRepository).save(any())
 
         // When
         kafkaTemplate.send(orderPlacedTopic, orderId.toString(), cloudEvent)

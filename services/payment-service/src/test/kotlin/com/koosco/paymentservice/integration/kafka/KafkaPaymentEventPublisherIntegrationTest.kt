@@ -2,10 +2,10 @@ package com.koosco.paymentservice.integration.kafka
 
 import com.koosco.common.core.test.KafkaContainerTestBase
 import com.koosco.paymentservice.application.contract.outbound.payment.PaymentCreatedEvent
-import com.koosco.paymentservice.application.port.IdempotencyRepositoryPort
+import com.koosco.paymentservice.application.port.IdempotencyRepository
 import com.koosco.paymentservice.application.port.IntegrationEventPublisher
 import com.koosco.paymentservice.application.port.PaymentGateway
-import com.koosco.paymentservice.application.port.PaymentRepositoryPort
+import com.koosco.paymentservice.application.port.PaymentRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -36,10 +36,10 @@ class KafkaPaymentEventPublisherIntegrationTest : KafkaContainerTestBase() {
     private lateinit var paymentCreatedTopic: String
 
     @MockBean
-    private lateinit var paymentRepositoryPort: PaymentRepositoryPort
+    private lateinit var paymentRepository: PaymentRepository
 
     @MockBean
-    private lateinit var idempotencyRepositoryPort: IdempotencyRepositoryPort
+    private lateinit var idempotencyRepository: IdempotencyRepository
 
     @MockBean
     private lateinit var paymentGateway: PaymentGateway
