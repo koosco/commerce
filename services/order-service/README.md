@@ -73,7 +73,19 @@ Order Service는 이커머스 시스템의 핵심 오케스트레이터로, 주�
    [주문 완료]
 ```
 
-**보상 트랜잭션 흐름** (결제 실패 시):
+**보상 트랜잭션 흐름 1** (재고 예약 실패 시):
+
+```
+[Order Service]        [Inventory Service]
+      |                        |
+  1. StockReservationFailedEvent 수신
+      |
+  2. FAILED 상태 전이
+      |
+   [주문 실패 완료]
+```
+
+**보상 트랜잭션 흐름 2** (결제 실패 시):
 
 ```
 [Order Service]        [Inventory Service]
@@ -85,6 +97,21 @@ Order Service는 이커머스 시스템의 핵심 오케스트레이터로, 주�
   3. OrderCancelledEvent 발행
       |----------------------->|
       |                   예약 해제
+      |                   (재고 복원)
+```
+
+**보상 트랜잭션 흐름 3** (재고 확정 실패 시):
+
+```
+[Order Service]        [Inventory Service]      [Payment Service]
+      |                        |                        |
+  1. StockConfirmFailedEvent 수신
+      |
+  2. CANCELLED 상태 전이
+      |
+  3. OrderCancelledEvent 발행
+      |----------------------->|
+      |                   예약 해제               (환불 플로우 - 추후 구현)
       |                   (재고 복원)
 ```
 
@@ -229,17 +256,19 @@ class IdempotencyChecker(private val idempotencyRepository: OrderIdempotencyRepo
 - Fast-path 체크로 대부분의 중복 제거
 - Race condition 발생 시 DB 제약조건으로 최종 방어
 
-### 4. 5개 Consumer를 통한 이벤트 처리
+### 4. 7개 Consumer를 통한 이벤트 처리
 
-Order Service는 다음 5개의 Kafka Consumer를 운영합니다:
+Order Service는 다음 7개의 Kafka Consumer를 운영합니다:
 
 | Consumer | 토픽 | 액션 | 상태 전이 | 멱등성 키 |
 |----------|------|------|----------|-----------|
 | `KafkaStockReservedConsumer` | `stock.reserved` | 재고 예약 완료 처리 | CREATED → RESERVED | `MARK_RESERVED` |
+| `KafkaStockReservationFailedConsumer` | `stock.reservation.failed` | 재고 예약 실패 보상 | CREATED → FAILED | `MARK_FAILED_BY_STOCK_RESERVATION` |
 | `KafkaPaymentCreatedConsumer` | `payment.created` | 결제 생성 처리 | RESERVED → PAYMENT_CREATED | `MARK_PAYMENT_CREATED` |
 | `KafkaPaymentCompletedConsumer` | `payment.completed` | 결제 완료 처리 | PAYMENT_PENDING → PAID | `MARK_PAID` |
-| `KafkaStockConfirmedConsumer` | `stock.confirmed` | 재고 확정 처리 | PAID → CONFIRMED | `MARK_CONFIRMED` |
 | `KafkaPaymentFailedConsumer` | `payment.failed` | 결제 실패 보상 | PAYMENT_PENDING → CANCELLED | `CANCEL_BY_PAYMENT_FAILURE` |
+| `KafkaStockConfirmedConsumer` | `stock.confirmed` | 재고 확정 처리 | PAID → CONFIRMED | `MARK_CONFIRMED` |
+| `KafkaStockConfirmFailedConsumer` | `stock.confirm.failed` | 재고 확정 실패 보상 | PAID → CANCELLED | `CANCEL_BY_STOCK_CONFIRM_FAILURE` |
 
 모든 Consumer는 동일한 패턴을 따릅니다:
 1. CloudEvent 역직렬화
@@ -455,6 +484,8 @@ class OrderEventIdempotency(
             const val MARK_PAID = "MARK_PAID"
             const val MARK_CONFIRMED = "MARK_CONFIRMED"
             const val CANCEL_BY_PAYMENT_FAILURE = "CANCEL_BY_PAYMENT_FAILURE"
+            const val MARK_FAILED_BY_STOCK_RESERVATION = "MARK_FAILED_BY_STOCK_RESERVATION"
+            const val CANCEL_BY_STOCK_CONFIRM_FAILURE = "CANCEL_BY_STOCK_CONFIRM_FAILURE"
         }
     }
 }
@@ -554,10 +585,12 @@ Order Service가 소비하는 Integration Event:
 | Event Type | Topic | 발행자 | 액션 | Idempotency Key |
 |------------|-------|--------|------|-----------------|
 | `stock.reserved` | `stock.reserved` | Inventory | 재고 예약 완료 → PAYMENT_PENDING | `MARK_PAYMENT_PENDING` |
+| `stock.reservation.failed` | `stock.reservation.failed` | Inventory | 재고 예약 실패 → FAILED | `MARK_FAILED_BY_STOCK_RESERVATION` |
 | `payment.created` | `payment.created` | Payment | 결제 생성 → PAYMENT_CREATED | `MARK_PAYMENT_CREATED` |
 | `payment.completed` | `payment.completed` | Payment | 결제 완료 → PAID, OrderConfirmedEvent 발행 | `MARK_PAID` |
-| `stock.confirmed` | `stock.confirmed` | Inventory | 재고 확정 → CONFIRMED | `MARK_CONFIRMED` |
 | `payment.failed` | `payment.failed` | Payment | 결제 실패 → CANCELLED, OrderCancelledEvent 발행 | `CANCEL_BY_PAYMENT_FAILURE` |
+| `stock.confirmed` | `stock.confirmed` | Inventory | 재고 확정 → CONFIRMED | `MARK_CONFIRMED` |
+| `stock.confirm.failed` | `stock.confirm.failed` | Inventory | 재고 확정 실패 → CANCELLED, OrderCancelledEvent 발행 | `CANCEL_BY_STOCK_CONFIRM_FAILURE` |
 
 ### CloudEvent 표준 준수
 
@@ -876,6 +909,8 @@ order-service/
 │   │   ├── MarkOrderPaidUseCase.kt
 │   │   ├── MarkOrderConfirmedUseCase.kt
 │   │   ├── CancelOrderByPaymentFailureUseCase.kt
+│   │   ├── CancelOrderByStockFailureUseCase.kt
+│   │   ├── CancelOrderByStockConfirmFailureUseCase.kt
 │   │   └── RefundOrderItemsUseCase.kt
 │   ├── command/                  # Command 객체
 │   │   └── OrderCommands.kt
@@ -897,7 +932,9 @@ order-service/
 │           │   └── PaymentFailedEvent.kt
 │           └── inventory/
 │               ├── StockReservedEvent.kt
-│               └── StockConfirmedEvent.kt
+│               ├── StockReserveFailedEvent.kt
+│               ├── StockConfirmedEvent.kt
+│               └── StockConfirmFailedEvent.kt
 │
 ├── domain/                       # 도메인 레이어
 │   ├── Order.kt                  # 주문 애그리거트
@@ -939,10 +976,12 @@ order-service/
         │   └── OutboxIntegrationEventPublisher.kt
         ├── consumer/
         │   ├── KafkaStockReservedConsumer.kt
+        │   ├── KafkaStockReservationFailedConsumer.kt
         │   ├── KafkaPaymentCreatedConsumer.kt
         │   ├── KafkaPaymentCompletedConsumer.kt
+        │   ├── KafkaPaymentFailedConsumer.kt
         │   ├── KafkaStockConfirmedConsumer.kt
-        │   └── KafkaPaymentFailedConsumer.kt
+        │   └── KafkaStockConfirmFailedConsumer.kt
         ├── KafkaTopicProperties.kt
         └── KafkaTopicResolver.kt
 ```
@@ -995,7 +1034,11 @@ order:
     mappings:
       stock:
         reserved: stock.reserved
+        reservation:
+          failed: stock.reservation.failed
         confirmed: stock.confirmed
+        confirm:
+          failed: stock.confirm.failed
       payment:
         created: payment.created
         completed: payment.completed

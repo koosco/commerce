@@ -447,7 +447,7 @@ Each service has its own CLAUDE.md with specific guidance:
 
 | 서비스 | 소비 이벤트 | 멱등성 | 비고 |
 |--------|------------|--------|------|
-| order-service | PaymentCreated/Completed/Failed, StockReserved/Confirmed | 상태 전이 | 5개 Consumer |
+| order-service | PaymentCreated/Completed/Failed, StockReserved/ReservationFailed/Confirmed/ConfirmFailed | 상태 전이 + DB 멱등성 | 7개 Consumer |
 | inventory-service | OrderPlaced/Confirmed/Cancelled, ProductSkuCreated | 상태 전이 | 4개 Consumer |
 | payment-service | OrderPlaced | **DB 멱등성** | IdempotencyRepository 사용 |
 | catalog-service | - | - | Consumer 없음 (Producer only) |

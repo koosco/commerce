@@ -87,7 +87,9 @@ payment-service/
 │       │       └── OrderPlacedEvent   # 수신 이벤트
 │       └── outbound/
 │           └── payment/
-│               └── PaymentCreatedEvent # 발행 이벤트
+│               ├── PaymentCreatedEvent   # 결제 생성 이벤트
+│               ├── PaymentCompletedEvent # 결제 승인 완료 이벤트
+│               └── PaymentFailedEvent    # 결제 승인 실패 이벤트
 │
 ├── domain/                 # Domain Layer (Entities, Value Objects)
 │   ├── entity/
@@ -116,8 +118,9 @@ payment-service/
     │   └── jpa/
     │       ├── JpaPaymentRepository
     │       └── JpaIdempotencyRepository
-    └── client/toss/
-        └── TossClient                   # Toss Payments API 클라이언트
+    └── client/
+        ├── PaymentGateway               # PaymentGateway Port 인터페이스
+        └── TossPaymentGateway           # Toss Payments API Gateway 구현체
 ```
 
 ### 의존성 규칙
@@ -326,11 +329,45 @@ class KafkaOrderPlacedEventConsumer(
 사용자
   → Frontend (Toss Widget)
     → WidgetController.confirmPayment()
-      → TossClient (Toss API 호출)
-        → ApprovePaymentUseCase
-          → Payment.approve()
-            → PaymentTransaction 생성
-              → 이벤트 발행 (PaymentApprovedEvent)
+      → ApprovePaymentUseCase
+        → PaymentGateway.approve() (TossPaymentGateway)
+          ├─ 성공: Payment.approve() → PaymentCompletedEvent 발행
+          └─ 실패: Payment.fail() → PaymentFailedEvent 발행
+```
+
+#### PaymentGateway 인터페이스
+
+```kotlin
+interface PaymentGateway {
+    fun approve(paymentKey: String, orderId: String, amount: Long): PaymentApprovalResult
+}
+
+sealed class PaymentApprovalResult {
+    data class Success(val transactionId: String) : PaymentApprovalResult()
+    data class Failure(val reason: String, val code: String) : PaymentApprovalResult()
+}
+```
+
+#### TossPaymentGateway 구현
+
+```kotlin
+@Component
+class TossPaymentGateway(
+    private val tossClient: TossClient,
+) : PaymentGateway {
+
+    override fun approve(paymentKey: String, orderId: String, amount: Long): PaymentApprovalResult {
+        return try {
+            val response = tossClient.confirmPayment(paymentKey, orderId, amount)
+            PaymentApprovalResult.Success(transactionId = response.transactionId)
+        } catch (e: TossApiException) {
+            PaymentApprovalResult.Failure(
+                reason = e.message ?: "Unknown error",
+                code = e.errorCode,
+            )
+        }
+    }
+}
 ```
 
 #### 주요 고려사항
@@ -339,10 +376,13 @@ class KafkaOrderPlacedEventConsumer(
 - **API 에러 처리**: PG사 오류를 `PaymentErrorCode.PAYMENT_GATEWAY_ERROR`로 변환
 - **타임아웃 처리**: RestClient 타임아웃 설정
 - **재시도 로직**: 일시적 실패에 대한 재시도 전략
+- **Port/Adapter 분리**: `PaymentGateway` 인터페이스로 외부 의존성 추상화
 
 ## API 엔드포인트
 
-### 결제 승인
+### 결제 승인 (Toss Widget Callback)
+
+사용자가 Toss Widget에서 결제를 완료하면, 프론트엔드가 이 API를 호출하여 결제를 승인합니다.
 
 ```http
 POST /api/payments/confirm
@@ -355,11 +395,20 @@ Content-Type: application/json
 }
 ```
 
+**처리 흐름**
+
+1. `orderId`로 결제 엔티티 조회
+2. `paymentKey`와 `amount` 검증
+3. `PaymentGateway.approve()` 호출 (Toss API)
+4. 성공 시: `Payment.approve()` → `PaymentCompletedEvent` 발행
+5. 실패 시: `Payment.fail()` → `PaymentFailedEvent` 발행
+
 **응답**
 
-- `200 OK`: 결제 승인 성공
+- `200 OK`: 결제 승인 성공 (PaymentCompletedEvent 발행됨)
 - `400 Bad Request`: 잘못된 요청 (금액 불일치, 유효하지 않은 paymentKey)
-- `500 Internal Server Error`: 서버 오류
+- `404 Not Found`: 결제 정보를 찾을 수 없음
+- `500 Internal Server Error`: 서버 오류 (PaymentFailedEvent 발행될 수 있음)
 
 ## 이벤트 처리
 
@@ -387,6 +436,8 @@ data class OrderPlacedEvent(
 | 이벤트 | 토픽 | 설명 | 트리거 |
 |--------|------|------|--------|
 | `PaymentCreatedEvent` | `koosco.commerce.payment.created` | 결제 생성됨 | 결제 생성 성공 |
+| `PaymentCompletedEvent` | `koosco.commerce.payment.completed` | 결제 승인 완료 | 결제 승인 성공 |
+| `PaymentFailedEvent` | `koosco.commerce.payment.failed` | 결제 승인 실패 | 결제 승인 실패 |
 
 **PaymentCreatedEvent 구조**
 
@@ -396,6 +447,35 @@ data class PaymentCreatedEvent(
     val orderId: Long
 ) : PaymentIntegrationEvent {
     override fun getEventType() = "payment.created"
+}
+```
+
+**PaymentCompletedEvent 구조**
+
+```kotlin
+data class PaymentCompletedEvent(
+    override val paymentId: String,
+    val orderId: Long,
+    val paidAmount: Long,
+    val paymentKey: String,
+    val correlationId: String,
+    val causationId: String,
+) : PaymentIntegrationEvent {
+    override fun getEventType() = "payment.completed"
+}
+```
+
+**PaymentFailedEvent 구조**
+
+```kotlin
+data class PaymentFailedEvent(
+    override val paymentId: String,
+    val orderId: Long,
+    val failureReason: String,
+    val correlationId: String,
+    val causationId: String,
+) : PaymentIntegrationEvent {
+    override fun getEventType() = "payment.failed"
 }
 ```
 
@@ -747,14 +827,20 @@ Payment Service 전용 대시보드에서 다음을 모니터링합니다:
 ### 3. 외부 API 통합 (Toss Payments)
 
 - **문제**: 외부 PG사와의 안정적인 통합
-- **해결**: Adapter 패턴 + 에러 처리 전략
-- **성과**: Clean Architecture 유지, 테스트 가능성 확보
+- **해결**: Port/Adapter 패턴 (`PaymentGateway` 인터페이스 + `TossPaymentGateway` 구현체)
+- **성과**: Clean Architecture 유지, 테스트 가능성 확보, Mock 구현으로 단위 테스트 용이
 
 ### 4. 이벤트 기반 비동기 처리
 
 - **문제**: Order-service와의 느슨한 결합
 - **해결**: Kafka Consumer + Integration Event 패턴
 - **성과**: 서비스 독립성 확보, 장애 격리
+
+### 5. Choreography Saga 보상 트랜잭션
+
+- **문제**: 결제 실패 시 분산 시스템의 상태 일관성 유지
+- **해결**: `PaymentFailedEvent` 발행 → Order-service가 주문 취소 → Inventory-service가 재고 해제
+- **성과**: 중앙 조정자 없이 이벤트 체인으로 보상 트랜잭션 구현
 
 ## 참고 문서
 
