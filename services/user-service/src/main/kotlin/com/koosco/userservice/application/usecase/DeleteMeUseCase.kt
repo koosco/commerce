@@ -2,7 +2,7 @@ package com.koosco.userservice.application.usecase
 
 import com.koosco.common.core.annotation.UseCase
 import com.koosco.common.core.exception.NotFoundException
-import com.koosco.userservice.application.repository.UserRepository
+import com.koosco.userservice.application.port.UserRepository
 import com.koosco.userservice.common.UserErrorCode
 import org.springframework.transaction.annotation.Transactional
 

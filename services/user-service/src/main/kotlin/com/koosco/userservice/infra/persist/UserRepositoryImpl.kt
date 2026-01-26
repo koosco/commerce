@@ -1,6 +1,6 @@
 package com.koosco.userservice.infra.persist
 
-import com.koosco.userservice.application.repository.UserRepository
+import com.koosco.userservice.application.port.UserRepository
 import com.koosco.userservice.domain.entity.User
 import org.springframework.stereotype.Repository
 

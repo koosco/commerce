@@ -1,4 +1,4 @@
-package com.koosco.userservice.application.repository
+package com.koosco.userservice.application.port
 
 import com.koosco.userservice.domain.entity.User
 

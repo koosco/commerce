@@ -4,7 +4,7 @@ import com.koosco.common.core.annotation.UseCase
 import com.koosco.common.core.exception.NotFoundException
 import com.koosco.userservice.application.command.GetUserDetailCommand
 import com.koosco.userservice.application.dto.UserDto
-import com.koosco.userservice.application.repository.UserRepository
+import com.koosco.userservice.application.port.UserRepository
 import com.koosco.userservice.common.UserErrorCode
 
 @UseCase

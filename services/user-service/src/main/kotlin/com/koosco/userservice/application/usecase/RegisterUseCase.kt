@@ -7,7 +7,7 @@ import com.koosco.common.core.exception.ExternalServiceException
 import com.koosco.common.core.transaction.TransactionRunner
 import com.koosco.userservice.application.command.CreateUserCommand
 import com.koosco.userservice.application.port.AuthServiceClient
-import com.koosco.userservice.application.repository.UserRepository
+import com.koosco.userservice.application.port.UserRepository
 import com.koosco.userservice.common.UserErrorCode
 import com.koosco.userservice.domain.entity.User
 import com.koosco.userservice.domain.vo.Email
