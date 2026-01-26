@@ -64,6 +64,8 @@ class TestInventoryService(
                 StockReserveFailedEvent.ReserveFailedItem(SECOND_SKU_ID, 10, 0),
             ),
             occurredAt = System.currentTimeMillis(),
+            correlationId = "test-correlation-$ORDER_ID",
+            causationId = "test-causation-${System.currentTimeMillis()}",
         )
 
         kafkaTemplate.send(

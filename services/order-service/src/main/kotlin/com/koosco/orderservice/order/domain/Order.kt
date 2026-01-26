@@ -128,7 +128,7 @@ class Order(
     }
 
     fun markReserved() {
-        if (status != OrderStatus.CREATED || status != OrderStatus.PAYMENT_CREATED) {
+        if (status != OrderStatus.CREATED && status != OrderStatus.PAYMENT_CREATED) {
             throw InvalidOrderStatus()
         }
 
@@ -137,7 +137,7 @@ class Order(
     }
 
     fun markPaymentCreated() {
-        if (status != OrderStatus.RESERVED || status != OrderStatus.CREATED) {
+        if (status != OrderStatus.RESERVED && status != OrderStatus.CREATED) {
             throw InvalidOrderStatus()
         }
 
@@ -201,6 +201,46 @@ class Order(
             OrderCancelled(
                 orderId = id!!,
                 reason = reason,
+                items = items.map {
+                    Item(
+                        skuId = it.skuId,
+                        quantity = it.quantity,
+                        unitPrice = it.unitPrice.amount,
+                    )
+                },
+            ),
+        )
+    }
+
+    /**
+     * 재고 예약 실패로 인한 주문 실패 처리
+     * CREATED 상태에서만 FAILED로 전이 가능
+     */
+    fun markFailed(reason: OrderCancelReason) {
+        if (status != OrderStatus.CREATED) {
+            throw InvalidOrderStatus("재고 예약 실패 처리는 CREATED 상태에서만 가능합니다. 현재 상태: $status")
+        }
+
+        status = OrderStatus.FAILED
+        updatedAt = LocalDateTime.now()
+    }
+
+    /**
+     * 재고 확정 실패로 인한 주문 취소 처리
+     * PAID 상태에서만 CANCELLED로 전이 가능 (환불 필요)
+     */
+    fun cancelByStockConfirmFailure() {
+        if (status != OrderStatus.PAID) {
+            throw InvalidOrderStatus("재고 확정 실패 처리는 PAID 상태에서만 가능합니다. 현재 상태: $status")
+        }
+
+        status = OrderStatus.CANCELLED
+        updatedAt = LocalDateTime.now()
+
+        domainEvents.add(
+            OrderCancelled(
+                orderId = id!!,
+                reason = OrderCancelReason.STOCK_CONFIRM_FAILED,
                 items = items.map {
                     Item(
                         skuId = it.skuId,

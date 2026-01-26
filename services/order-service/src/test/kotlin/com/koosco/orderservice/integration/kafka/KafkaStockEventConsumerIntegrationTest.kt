@@ -163,6 +163,7 @@ class KafkaStockEventConsumerIntegrationTest : KafkaIntegrationTestBase() {
                     ),
                 ),
                 occurredAt = System.currentTimeMillis(),
+                correlationId = orderId.toString(),
             )
 
             val cloudEvent = CloudEvent.of(
@@ -197,6 +198,7 @@ class KafkaStockEventConsumerIntegrationTest : KafkaIntegrationTestBase() {
                 reason = "INTERNAL_ERROR",
                 failedItems = null,
                 occurredAt = System.currentTimeMillis(),
+                correlationId = orderId.toString(),
             )
 
             val cloudEvent = CloudEvent.of(

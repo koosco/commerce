@@ -61,6 +61,8 @@ class OrderEventIdempotency(
             const val MARK_PAID = "MARK_PAID"
             const val MARK_CONFIRMED = "MARK_CONFIRMED"
             const val CANCEL_BY_PAYMENT_FAILURE = "CANCEL_BY_PAYMENT_FAILURE"
+            const val MARK_FAILED_BY_STOCK_RESERVATION = "MARK_FAILED_BY_STOCK_RESERVATION"
+            const val CANCEL_BY_STOCK_CONFIRM_FAILURE = "CANCEL_BY_STOCK_CONFIRM_FAILURE"
         }
 
         fun create(eventId: String, action: String, orderId: Long): OrderEventIdempotency = OrderEventIdempotency(

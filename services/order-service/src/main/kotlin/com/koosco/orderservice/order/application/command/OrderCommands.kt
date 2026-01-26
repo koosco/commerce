@@ -31,3 +31,8 @@ data class CancelOrderCommand(
     val orderId: Long,
     val reason: OrderCancelReason, // PAYMENT_FAILED, USER_CANCELLED, ...
 )
+
+/**
+ * 주문 실패 처리 command (재고 예약 실패 등 초기 단계 실패)
+ */
+data class MarkOrderFailedCommand(val orderId: Long, val reason: String)

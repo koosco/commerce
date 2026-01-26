@@ -23,6 +23,9 @@ data class StockReserveFailedEvent(
     val reason: String, // e.g. NOT_ENOUGH_STOCK
     val failedItems: List<ReserveFailedItem>? = null,
     val occurredAt: Long,
+
+    val correlationId: String,
+    val causationId: String? = null,
 ) {
     data class ReserveFailedItem(val skuId: String, val quantity: Int, val availableQuantity: Int? = null)
 }
