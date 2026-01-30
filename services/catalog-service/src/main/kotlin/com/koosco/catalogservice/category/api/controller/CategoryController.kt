@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*
 
 @Tag(name = "Category", description = "Category management APIs")
 @RestController
-@RequestMapping("/api/catalog/categories")
+@RequestMapping("/api/categories")
 class CategoryController(
     private val getCategoryListUseCase: GetCategoryListUseCase,
     private val getCategoryTreeUseCase: GetCategoryTreeUseCase,

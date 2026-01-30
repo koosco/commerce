@@ -111,9 +111,10 @@ make k8s-port-forward PORT=3000
 # 서비스 접근 URL
 # http://localhost:8080/api/auth
 # http://localhost:8080/api/users
-# http://localhost:8080/api/catalog
+# http://localhost:8080/api/categories
+# http://localhost:8080/api/products
 # http://localhost:8080/api/orders
-# http://localhost:8080/api/inventory
+# http://localhost:8080/api/inventories
 # http://localhost:8080/api/payments
 ```
 
@@ -244,8 +245,9 @@ kubectl get secret -n commerce
 | `/api/auth` | auth-service | 80 |
 | `/api/users` | user-service | 80 |
 | `/api/orders` | order-service | 80 |
-| `/api/catalog` | catalog-service | 80 |
-| `/api/inventory` | inventory-service | 80 |
+| `/api/categories` | catalog-service | 80 |
+| `/api/products` | catalog-service | 80 |
+| `/api/inventories` | inventory-service | 80 |
 | `/api/payments` | payment-service | 80 |
 
 ## Kafka for k3d

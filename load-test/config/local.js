@@ -9,8 +9,8 @@ export const localConfig = {
   paths: {
     auth: '/api/auth',
     users: '/api/users',
-    catalog: '/api/catalog/products',
-    categories: '/api/catalog/categories',
+    products: '/api/products',
+    categories: '/api/categories',
     inventory: '/api/inventories',
     orders: '/api/orders',
     payments: '/api/payments',

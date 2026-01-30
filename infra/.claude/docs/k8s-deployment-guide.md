@@ -128,8 +128,9 @@ commerce-dev-ratelimit:
 ```
 /api/auth → auth-service:80
 /api/users → user-service:80
-/api/catalog → catalog-service:80
-/api/inventory → inventory-service:80
+/api/categories → catalog-service:80
+/api/products → catalog-service:80
+/api/inventories → inventory-service:80
 /api/orders → order-service:80
 /api/payments → payment-service:80
 ```

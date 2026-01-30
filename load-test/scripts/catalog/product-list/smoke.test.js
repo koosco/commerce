@@ -12,7 +12,7 @@ export const options = {
 };
 
 const BASE_URL = config.catalogService;
-const API_PATH = config.paths.catalog;
+const API_PATH = config.paths.products;
 
 export default function () {
   // Get product list with pagination

@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @Tag(name = "Product", description = "Product management APIs")
 @RestController
-@RequestMapping("/api/catalog/products")
+@RequestMapping("/api/products")
 class ProductController(
     private val getProductListUseCase: GetProductListUseCase,
     private val getProductDetailUseCase: GetProductDetailUseCase,
@@ -77,7 +77,7 @@ class ProductController(
     @Operation(
         summary = "옵션 조합으로 SKU를 조회합니다.",
         description = "사용자가 선택한 옵션 조합에 해당하는 SKU 정보(가격, 재고 등)를 조회합니다. " +
-            "예시: GET /api/catalog/products/2/skus?Volume=100ml&Package=Single",
+            "예시: GET /api/products/2/skus?Volume=100ml&Package=Single",
     )
     @GetMapping("/{productId}/skus")
     fun findSku(

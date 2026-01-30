@@ -10,9 +10,9 @@ export const prodConfig = {
   paths: {
     auth: '/api/auth',
     users: '/api/users',
-    catalog: '/api/catalog',
-    categories: '/api/catalog/categories',
-    inventory: '/api/inventory',
+    products: '/api/products',
+    categories: '/api/categories',
+    inventory: '/api/inventories',
     orders: '/api/orders',
     payments: '/api/payments',
   },

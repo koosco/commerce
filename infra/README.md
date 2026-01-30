@@ -40,8 +40,9 @@
 │                  Traefik Ingress                        │
 │  /api/auth → auth-service                               │
 │  /api/users → user-service                              │
-│  /api/catalog → catalog-service                         │
-│  /api/inventory → inventory-service                     │
+│  /api/categories → catalog-service                      │
+│  /api/products → catalog-service                        │
+│  /api/inventories → inventory-service                   │
 │  /api/orders → order-service                            │
 │  /api/payments → payment-service                        │
 └─────────────────────────────────────────────────────────┘
@@ -303,8 +304,9 @@ limits:
 |------|---------|---------------|
 | `/api/auth` | auth-service | 8080 |
 | `/api/users` | user-service | 8080 |
-| `/api/catalog` | catalog-service | 8080 |
-| `/api/inventory` | inventory-service | 8080 |
+| `/api/categories` | catalog-service | 8080 |
+| `/api/products` | catalog-service | 8080 |
+| `/api/inventories` | inventory-service | 8080 |
 | `/api/orders` | order-service | 8080 |
 | `/api/payments` | payment-service | 8080 |
 

@@ -36,7 +36,8 @@ k8s-port-forward:
 	@echo "$(YELLOW)✓ Services available at:$(NC)"
 	@echo "  - http://localhost:$(PORT)/api/users"
 	@echo "  - http://localhost:$(PORT)/api/auth"
-	@echo "  - http://localhost:$(PORT)/api/catalog"
+	@echo "  - http://localhost:$(PORT)/api/categories"
+	@echo "  - http://localhost:$(PORT)/api/products"
 	@echo "  - http://localhost:$(PORT)/api/orders"
 	@echo ""
 	@if [ "$(PORT)" -lt "1024" ]; then \

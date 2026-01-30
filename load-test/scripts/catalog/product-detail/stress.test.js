@@ -31,7 +31,7 @@ export const options = {
 };
 
 const BASE_URL = config.catalogService;
-const API_PATH = config.paths.catalog;
+const API_PATH = config.paths.products;
 
 // Test product IDs (should exist in the system)
 const TEST_PRODUCT_IDS = [1, 2, 3, 4, 5];

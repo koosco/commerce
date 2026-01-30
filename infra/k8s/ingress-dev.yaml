@@ -100,9 +100,20 @@ spec:
                   number: 80
 
           # ==========================================
-          # Catalog Service - 상품 관리
+          # Catalog Service - 카테고리
           # ==========================================
-          - path: /api/catalog
+          - path: /api/categories
+            pathType: Prefix
+            backend:
+              service:
+                name: catalog-service
+                port:
+                  number: 80
+
+          # ==========================================
+          # Catalog Service - 상품
+          # ==========================================
+          - path: /api/products
             pathType: Prefix
             backend:
               service:
@@ -113,7 +124,7 @@ spec:
           # ==========================================
           # Inventory Service - 재고 관리
           # ==========================================
-          - path: /api/inventory
+          - path: /api/inventories
             pathType: Prefix
             backend:
               service:

@@ -104,17 +104,17 @@ UseCase (@Transactional)
 
 | Method | Path | 설명 |
 |--------|------|------|
-| GET | `/api/catalog/products` | 상품 목록 (페이징) |
-| GET | `/api/catalog/products/{id}` | 상품 상세 |
-| GET | `/api/catalog/products/{id}/skus` | SKU 조회 (옵션 조합) |
-| POST | `/api/catalog/products` | 상품 생성 (인증 필수) |
+| GET | `/api/products` | 상품 목록 (페이징) |
+| GET | `/api/products/{id}` | 상품 상세 |
+| GET | `/api/products/{id}/skus` | SKU 조회 (옵션 조합) |
+| POST | `/api/products` | 상품 생성 (인증 필수) |
 
 ### Category APIs
 
 | Method | Path | 설명 |
 |--------|------|------|
-| GET | `/api/catalog/categories/tree` | 카테고리 트리 |
-| POST | `/api/catalog/categories/tree` | 트리 생성 (재귀) |
+| GET | `/api/categories/tree` | 카테고리 트리 |
+| POST | `/api/categories/tree` | 트리 생성 (재귀) |
 
 **Swagger UI**: `http://localhost:8084/swagger-ui.html`
 

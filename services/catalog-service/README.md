@@ -553,28 +553,28 @@ options1 == options2  // true (순서 무관)
 
 | Method | Path | 설명 | 인증 |
 |--------|------|------|------|
-| GET | `/api/catalog/products` | 상품 목록 조회 (페이징, 필터링) | 불필요 |
-| GET | `/api/catalog/products/{productId}` | 상품 상세 조회 | 불필요 |
-| GET | `/api/catalog/products/{productId}/skus` | SKU 조회 (옵션 조합) | 불필요 |
-| POST | `/api/catalog/products` | 상품 생성 (SKU 자동 생성) | 필수 |
-| PUT | `/api/catalog/products/{productId}` | 상품 수정 | 필수 |
-| DELETE | `/api/catalog/products/{productId}` | 상품 삭제 (논리 삭제) | 필수 |
+| GET | `/api/products` | 상품 목록 조회 (페이징, 필터링) | 불필요 |
+| GET | `/api/products/{productId}` | 상품 상세 조회 | 불필요 |
+| GET | `/api/products/{productId}/skus` | SKU 조회 (옵션 조합) | 불필요 |
+| POST | `/api/products` | 상품 생성 (SKU 자동 생성) | 필수 |
+| PUT | `/api/products/{productId}` | 상품 수정 | 필수 |
+| DELETE | `/api/products/{productId}` | 상품 삭제 (논리 삭제) | 필수 |
 
 ### Category APIs
 
 | Method | Path | 설명 | 인증 |
 |--------|------|------|------|
-| GET | `/api/catalog/categories` | 카테고리 리스트 조회 | 불필요 |
-| GET | `/api/catalog/categories/tree` | 카테고리 트리 조회 | 불필요 |
-| POST | `/api/catalog/categories` | 카테고리 생성 | 필수 |
-| POST | `/api/catalog/categories/tree` | 카테고리 트리 생성 (재귀) | 필수 |
+| GET | `/api/categories` | 카테고리 리스트 조회 | 불필요 |
+| GET | `/api/categories/tree` | 카테고리 트리 조회 | 불필요 |
+| POST | `/api/categories` | 카테고리 생성 | 필수 |
+| POST | `/api/categories/tree` | 카테고리 트리 생성 (재귀) | 필수 |
 
 ### Request 예시
 
 #### 상품 생성
 
 ```json
-POST /api/catalog/products
+POST /api/products
 {
   "name": "클래식 티셔츠",
   "description": "편안한 코튼 소재",
@@ -611,7 +611,7 @@ POST /api/catalog/products
 #### SKU 조회
 
 ```
-GET /api/catalog/products/1/skus?색상=빨강&사이즈=M
+GET /api/products/1/skus?색상=빨강&사이즈=M
 
 Response:
 {
@@ -625,7 +625,7 @@ Response:
 #### 카테고리 트리 생성
 
 ```json
-POST /api/catalog/categories/tree
+POST /api/categories/tree
 {
   "name": "전자제품",
   "ordering": 1,

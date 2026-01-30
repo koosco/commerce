@@ -27,7 +27,7 @@ export const options = {
 };
 
 const BASE_URL = config.catalogService;
-const API_PATH = config.paths.catalog;
+const API_PATH = config.paths.products;
 
 // 커스텀 메트릭
 const successfulRequests = new Counter('successful_requests');
