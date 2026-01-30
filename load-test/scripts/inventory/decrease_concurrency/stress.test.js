@@ -1,8 +1,8 @@
-import http from "k6/http";
-import { check, sleep } from "k6";
-import { Counter, Trend, Rate } from "k6/metrics";
-import { config } from "../../../config/local.js";
-import { generateHTMLReport } from "../../utils/htmlReporter.js";
+import http from 'k6/http';
+import { check, sleep } from 'k6';
+import { Counter, Trend, Rate } from 'k6/metrics';
+import { config } from '../../../config/index.js';
+import { generateHTMLReport } from '../../utils/htmlReporter.js';
 
 /**
  * Stress Test - 재고 감소 동시성 테스트
@@ -16,33 +16,34 @@ import { generateHTMLReport } from "../../utils/htmlReporter.js";
 
 export const options = {
   stages: [
-    { duration: "2m", target: 100 },   // Warm-up: 0 → 100 VUs
-    { duration: "3m", target: 300 },   // Ramp-up: 100 → 300 VUs
-    { duration: "5m", target: 500 },   // Peak: 300 → 500 VUs
-    { duration: "5m", target: 500 },   // Hold: 500 VUs 유지 (동시성 집중 테스트)
-    { duration: "3m", target: 200 },   // Recovery: 500 → 200 VUs
-    { duration: "2m", target: 0 },     // Cool-down: 200 → 0 VUs
+    { duration: '2m', target: 100 }, // Warm-up: 0 → 100 VUs
+    { duration: '3m', target: 300 }, // Ramp-up: 100 → 300 VUs
+    { duration: '5m', target: 500 }, // Peak: 300 → 500 VUs
+    { duration: '5m', target: 500 }, // Hold: 500 VUs 유지 (동시성 집중 테스트)
+    { duration: '3m', target: 200 }, // Recovery: 500 → 200 VUs
+    { duration: '2m', target: 0 }, // Cool-down: 200 → 0 VUs
   ],
   thresholds: {
-    http_req_duration: ["p(95)<1000", "p(99)<2000"], // 허용 가능한 범위 내
-    http_req_failed: ["rate<0.05"],                  // 에러율 5% 미만 (재고 부족 제외)
-    successful_decreases: ["count>0"],               // 성공한 재고 감소
-    stock_conflicts: ["count>0"],                    // 재고 부족 발생
-    error_rate: ["rate<0.01"],                       // 실제 에러율 1% 미만
+    http_req_duration: ['p(95)<1000', 'p(99)<2000'], // 허용 가능한 범위 내
+    http_req_failed: ['rate<0.05'], // 에러율 5% 미만 (재고 부족 제외)
+    successful_decreases: ['count>0'], // 성공한 재고 감소
+    stock_conflicts: ['count>0'], // 재고 부족 발생
+    error_rate: ['rate<0.01'], // 실제 에러율 1% 미만
   },
 };
 
-const SKU_ID = "00008217-b1ae-4045-9500-2d4b9fffaa32";
 const BASE_URL = config.inventoryService;
+const API_PATH = config.paths.inventory;
+const SKU_ID = '00008217-b1ae-4045-9500-2d4b9fffaa32';
 
 // 커스텀 메트릭
-const successfulDecreases = new Counter("successful_decreases");
-const actualErrors = new Counter("actual_errors");
-const decreaseLatency = new Trend("decrease_latency");
-const errorRate = new Rate("error_rate");
+const successfulDecreases = new Counter('successful_decreases');
+const actualErrors = new Counter('actual_errors');
+const decreaseLatency = new Trend('decrease_latency');
+const errorRate = new Rate('error_rate');
 
 export default function () {
-  const url = `${BASE_URL}/api/inventories/${SKU_ID}/decrease`;
+  const url = `${BASE_URL}${API_PATH}/${SKU_ID}/decrease`;
 
   const payload = JSON.stringify({
     quantity: 2,

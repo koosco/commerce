@@ -1,0 +1,20 @@
+export const prodConfig = {
+  name: 'prod',
+  baseUrl: 'https://commerce.koomango.com',
+  authService: 'https://commerce.koomango.com',
+  userService: 'https://commerce.koomango.com',
+  catalogService: 'https://commerce.koomango.com',
+  inventoryService: 'https://commerce.koomango.com',
+  orderService: 'https://commerce.koomango.com',
+  paymentService: 'https://commerce.koomango.com',
+  paths: {
+    auth: '/api/auth',
+    users: '/api/users',
+    catalog: '/api/catalog',
+    categories: '/api/catalog/categories',
+    inventory: '/api/inventory',
+    orders: '/api/orders',
+    payments: '/api/payments',
+  },
+  rateLimit: 100,
+};

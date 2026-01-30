@@ -1,8 +1,8 @@
-import http from "k6/http";
-import { check, sleep } from "k6";
-import { Counter, Trend } from "k6/metrics";
-import { config } from "../../../config/local.js";
-import { generateHTMLReport } from "../../utils/htmlReporter.js";
+import http from 'k6/http';
+import { check, sleep } from 'k6';
+import { Counter, Trend } from 'k6/metrics';
+import { config } from '../../../config/index.js';
+import { generateHTMLReport } from '../../utils/htmlReporter.js';
 
 /**
  * Baseline Test - 재고 감소 동시성 테스트
@@ -15,26 +15,27 @@ import { generateHTMLReport } from "../../utils/htmlReporter.js";
 
 export const options = {
   stages: [
-    { duration: "1m", target: 20 }, // ramp
-    { duration: "1m", target: 50 }, // ramp
-    { duration: "5m", target: 50 }, // hold (baseline)
+    { duration: '1m', target: 20 }, // ramp
+    { duration: '1m', target: 50 }, // ramp
+    { duration: '5m', target: 50 }, // hold (baseline)
   ],
   thresholds: {
-    http_req_duration: ["p(95)<500", "p(99)<1000"], // 95%는 500ms, 99%는 1s 이내
-    http_req_failed: ["rate<0.01"], // 에러율 1% 미만 (재고 부족 제외)
-    successful_decreases: ["count>0"], // 성공한 재고 감소 건수
+    http_req_duration: ['p(95)<500', 'p(99)<1000'], // 95%는 500ms, 99%는 1s 이내
+    http_req_failed: ['rate<0.01'], // 에러율 1% 미만 (재고 부족 제외)
+    successful_decreases: ['count>0'], // 성공한 재고 감소 건수
   },
 };
 
-const SKU_ID = "00008217-b1ae-4045-9500-2d4b9fffaa32";
 const BASE_URL = config.inventoryService;
+const API_PATH = config.paths.inventory;
+const SKU_ID = '00008217-b1ae-4045-9500-2d4b9fffaa32';
 
 // 커스텀 메트릭
-const successfulDecreases = new Counter("successful_decreases");
-const decreaseLatency = new Trend("decrease_latency");
+const successfulDecreases = new Counter('successful_decreases');
+const decreaseLatency = new Trend('decrease_latency');
 
 export default function () {
-  const url = `${BASE_URL}/api/inventories/${SKU_ID}/decrease`;
+  const url = `${BASE_URL}${API_PATH}/${SKU_ID}/decrease`;
 
   const payload = JSON.stringify({
     quantity: 2,

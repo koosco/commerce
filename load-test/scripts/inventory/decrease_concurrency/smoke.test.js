@@ -1,7 +1,7 @@
-import http from "k6/http";
-import { check, sleep } from "k6";
-import { config } from "../../../config/local.js";
-import { generateHTMLReport } from "../../utils/htmlReporter.js";
+import http from 'k6/http';
+import { check, sleep } from 'k6';
+import { config } from '../../../config/index.js';
+import { generateHTMLReport } from '../../utils/htmlReporter.js';
 
 /**
  * Smoke Test - 재고 감소 동시성 테스트
@@ -14,18 +14,19 @@ import { generateHTMLReport } from "../../utils/htmlReporter.js";
 
 export const options = {
   vus: 2,
-  duration: "30s",
+  duration: '30s',
   thresholds: {
-    http_req_duration: ["p(95)<1000"], // 95%의 요청이 1초 이내
-    http_req_failed: ["rate<0.1"],     // 에러율 10% 미만
+    http_req_duration: ['p(95)<1000'], // 95%의 요청이 1초 이내
+    http_req_failed: ['rate<0.1'], // 에러율 10% 미만
   },
 };
 
-const SKU_ID = "00008217-b1ae-4045-9500-2d4b9fffaa32";
 const BASE_URL = config.inventoryService;
+const API_PATH = config.paths.inventory;
+const SKU_ID = '00008217-b1ae-4045-9500-2d4b9fffaa32';
 
 export default function () {
-  const url = `${BASE_URL}/api/inventories/${SKU_ID}/decrease`;
+  const url = `${BASE_URL}${API_PATH}/${SKU_ID}/decrease`;
 
   const payload = JSON.stringify({
     quantity: 2,
