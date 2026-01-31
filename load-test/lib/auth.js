@@ -31,25 +31,15 @@ export function login(baseUrl, email, password) {
   const success = check(res, {
     'login: status is 200': (r) => r.status === 200,
     'login: has token': (r) => {
-      try {
-        const body = JSON.parse(r.body);
-        return body.data && body.data.accessToken;
-      } catch {
-        return false;
-      }
+      return r.headers['Authorization'] && r.headers['Authorization'].length > 0;
     },
   });
 
   if (success) {
-    try {
-      const body = JSON.parse(res.body);
-      cachedToken = body.data.accessToken;
-      // Assume 1 hour expiry, cache for 55 minutes
-      tokenExpiry = Date.now() + 55 * 60 * 1000;
-      return cachedToken;
-    } catch {
-      return null;
-    }
+    cachedToken = res.headers['Authorization'];
+    // Assume 1 hour expiry, cache for 55 minutes
+    tokenExpiry = Date.now() + 55 * 60 * 1000;
+    return cachedToken;
   }
 
   return null;

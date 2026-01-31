@@ -38,10 +38,10 @@ export default function () {
         return false;
       }
     },
-    'get-user: has userId': (r) => {
+    'get-user: has id': (r) => {
       try {
         const body = JSON.parse(r.body);
-        return body.data && body.data.userId;
+        return body.data && body.data.id;
       } catch {
         return false;
       }

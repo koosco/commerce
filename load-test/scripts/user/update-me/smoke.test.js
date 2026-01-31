@@ -21,7 +21,7 @@ const TEST_PASSWORD = 'Test@1234';
 
 // 인증 토큰 획득
 export function setup() {
-  const token = login(TEST_EMAIL, TEST_PASSWORD);
+  const token = login(config.authService, TEST_EMAIL, TEST_PASSWORD);
   if (!token) {
     throw new Error('Failed to obtain auth token in setup');
   }

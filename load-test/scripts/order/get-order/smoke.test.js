@@ -5,10 +5,12 @@ import { generateHTMLReport } from '../../utils/htmlReporter.js';
 import { smokeThresholds } from '../../../lib/thresholds.js';
 import { buildUrl } from '../../../lib/http.js';
 
+const ENV = __ENV.ENV || 'local';
+
 export const options = {
-  vus: 2,
-  duration: '30s',
-  thresholds: smokeThresholds,
+  vus: ENV === 'prod' ? 1 : 2,
+  duration: ENV === 'prod' ? '1s' : '30s',
+  thresholds: ENV === 'prod' ? {} : smokeThresholds,
 };
 
 const BASE_URL = config.orderService;
@@ -18,6 +20,10 @@ const API_PATH = config.paths.orders;
 const TEST_ORDER_ID = 1;
 
 export default function () {
+  if (ENV === 'prod') {
+    console.log('Skipping get-order smoke test in prod (no guaranteed test order)');
+    return;
+  }
   const url = buildUrl(BASE_URL, `${API_PATH}/${TEST_ORDER_ID}`);
 
   const res = http.get(url, {

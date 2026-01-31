@@ -42,7 +42,7 @@ export default function () {
   let errorCount = 0;
 
   for (const user of TEST_USERS) {
-    const url = buildUrl(userServiceUrl, `${userPath}/register`);
+    const url = buildUrl(userServiceUrl, userPath);
     const payload = JSON.stringify({
       email: user.email,
       password: user.password,
@@ -109,12 +109,7 @@ export default function () {
   const loginSuccess = check(loginRes, {
     'login verification: status is 200': (r) => r.status === 200,
     'login verification: has token': (r) => {
-      try {
-        const body = JSON.parse(r.body);
-        return body.data && body.data.accessToken;
-      } catch {
-        return false;
-      }
+      return r.headers['Authorization'] && r.headers['Authorization'].length > 0;
     },
   });
 

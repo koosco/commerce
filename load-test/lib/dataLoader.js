@@ -22,14 +22,15 @@ export const testUsers = new SharedArray('users', function () {
  */
 export const testProducts = new SharedArray('products', function () {
   try {
-    return JSON.parse(open('../data/products.json'));
+    const data = JSON.parse(open('../data/products.json'));
+    return Array.isArray(data) ? data : [data];
   } catch {
     // Default test products if file not found
-    return {
+    return [{
       skuIds: ['00008217-b1ae-4045-9500-2d4b9fffaa32'],
       productIds: [1, 2, 3],
       categoryIds: [1, 2],
-    };
+    }];
   }
 });
 

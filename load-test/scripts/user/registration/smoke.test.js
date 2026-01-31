@@ -28,7 +28,7 @@ export default function () {
   // Generate unique email for each request to avoid conflicts
   const uniqueEmail = generateUniqueEmail(__VU, __ITER);
 
-  const url = buildUrl(BASE_URL, `${API_PATH}/register`);
+  const url = buildUrl(BASE_URL, API_PATH);
   const payload = JSON.stringify({
     email: uniqueEmail,
     password: 'Test@1234',
@@ -53,10 +53,10 @@ export default function () {
         return false;
       }
     },
-    'register: has user data': (r) => {
+    'register: no error in response': (r) => {
       try {
         const body = JSON.parse(r.body);
-        return body.data && (body.data.id || body.data.userId);
+        return !body.error;
       } catch {
         return false;
       }

@@ -44,20 +44,11 @@ export default function () {
       }
     },
     'login: has accessToken': (r) => {
-      try {
-        const body = JSON.parse(r.body);
-        return body.data && body.data.accessToken;
-      } catch {
-        return false;
-      }
+      return r.headers['Authorization'] && r.headers['Authorization'].length > 0;
     },
-    'login: has refreshToken': (r) => {
-      try {
-        const body = JSON.parse(r.body);
-        return body.data && body.data.refreshToken;
-      } catch {
-        return false;
-      }
+    'login: has refreshToken cookie': (r) => {
+      const setCookie = r.headers['Set-Cookie'] || '';
+      return setCookie.includes('refreshToken=');
     },
   });
 

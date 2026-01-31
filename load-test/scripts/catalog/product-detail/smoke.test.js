@@ -4,6 +4,7 @@ import { config } from '../../../config/index.js';
 import { generateHTMLReport } from '../../utils/htmlReporter.js';
 import { smokeThresholds } from '../../../lib/thresholds.js';
 import { buildUrl } from '../../../lib/http.js';
+import { login } from '../../../lib/auth.js';
 
 export const options = {
   vus: 2,
@@ -14,15 +15,27 @@ export const options = {
 const BASE_URL = config.catalogService;
 const API_PATH = config.paths.products;
 
+const TEST_EMAIL = 'loadtest1@example.com';
+const TEST_PASSWORD = 'Test@1234';
+
 // Test product ID (should exist in the system)
 const TEST_PRODUCT_ID = 1;
 
-export default function () {
+export function setup() {
+  const token = login(config.authService, TEST_EMAIL, TEST_PASSWORD);
+  if (!token) {
+    throw new Error('Failed to obtain auth token in setup');
+  }
+  return { token };
+}
+
+export default function (data) {
   const url = buildUrl(BASE_URL, `${API_PATH}/${TEST_PRODUCT_ID}`);
 
   const res = http.get(url, {
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${data.token}`,
     },
   });
 
