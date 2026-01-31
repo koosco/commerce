@@ -63,6 +63,7 @@ API (request) → Application (command) → Application (result) → API (respon
 // Mono repo uses project dependencies (no GH_USER/GH_TOKEN required)
 implementation(project(":common:common-core"))
 implementation(project(":common:common-security"))
+implementation(project(":common:common-observability"))  // 로깅, Actuator, Prometheus, Tracing
 ```
 
 ## Common Module Auto-Configuration
@@ -72,6 +73,8 @@ implementation(project(":common:common-security"))
 | common-security | `JwtSecurityAutoConfiguration` | JWT validation filters |
 | common-security | `WebMvcAutoConfiguration` | `@AuthId` argument resolver |
 | common-core | `CommonCoreAutoConfiguration` | GlobalExceptionHandler, ApiResponseAdvice, ObjectMapper |
+| common-observability | `logback-spring.xml` | Profile-based JSON/Plain 로깅 (LogstashEncoder) |
+| common-observability | `ObservabilityAutoConfiguration` | Actuator, Prometheus, Micrometer Tracing |
 
 ## Important Constraints
 
@@ -82,6 +85,7 @@ implementation(project(":common:common-security"))
 5. **Event publishing naming**: Port는 `IntegrationEventPublisher`, Adapter는 `KafkaIntegrationEventPublisher`로 통일
 6. **No Domain Event extraction pattern**: `pullDomainEvents()` 패턴 사용 금지, Integration Event 직접 발행
 7. **Consumer group ID**: property 참조 필수 (`${spring.kafka.consumer.group-id}`), hardcoding 금지
+8. **라이브러리 모듈에 `spring.application.name` 설정 금지**: common 모듈이 서비스의 이름을 덮어쓰는 문제 방지
 
 ## Code Guidelines
 
@@ -93,31 +97,16 @@ implementation(project(":common:common-security"))
 
 ## Observability
 
-- **Prometheus**: Metrics collection (port 9090)
-- **Grafana**: Dashboards (port 3000, admin/admin123)
-- **Actuator**: Each service exposes `/actuator/prometheus`
-- SSoT for monitoring: `infra/monitoring/`
+Metrics (Prometheus 9090, Grafana 3000), Actuator (`/actuator/prometheus`), SSoT: `infra/monitoring/`
+
+상세: `@.claude/docs/observability-guide.md`
 
 ## Quick Reference
 
 ```kotlin
-// Exception handling
-throw NotFoundException(OrderErrorCode.ORDER_NOT_FOUND)
-
-// API response
-return ApiResponse.success(data)
-
-// Event publishing (직접 발행 패턴)
-integrationEventPublisher.publish(
-    OrderPlacedEvent(orderId = savedOrder.id!!, correlationId = savedOrder.id.toString(), causationId = UUID.randomUUID().toString())
-)
-
-// Transaction management
-transactionRunner.run { orderRepository.save(order) }
-
-// Use case annotation
-@UseCase
-class CreateOrderUseCase { ... }
+throw NotFoundException(OrderErrorCode.ORDER_NOT_FOUND)  // Exception
+return ApiResponse.success(data)                          // API response
+integrationEventPublisher.publish(event)                  // Event publishing
 ```
 
 ## Custom Skills
@@ -130,6 +119,7 @@ class CreateOrderUseCase { ... }
 | `/mono-new-service` | 서비스 생성 | `/common-core-utility` | 유틸리티 |
 | `/mono-querydsl` | QueryDSL | `/mono-docker` | Docker |
 | `/mono-k8s` | Kubernetes | `/mono-parallel` | 병렬 작업 |
+| `/mono-infra-ops` | 인프라 운영 | | |
 
 ## IMPORTANT Notes
 
@@ -145,6 +135,7 @@ class CreateOrderUseCase { ... }
 | `@.claude/docs/event-consuming-pattern.md` | Integration Event 소비 패턴 |
 | `@.claude/docs/development-commands.md` | 빌드, Docker, k8s 명령어 |
 | `@.claude/docs/service-event-matrix.md` | 서비스별 이벤트 매트릭스 |
+| `@.claude/docs/observability-guide.md` | Metrics, Logging, Tracing 상세 |
 
 ## Service Documentation
 

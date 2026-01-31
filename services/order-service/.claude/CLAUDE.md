@@ -8,12 +8,7 @@
 - **데이터베이스**: MariaDB (`commerce-order` 스키마)
 - **메시징**: Kafka (CloudEvent 표준)
 
-**주요 책임**:
-- 주문 생성 및 검증
-- Saga 패턴 기반 분산 트랜잭션 오케스트레이션
-- 상태 머신 기반 주문 상태 관리
-- Outbox 패턴을 활용한 이벤트 발행 (Debezium CDC)
-- 이벤트 기반 멱등성 보장
+**주요 책임**: 주문 생성/검증, Saga 패턴 분산 트랜잭션, 상태 머신 기반 상태 관리, Outbox 패턴 이벤트 발행, 멱등성 보장
 
 ## Clean Architecture 계층 구조
 
@@ -36,44 +31,24 @@ order-service/
     └── messaging/kafka/          # 7개 Consumer + Outbox Publisher
 ```
 
-**의존성 방향**:
-```
-api ──> application ──> domain
-             ↑              ↑
-             └─── infra ────┘
-```
-
 ## 핵심 기능
 
-### 1. Saga 패턴 분산 트랜잭션
-- Choreography 기반 (중앙 오케스트레이터 없음)
-- 보상 트랜잭션으로 롤백 처리
-- 상세: [docs/saga-pattern.md](docs/saga-pattern.md)
-
-### 2. 상태 머신
-- 11개 상태 정의 (INIT → CONFIRMED/CANCELLED/FAILED)
-- 도메인 엔티티에 상태 전이 로직 캡슐화
-- 상세: [docs/state-machine.md](docs/state-machine.md)
-
-### 3. Outbox 패턴 + Debezium CDC
-- DB 트랜잭션과 이벤트 발행 원자성 보장
-- `order_outbox` 테이블 → Debezium → Kafka
-
-### 4. 멱등성 보장
-- 3중 방어: Fast-path 체크 → 상태 전이 검증 → Unique Constraint
-- `order_event_idempotency` 테이블: `(event_id, action)` 유니크
+1. **Saga 패턴**: Choreography 기반, 보상 트랜잭션 롤백 — 상세: [docs/saga-pattern.md](docs/saga-pattern.md)
+2. **상태 머신**: 11개 상태 (INIT → CONFIRMED/CANCELLED/FAILED) — 상세: [docs/state-machine.md](docs/state-machine.md)
+3. **Outbox 패턴 + Debezium CDC**: DB 트랜잭션과 이벤트 발행 원자성 보장
+4. **멱등성**: 3중 방어 (Fast-path → 상태 전이 검증 → Unique Constraint)
 
 ## 이벤트 처리
 
-### Published Events (발행)
+### Published Events
 
-| Event Type | Topic | 트리거 | 구독자 |
-|------------|-------|--------|--------|
-| `order.placed` | `order.placed` | 주문 생성 | Inventory, Payment |
-| `order.confirmed` | `order.confirmed` | 결제 완료 후 | Inventory |
-| `order.cancelled` | `order.cancelled` | 주문 취소 | Inventory |
+| Event Type | Topic | 구독자 |
+|------------|-------|--------|
+| `order.placed` | `order.placed` | Inventory, Payment |
+| `order.confirmed` | `order.confirmed` | Inventory |
+| `order.cancelled` | `order.cancelled` | Inventory |
 
-### Consumed Events (소비)
+### Consumed Events
 
 | Event Type | 발행자 | 상태 전이 | 멱등성 키 |
 |------------|--------|----------|-----------|
@@ -89,42 +64,9 @@ api ──> application ──> domain
 
 ## 도메인 모델
 
-### Order (주문 애그리거트)
-```kotlin
-class Order(
-    val id: Long?,
-    val userId: Long,
-    var status: OrderStatus,
-    val totalAmount: Money,      // 주문 원금
-    val discountAmount: Money,   // 할인 금액
-    val payableAmount: Money,    // 실제 결제 금액
-    val items: MutableList<OrderItem>,
-)
-```
-
-### OrderItem (주문 아이템)
-```kotlin
-class OrderItem(
-    val id: Long?,
-    val order: Order,
-    val skuId: String,
-    val quantity: Int,
-    val unitPrice: Money,
-    var status: OrderItemStatus,
-)
-```
-
-### OrderStatus (주문 상태)
-```kotlin
-enum class OrderStatus {
-    INIT, CREATED, RESERVED, PAYMENT_CREATED, PAYMENT_PENDING,
-    PAID, CONFIRMED, PARTIALLY_REFUNDED, REFUNDED, CANCELLED, FAILED
-}
-```
+상세: `@services/order-service/.claude/docs/domain-model.md`
 
 ## API 명세
-
-상세: [docs/api-reference.md](docs/api-reference.md)
 
 | Method | Endpoint | 설명 |
 |--------|----------|------|
@@ -133,33 +75,7 @@ enum class OrderStatus {
 | GET | `/api/orders/{orderId}` | 주문 상세 조회 |
 | POST | `/api/orders/{orderId}/refund` | 환불 요청 |
 
-## 테스트
-
-```bash
-# 전체 테스트
-./gradlew :services:order-service:test
-
-# 통합 테스트
-./gradlew :services:order-service:integrationTest
-```
-
-## 설정
-
-### 주요 토픽 매핑 (application.yml)
-```yaml
-order:
-  topic:
-    mappings:
-      stock:
-        reserved: stock.reserved
-        reservation.failed: stock.reservation.failed
-        confirmed: stock.confirmed
-        confirm.failed: stock.confirm.failed
-      payment:
-        created: payment.created
-        completed: payment.completed
-        failed: payment.failed
-```
+상세: [docs/api-reference.md](docs/api-reference.md)
 
 ## 참고 문서
 

@@ -153,6 +153,39 @@ commerce-dev-ratelimit:
 - rate limit 조정 시
 - TLS 인증서 추가 시
 
+## ConfigMap & Secret
+
+### ConfigMap (k8s/common/configmap.yaml)
+
+모든 서비스가 공유하는 비민감 환경 변수:
+
+| 변수 | 값 | 용도 |
+|------|-----|------|
+| DB_HOST | `host.k3d.internal` | 외부 MariaDB |
+| DB_PORT | `3306` | DB 포트 |
+| SPRING_KAFKA_BOOTSTRAP_SERVERS | `host.k3d.internal:9092` | Kafka |
+| REDIS_HOST / REDIS_PORT | `host.k3d.internal` / `6379` | Redis |
+| JWT_EXPIRATION | `86400` (24시간) | JWT 만료 |
+| JWT_REFRESH_EXPIRATION | `604800` (7일) | Refresh 만료 |
+| SPRING_PROFILES_ACTIVE | `dev` | Spring 프로파일 |
+| LOGGING_LEVEL_ROOT / COM_KOOSCO | `INFO` / `DEBUG` | 로그 레벨 |
+
+### Secret (k8s/common/secret.yaml)
+
+민감한 데이터 (base64 인코딩):
+
+| 변수 | 설명 |
+|------|------|
+| DB_USERNAME | DB 사용자명 |
+| DB_PASSWORD | DB 비밀번호 |
+| JWT_SECRET | JWT 서명 키 |
+
+```bash
+# 인코딩/디코딩
+echo -n "new-password" | base64
+echo "YWRtaW4xMjM0" | base64 -d
+```
+
 ## 새 서비스 추가 체크리스트
 
 1. **Deployment + Service YAML 생성**

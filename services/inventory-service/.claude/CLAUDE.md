@@ -126,6 +126,12 @@ if (idempotencyChecker.isAlreadyProcessed(eventId, action)) {
 }
 ```
 
+## Redis 연결
+
+- **자동 설정**: `spring-boot-starter-data-redis`가 LettuceConnectionFactory를 자동 구성
+- **RedisConfig**: `RedisTemplate<String, String>` 빈만 정의 (connectionFactory 빈 직접 생성 금지)
+- **환경 변수**: `REDIS_HOST`, `REDIS_PORT` (ConfigMap에서 주입)
+
 ## 상세 문서
 
 - [Redis + MariaDB 하이브리드 재고 관리](docs/redis-mariadb-hybrid.md)
