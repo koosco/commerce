@@ -1,0 +1,10 @@
+[
+  {
+    "targets": ["10.43.236.134:80"],
+    "labels": {
+      "application": "payment-service",
+      "environment": "production",
+      "namespace": "commerce"
+    }
+  }
+]

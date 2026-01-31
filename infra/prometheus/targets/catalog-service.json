@@ -1,0 +1,10 @@
+[
+  {
+    "targets": ["10.43.67.150:80"],
+    "labels": {
+      "application": "catalog-service",
+      "environment": "production",
+      "namespace": "commerce"
+    }
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "targets": ["10.43.40.28:80"],
+    "labels": {
+      "application": "inventory-service",
+      "environment": "production",
+      "namespace": "commerce"
+    }
+  }
+]

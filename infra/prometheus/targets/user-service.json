@@ -1,0 +1,10 @@
+[
+  {
+    "targets": ["10.43.201.159:80"],
+    "labels": {
+      "application": "user-service",
+      "environment": "production",
+      "namespace": "commerce"
+    }
+  }
+]
