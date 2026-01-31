@@ -30,6 +30,8 @@ spec:
           env:
             - name: DB_NAME
               value: commerce-catalog
+            - name: JAVA_OPTS
+              value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=65.0 -XX:InitialRAMPercentage=50.0 -XX:+UseG1GC -XX:+DisableExplicitGC -Djava.security.egd=file:/dev/./urandom"
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
@@ -49,10 +51,10 @@ spec:
           resources:
             requests:
               memory: "512Mi"
-              cpu: "250m"
+              cpu: "100m"
             limits:
               memory: "1Gi"
-              cpu: "1000m"
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
