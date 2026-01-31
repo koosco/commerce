@@ -87,17 +87,26 @@ metadata:
     app: commerce-api
   annotations:
     # Traefik Ingress Controller
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure # HTTPS 전용
+    traefik.ingress.kubernetes.io/router.entrypoints: web # Cloudflare가 TLS 처리
     traefik.ingress.kubernetes.io/router.middlewares: commerce-commerce-cors@kubernetescrd,commerce-commerce-ratelimit@kubernetescrd,commerce-commerce-security-headers@kubernetescrd
-    # TLS 인증서 자동 발급 (cert-manager 사용 시)
-    cert-manager.io/cluster-issuer: letsencrypt-prod
 
 spec:
   ingressClassName: traefik
   rules:
-    - host: api.commerce.com # 메인 API 도메인
+    - host: commerce.koomango.com
       http:
         paths:
+          # ==========================================
+          # API Documentation - Scalar UI
+          # ==========================================
+          - path: /docs
+            pathType: Prefix
+            backend:
+              service:
+                name: docs-service
+                port:
+                  number: 80
+
           # ==========================================
           # Auth Service - 인증/인가
           # ==========================================
@@ -185,9 +194,3 @@ spec:
                 name: notification-service
                 port:
                   number: 80
-
-  # TLS 설정 (Let's Encrypt 또는 자체 인증서 사용)
-  tls:
-    - hosts:
-        - api.commerce.com
-      secretName: commerce-tls-secret
