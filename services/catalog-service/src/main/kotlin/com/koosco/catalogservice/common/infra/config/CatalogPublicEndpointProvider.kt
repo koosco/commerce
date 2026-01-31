@@ -1,16 +1,25 @@
 package com.koosco.catalogservice.common.infra.config
 
 import com.koosco.commonsecurity.config.PublicEndpointProvider
+import org.springframework.http.HttpMethod
 import org.springframework.stereotype.Component
 
 @Component
 class CatalogPublicEndpointProvider : PublicEndpointProvider {
+    override fun publicEndpointsByMethod(): Map<HttpMethod, Array<String>> = mapOf(
+        HttpMethod.GET to arrayOf(
+            "/api/products",
+            "/api/products/{id}",
+            "/api/products/{id}/skus",
+            "/api/categories",
+            "/api/categories/tree",
+        ),
+    )
+
     override fun publicEndpoints(): Array<String> = arrayOf(
-        "/api/products/**", // Public product browsing
-        "/api/categories/**", // Public category browsing
-        "/actuator/health/**", // Kubernetes health checks
-        "/actuator/info", // Application info
-        "/swagger-ui/**", // API documentation
-        "/v3/api-docs/**", // OpenAPI specs
+        "/actuator/health/**",
+        "/actuator/info",
+        "/swagger-ui/**",
+        "/v3/api-docs/**",
     )
 }

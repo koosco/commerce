@@ -7,6 +7,7 @@ import com.koosco.commonsecurity.jwt.JwtProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -28,15 +29,20 @@ class SecurityConfig(
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         val publicPaths = getPublicEndpoints() + getServiceSpecificPublicEndpoints()
+        val methodBasedEndpoints = getMethodBasedPublicEndpoints()
 
         return http
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .exceptionHandling { it.authenticationEntryPoint(jwtAuthenticationEntryPoint) }
             .authorizeHttpRequests { auth ->
-                auth
-                    .requestMatchers(*publicPaths).permitAll()
-                    .anyRequest().authenticated()
+                auth.requestMatchers(*publicPaths).permitAll()
+
+                methodBasedEndpoints.forEach { (method, paths) ->
+                    auth.requestMatchers(method, *paths).permitAll()
+                }
+
+                auth.anyRequest().authenticated()
             }
             .addFilterBefore(
                 jwtAuthenticationFilter,
@@ -55,4 +61,14 @@ class SecurityConfig(
     private fun getServiceSpecificPublicEndpoints(): Array<String> = publicEndpointProviders
         .flatMap { it.publicEndpoints().asIterable() }
         .toTypedArray()
+
+    private fun getMethodBasedPublicEndpoints(): Map<HttpMethod, Array<String>> {
+        val merged = mutableMapOf<HttpMethod, MutableList<String>>()
+        publicEndpointProviders.forEach { provider ->
+            provider.publicEndpointsByMethod().forEach { (method, paths) ->
+                merged.getOrPut(method) { mutableListOf() }.addAll(paths)
+            }
+        }
+        return merged.mapValues { it.value.toTypedArray() }
+    }
 }
