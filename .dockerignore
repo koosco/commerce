@@ -1,0 +1,15 @@
+.git
+.gradle
+.idea
+.claude
+**/src
+**/build/classes
+**/build/generated
+**/build/reports
+**/build/test-results
+**/build/tmp
+**/logs
+docs
+load-test
+infra
+*.md
