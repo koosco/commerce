@@ -34,10 +34,7 @@ dependencies {
     // common
     implementation(project(":common:common-core"))
     implementation(project(":common:common-security"))
-
-    // monitoring
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
+    implementation(project(":common:common-observability"))
 
     // kafka
     implementation("org.springframework.kafka:spring-kafka")
@@ -104,6 +101,10 @@ spotless {
         target("*.gradle.kts")
         ktlint("1.5.0")
     }
+}
+
+tasks.jar {
+    enabled = false
 }
 
 allOpen {

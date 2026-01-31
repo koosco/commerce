@@ -22,13 +22,12 @@ dependencies {
 
     // spring boot
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     testImplementation("org.springframework.security:spring-security-test")
 
     // common
     implementation(project(":common:common-core"))
     implementation(project(":common:common-security"))
+    implementation(project(":common:common-observability"))
 
     // jpa
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -37,11 +36,7 @@ dependencies {
     // swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1")
 
-    // log plugin
-    implementation("net.logstash.logback:logstash-logback-encoder:7.4")
-
     // distributed tracing
-    implementation("io.micrometer:micrometer-tracing-bridge-brave")
     implementation("io.zipkin.reporter2:zipkin-reporter-brave")
 
     // kafka

@@ -31,6 +31,7 @@ dependencies {
     // common
     implementation(project(":common:common-core"))
     implementation(project(":common:common-security"))
+    implementation(project(":common:common-observability"))
 
     // spring
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -53,10 +54,6 @@ dependencies {
     // kafka
     implementation("org.springframework.kafka:spring-kafka")
     testImplementation("org.springframework.kafka:spring-kafka-test")
-
-    // monitoring
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
     // swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1")

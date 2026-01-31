@@ -30,14 +30,13 @@ dependencies {
 
     // spring boot
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
     testImplementation("org.springframework.security:spring-security-test")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
-    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
     // common
     implementation(project(":common:common-core"))
     implementation(project(":common:common-security"))
+    implementation(project(":common:common-observability"))
 
     // security
     implementation("org.springframework.boot:spring-boot-starter-security")
@@ -53,9 +52,6 @@ dependencies {
 
     // swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1")
-
-    // logging
-    implementation("net.logstash.logback:logstash-logback-encoder:8.0")
 
     // test
     testImplementation("org.springframework.boot:spring-boot-starter-test")

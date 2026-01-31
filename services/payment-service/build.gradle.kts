@@ -24,14 +24,11 @@ dependencies {
     // common
     implementation(project(":common:common-core"))
     implementation(project(":common:common-security"))
+    implementation(project(":common:common-observability"))
     testImplementation(testFixtures(project(":common:common-core")))
 
     // spring
     implementation("org.springframework.boot:spring-boot-starter-web")
-
-    // actuator
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
     // jpa
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -86,6 +83,10 @@ spotless {
         target("*.gradle.kts")
         ktlint("1.5.0")
     }
+}
+
+tasks.jar {
+    enabled = false
 }
 
 allOpen {

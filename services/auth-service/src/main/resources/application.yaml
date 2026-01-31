@@ -33,10 +33,6 @@ management:
     metrics:
       export:
         enabled: true
-logging:
-  pattern:
-    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
-
 springdoc:
   swagger-ui:
     enabled: ${SWAGGER_UI_ENABLED:true}

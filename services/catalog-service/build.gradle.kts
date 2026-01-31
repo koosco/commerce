@@ -37,6 +37,7 @@ dependencies {
     // common
     implementation(project(":common:common-core"))
     implementation(project(":common:common-security"))
+    implementation(project(":common:common-observability"))
 
     // kafka
     implementation("org.springframework.kafka:spring-kafka")
@@ -51,10 +52,6 @@ dependencies {
     kapt("com.querydsl:querydsl-apt:5.0.0:jakarta")
     kapt("jakarta.annotation:jakarta.annotation-api")
     kapt("jakarta.persistence:jakarta.persistence-api")
-
-    // monitoring
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
     // swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1")

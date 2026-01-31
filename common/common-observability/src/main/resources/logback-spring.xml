@@ -2,67 +2,86 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
-    <!-- Console Appender with JSON Format -->
+    <springProperty scope="context" name="springAppName" source="spring.application.name" defaultValue="unknown"/>
+
+    <!-- Console Appender - JSON Format (for Loki/Promtail) -->
     <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <!-- Application name from Spring Boot -->
-            <customFields>{"application":"${spring.application.name:-unknown}"}</customFields>
+            <customFields>{"service":"${springAppName}"}</customFields>
 
-            <!-- Include MDC properties -->
             <includeMdcKeyName>traceId</includeMdcKeyName>
             <includeMdcKeyName>spanId</includeMdcKeyName>
+            <includeMdcKeyName>correlationId</includeMdcKeyName>
+            <includeMdcKeyName>userId</includeMdcKeyName>
+            <includeMdcKeyName>requestId</includeMdcKeyName>
             <includeMdcKeyName>requestUri</includeMdcKeyName>
             <includeMdcKeyName>requestMethod</includeMdcKeyName>
             <includeMdcKeyName>clientIp</includeMdcKeyName>
-            <includeMdcKeyName>userAgent</includeMdcKeyName>
 
-            <!-- Include caller data for debugging -->
             <includeCallerData>false</includeCallerData>
-
-            <!-- Include context name -->
-            <includeContext>true</includeContext>
-
-            <!-- Timestamp format -->
+            <includeContext>false</includeContext>
             <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSSX</timestampPattern>
-
-            <!-- Shorten logger names -->
             <shortenedLoggerNameLength>36</shortenedLoggerNameLength>
+
+            <fieldNames>
+                <timestamp>@timestamp</timestamp>
+                <message>message</message>
+                <logger>logger</logger>
+                <level>level</level>
+                <thread>thread</thread>
+                <stackTrace>stack_trace</stackTrace>
+            </fieldNames>
         </encoder>
     </appender>
 
-    <!-- Console Appender with Plain Text Format (for local development) -->
+    <!-- Console Appender - Plain Text (for local development) -->
     <appender name="CONSOLE_PLAIN" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId}/%X{spanId}] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <!-- Async appender for better performance -->
-    <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
+    <!-- Async wrapper -->
+    <appender name="ASYNC_JSON" class="ch.qos.logback.classic.AsyncAppender">
         <queueSize>512</queueSize>
         <discardingThreshold>0</discardingThreshold>
         <includeCallerData>false</includeCallerData>
-        <appender-ref ref="${CONSOLE_APPENDER:-CONSOLE_JSON}" />
+        <appender-ref ref="CONSOLE_JSON"/>
     </appender>
 
-    <!-- Root logger configuration -->
-    <root level="${LOG_LEVEL:-INFO}">
-        <appender-ref ref="ASYNC_CONSOLE" />
-    </root>
+    <!-- Local: plain text, verbose -->
+    <springProfile name="local">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_PLAIN"/>
+        </root>
+        <logger name="com.koosco" level="DEBUG"/>
+        <logger name="org.springframework.web" level="DEBUG"/>
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+    </springProfile>
 
-    <!-- Spring Boot default loggers -->
-    <logger name="org.springframework" level="${SPRING_LOG_LEVEL:-INFO}" />
-    <logger name="org.springframework.web" level="${SPRING_WEB_LOG_LEVEL:-DEBUG}" />
-    <logger name="org.springframework.boot" level="${SPRING_BOOT_LOG_LEVEL:-INFO}" />
+    <!-- Dev: JSON stdout, debug -->
+    <springProfile name="dev">
+        <root level="INFO">
+            <appender-ref ref="ASYNC_JSON"/>
+        </root>
+        <logger name="com.koosco" level="DEBUG"/>
+        <logger name="org.springframework.web" level="INFO"/>
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
+    </springProfile>
 
-    <!-- Hibernate/JPA loggers -->
-    <logger name="org.hibernate" level="${HIBERNATE_LOG_LEVEL:-WARN}" />
-    <logger name="org.hibernate.SQL" level="${HIBERNATE_SQL_LOG_LEVEL:-DEBUG}" />
-    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="${HIBERNATE_BINDER_LOG_LEVEL:-TRACE}" />
+    <!-- Prod: JSON stdout only (for Loki/Promtail) -->
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="ASYNC_JSON"/>
+        </root>
+        <logger name="com.koosco" level="INFO"/>
+        <logger name="org.springframework.web" level="WARN"/>
+        <logger name="org.hibernate.SQL" level="WARN"/>
+        <logger name="org.hibernate.type.descriptor.sql" level="WARN"/>
+    </springProfile>
 
-    <!-- Micrometer/Actuator loggers -->
-    <logger name="io.micrometer" level="${MICROMETER_LOG_LEVEL:-INFO}" />
-
-    <!-- Application logger (customize in each MSA service) -->
-    <logger name="com.koosco" level="${APP_LOG_LEVEL:-DEBUG}" />
+    <!-- Common: suppress noisy loggers -->
+    <logger name="org.springframework.boot.actuate.endpoint.web" level="WARN"/>
+    <logger name="io.micrometer.tracing" level="INFO"/>
 </configuration>

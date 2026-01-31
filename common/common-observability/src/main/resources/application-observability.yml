@@ -58,11 +58,4 @@ management:
       export:
         enabled: true
 
-# Logging configuration
-logging:
-  level:
-    root: INFO
-    com.koosco: DEBUG
-    org.springframework.web: DEBUG
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId}/%X{spanId}] %-5level %logger{36} - %msg%n"
+# Logging levels are managed by logback-spring.xml (profile-based)
