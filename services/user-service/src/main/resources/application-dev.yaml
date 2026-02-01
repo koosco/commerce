@@ -1,4 +1,11 @@
 spring:
+  cloud:
+    openfeign:
+      client:
+        config:
+          auth-service:
+            connect-timeout: 3000
+            read-timeout: 5000
   datasource:
     url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:commerce-user}
     username: ${DB_USERNAME:admin}
