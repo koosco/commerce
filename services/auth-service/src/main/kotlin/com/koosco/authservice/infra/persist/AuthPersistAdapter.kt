@@ -10,4 +10,8 @@ class AuthPersistAdapter(private val jpaAuthRepository: JpaAuthRepository) : Aut
     override fun save(userAuth: UserAuth): UserAuth = jpaAuthRepository.save(userAuth)
 
     override fun findByEmail(email: String): UserAuth? = jpaAuthRepository.findByEmail(email)
+
+    override fun updateRefreshToken(id: Long, refreshToken: String) {
+        jpaAuthRepository.updateRefreshToken(id, refreshToken)
+    }
 }

@@ -31,7 +31,7 @@ class LoginUseCase(
             roles = listOf(userAuth.role.name),
         )
 
-        userAuth.storeRefreshToken(tokens.refreshToken)
+        authPersistPort.updateRefreshToken(userAuth.id!!, tokens.refreshToken)
 
         return tokens
     }

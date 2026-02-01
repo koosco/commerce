@@ -32,7 +32,7 @@ export default function () {
   const payload = JSON.stringify({
     email: uniqueEmail,
     password: 'Test@1234',
-    name: `Load Test User VU${__VU}`,
+    name: `Load Test User VU${__VU}_${__ITER}_${Date.now()}`,
   });
 
   const res = http.post(url, payload, {

@@ -21,7 +21,7 @@ class User(
     @Column(nullable = false)
     val email: Email,
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     var name: String,
 
     @Column(nullable = true)

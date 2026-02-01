@@ -7,4 +7,6 @@ interface AuthPersistPort {
     fun save(userAuth: UserAuth): UserAuth
 
     fun findByEmail(email: String): UserAuth?
+
+    fun updateRefreshToken(id: Long, refreshToken: String)
 }
