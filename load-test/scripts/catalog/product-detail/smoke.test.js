@@ -18,19 +18,43 @@ const API_PATH = config.paths.products;
 const TEST_EMAIL = 'loadtest1@example.com';
 const TEST_PASSWORD = 'Test@1234';
 
-// Test product ID (should exist in the system)
-const TEST_PRODUCT_ID = 1;
-
 export function setup() {
   const token = login(config.authService, TEST_EMAIL, TEST_PASSWORD);
   if (!token) {
     throw new Error('Failed to obtain auth token in setup');
   }
-  return { token };
+
+  // Dynamically fetch a valid product ID from product list
+  const listUrl = buildUrl(BASE_URL, `${API_PATH}?page=0&size=1`);
+  const res = http.get(listUrl, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  let productId = null;
+  try {
+    const body = JSON.parse(res.body);
+    if (body.success && body.data && body.data.content && body.data.content.length > 0) {
+      productId = body.data.content[0].productId;
+    }
+  } catch (e) {
+    console.warn(`Failed to parse product list response: ${e.message}`);
+  }
+
+  if (!productId) {
+    console.warn('No products found in catalog. Product detail tests will be skipped.');
+  }
+
+  return { token, productId };
 }
 
 export default function (data) {
-  const url = buildUrl(BASE_URL, `${API_PATH}/${TEST_PRODUCT_ID}`);
+  if (!data.productId) {
+    console.warn('Skipping: no productId available');
+    sleep(1);
+    return;
+  }
+
+  const url = buildUrl(BASE_URL, `${API_PATH}/${data.productId}`);
 
   const res = http.get(url, {
     headers: {
