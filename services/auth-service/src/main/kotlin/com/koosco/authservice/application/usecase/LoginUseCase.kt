@@ -8,15 +8,12 @@ import com.koosco.authservice.common.AuthErrorCode
 import com.koosco.common.core.annotation.UseCase
 import com.koosco.common.core.exception.NotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.transaction.annotation.Transactional
-
 @UseCase
 class LoginUseCase(
     private val authPersistPort: AuthPersistPort,
     private val passwordEncoder: PasswordEncoder,
     private val tokenGeneratorPort: TokenGeneratorPort,
 ) {
-    @Transactional
     fun execute(toDto: LoginCommand): AuthTokenDto {
         val userAuth = authPersistPort.findByEmail(toDto.email)
             ?: throw NotFoundException(AuthErrorCode.PROVIDER_USER_NOT_FOUND)
