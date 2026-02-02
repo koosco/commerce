@@ -5,7 +5,7 @@ import { generateHTMLReport } from '../../utils/htmlReporter.js';
 import { smokeThresholds } from '../../../lib/thresholds.js';
 import { buildUrl } from '../../../lib/http.js';
 import { login, authHeaders } from '../../../lib/auth.js';
-import { getRandomSkuId } from '../../../lib/dataLoader.js';
+import { fetchSkuIds, getRandomItem } from '../../../lib/dataLoader.js';
 
 export const options = {
   vus: 2,
@@ -22,12 +22,17 @@ const TEST_EMAIL = 'loadtest1@example.com';
 const TEST_PASSWORD = 'Test@1234';
 
 export function setup() {
-  // Login once during setup to get token
   const token = login(AUTH_URL, TEST_EMAIL, TEST_PASSWORD);
   if (!token) {
     console.error('Failed to get auth token during setup');
   }
-  return { token };
+
+  const skuIds = fetchSkuIds(config.catalogService, config.paths.products, token, 5);
+  if (skuIds.length === 0) {
+    console.warn('No SKU IDs found. create-order tests may fail.');
+  }
+
+  return { token, skuIds };
 }
 
 export default function (data) {
@@ -36,7 +41,13 @@ export default function (data) {
     return;
   }
 
-  const skuId = getRandomSkuId();
+  if (!data.skuIds || data.skuIds.length === 0) {
+    console.warn('Skipping: no skuIds available');
+    sleep(1);
+    return;
+  }
+
+  const skuId = getRandomItem(data.skuIds);
   const url = buildUrl(BASE_URL, API_PATH);
 
   const payload = JSON.stringify({
@@ -44,15 +55,9 @@ export default function (data) {
       {
         skuId: skuId,
         quantity: 1,
-        price: 10000,
+        unitPrice: 10000,
       },
     ],
-    shippingAddress: {
-      address: '서울시 강남구 테헤란로 123',
-      zipCode: '06234',
-      recipient: 'Load Test User',
-      phone: '010-1234-5678',
-    },
   });
 
   const res = http.post(url, payload, {

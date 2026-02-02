@@ -3,6 +3,8 @@ import { check, sleep } from 'k6';
 import { Counter, Trend, Rate } from 'k6/metrics';
 import { config } from '../../../config/index.js';
 import { generateHTMLReport } from '../../utils/htmlReporter.js';
+import { login } from '../../../lib/auth.js';
+import { fetchSkuIds } from '../../../lib/dataLoader.js';
 
 /**
  * Stress Test - Get Stock
@@ -32,7 +34,8 @@ export const options = {
 const BASE_URL = config.inventoryService;
 const API_PATH = config.paths.inventory;
 
-const TEST_SKU_ID = '00008217-b1ae-4045-9500-2d4b9fffaa32';
+const TEST_EMAIL = 'loadtest1@example.com';
+const TEST_PASSWORD = 'Test@1234';
 
 // 커스텀 메트릭
 const successfulRequests = new Counter('successful_requests');
@@ -40,8 +43,28 @@ const actualErrors = new Counter('actual_errors');
 const requestLatency = new Trend('request_latency');
 const errorRate = new Rate('error_rate');
 
-export default function () {
-  const url = `${BASE_URL}${API_PATH}/${TEST_SKU_ID}`;
+export function setup() {
+  const token = login(config.authService, TEST_EMAIL, TEST_PASSWORD);
+  if (!token) {
+    throw new Error('Failed to obtain auth token in setup');
+  }
+
+  const skuIds = fetchSkuIds(config.catalogService, config.paths.products, token, 5);
+  if (skuIds.length === 0) {
+    console.warn('No SKU IDs found. Stress tests will fail.');
+  }
+
+  return { skuId: skuIds.length > 0 ? skuIds[0] : null };
+}
+
+export default function (data) {
+  if (!data.skuId) {
+    console.warn('Skipping: no skuId available');
+    sleep(0.5);
+    return;
+  }
+
+  const url = `${BASE_URL}${API_PATH}/${data.skuId}`;
 
   const res = http.get(url, {
     headers: {
@@ -75,7 +98,7 @@ export default function () {
             body.success === true &&
             body.data &&
             body.data.skuId &&
-            typeof body.data.quantity === 'number'
+            typeof body.data.availableStock === 'number'
           );
         } catch (e) {
           console.error(`Parse error on success: ${e.message}`);

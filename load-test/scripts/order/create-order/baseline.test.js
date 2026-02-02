@@ -5,6 +5,7 @@ import { config } from '../../../config/index.js';
 import { generateHTMLReport } from '../../utils/htmlReporter.js';
 import { buildUrl } from '../../../lib/http.js';
 import { login } from '../../../lib/auth.js';
+import { fetchSkuIds, getRandomItem } from '../../../lib/dataLoader.js';
 
 /**
  * Baseline Test - Create Order
@@ -37,23 +38,34 @@ const TEST_PASSWORD = 'Test@1234';
 const successfulOrders = new Counter('successful_orders');
 const orderLatency = new Trend('order_latency');
 
-// 인증 토큰 획득
 export function setup() {
-  const token = login(TEST_EMAIL, TEST_PASSWORD);
+  const token = login(config.authService, TEST_EMAIL, TEST_PASSWORD);
   if (!token) {
     throw new Error('Failed to obtain auth token in setup');
   }
-  return { token };
+
+  const skuIds = fetchSkuIds(config.catalogService, config.paths.products, token, 5);
+  if (skuIds.length === 0) {
+    console.warn('No SKU IDs found. Baseline tests may fail.');
+  }
+
+  return { token, skuIds };
 }
 
 export default function (data) {
+  if (!data.skuIds || data.skuIds.length === 0) {
+    console.warn('Skipping: no skuIds available');
+    sleep(1);
+    return;
+  }
+
   const url = buildUrl(BASE_URL, API_PATH);
   const payload = JSON.stringify({
     items: [
       {
-        skuId: '00008217-b1ae-4045-9500-2d4b9fffaa32',
+        skuId: getRandomItem(data.skuIds),
         quantity: 1,
-        price: 29900,
+        unitPrice: 29900,
       },
     ],
     shippingAddress: {

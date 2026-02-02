@@ -3,6 +3,8 @@ import { check, sleep } from 'k6';
 import { config } from '../../../config/index.js';
 import { generateHTMLReport } from '../../utils/htmlReporter.js';
 import { smokeThresholds } from '../../../lib/thresholds.js';
+import { login } from '../../../lib/auth.js';
+import { fetchSkuIds } from '../../../lib/dataLoader.js';
 
 export const options = {
   vus: 2,
@@ -13,16 +15,33 @@ export const options = {
 const BASE_URL = config.inventoryService;
 const API_PATH = config.paths.inventory;
 
-// Test SKU IDs (should exist in the system)
-const TEST_SKU_IDS = [
-  '00008217-b1ae-4045-9500-2d4b9fffaa32',
-  '00008217-b1ae-4045-9500-2d4b9fffaa33',
-];
+const TEST_EMAIL = 'loadtest1@example.com';
+const TEST_PASSWORD = 'Test@1234';
 
-export default function () {
+export function setup() {
+  const token = login(config.authService, TEST_EMAIL, TEST_PASSWORD);
+  if (!token) {
+    throw new Error('Failed to obtain auth token in setup');
+  }
+
+  const skuIds = fetchSkuIds(config.catalogService, config.paths.products, token, 2);
+  if (skuIds.length === 0) {
+    console.warn('No SKU IDs found. bulk-query tests will fail.');
+  }
+
+  return { skuIds };
+}
+
+export default function (data) {
+  if (!data.skuIds || data.skuIds.length === 0) {
+    console.warn('Skipping: no skuIds available');
+    sleep(1);
+    return;
+  }
+
   const url = `${BASE_URL}${API_PATH}/bulk`;
   const payload = JSON.stringify({
-    skuIds: TEST_SKU_IDS,
+    skuIds: data.skuIds,
   });
 
   const res = http.post(url, payload, {
@@ -43,10 +62,10 @@ export default function () {
         return false;
       }
     },
-    'bulk-query: has data array': (r) => {
+    'bulk-query: has inventories array': (r) => {
       try {
         const body = JSON.parse(r.body);
-        return body.data && Array.isArray(body.data);
+        return body.data && Array.isArray(body.data.inventories);
       } catch {
         return false;
       }

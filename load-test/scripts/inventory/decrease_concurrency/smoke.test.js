@@ -2,6 +2,8 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { config } from '../../../config/index.js';
 import { generateHTMLReport } from '../../utils/htmlReporter.js';
+import { login } from '../../../lib/auth.js';
+import { fetchSkuIds } from '../../../lib/dataLoader.js';
 
 /**
  * Smoke Test - 재고 감소 동시성 테스트
@@ -23,10 +25,32 @@ export const options = {
 
 const BASE_URL = config.inventoryService;
 const API_PATH = config.paths.inventory;
-const SKU_ID = '00008217-b1ae-4045-9500-2d4b9fffaa32';
 
-export default function () {
-  const url = `${BASE_URL}${API_PATH}/${SKU_ID}/decrease`;
+const TEST_EMAIL = 'loadtest1@example.com';
+const TEST_PASSWORD = 'Test@1234';
+
+export function setup() {
+  const token = login(config.authService, TEST_EMAIL, TEST_PASSWORD);
+  if (!token) {
+    throw new Error('Failed to obtain auth token in setup');
+  }
+
+  const skuIds = fetchSkuIds(config.catalogService, config.paths.products, token, 1);
+  if (skuIds.length === 0) {
+    console.warn('No SKU IDs found. decrease_concurrency tests will fail.');
+  }
+
+  return { skuId: skuIds.length > 0 ? skuIds[0] : null };
+}
+
+export default function (data) {
+  if (!data.skuId) {
+    console.warn('Skipping: no skuId available');
+    sleep(1);
+    return;
+  }
+
+  const url = `${BASE_URL}${API_PATH}/${data.skuId}/decrease`;
 
   const payload = JSON.stringify({
     quantity: 2,
