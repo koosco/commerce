@@ -1,7 +1,7 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { config } from '../../../config/index.js';
-import { generateHTMLReport } from '../../utils/htmlReporter.js';
+import { generateHTMLReport, resultPath } from '../../utils/htmlReporter.js';
 import { buildUrl } from '../../../lib/http.js';
 import { generateUniqueEmail } from '../../../lib/dataLoader.js';
 
@@ -76,7 +76,7 @@ export function handleSummary(data) {
   });
 
   return {
-    'results/user/registration/smoke.test.result.html': html,
+    [resultPath('results/user/registration/smoke.test.result.html')]: html,
     stdout: JSON.stringify(data, null, 2),
   };
 }

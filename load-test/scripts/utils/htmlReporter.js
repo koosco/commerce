@@ -4,6 +4,16 @@
  * 모든 테스트에서 재사용 가능한 HTML 리포트 생성 유틸리티
  */
 
+/**
+ * 결과 파일 경로에 타임스탬프를 추가하여 이전 결과를 보존합니다.
+ * @param {string} path - 기본 결과 파일 경로 (e.g. 'results/auth/login/smoke.test.result.html')
+ * @returns {string} 타임스탬프가 포함된 경로 (e.g. 'results/auth/login/smoke_2026-02-02T08-30-00.html')
+ */
+export function resultPath(path) {
+  const ts = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
+  return path.replace('.result.html', `_${ts}.html`);
+}
+
 export function generateHTMLReport(data, config = {}) {
   const {
     title = "k6 Load Test Results",

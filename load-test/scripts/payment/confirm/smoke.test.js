@@ -1,7 +1,7 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { config } from '../../../config/index.js';
-import { generateHTMLReport } from '../../utils/htmlReporter.js';
+import { generateHTMLReport, resultPath } from '../../utils/htmlReporter.js';
 import { smokeThresholds } from '../../../lib/thresholds.js';
 import { buildUrl } from '../../../lib/http.js';
 import { login, authHeaders } from '../../../lib/auth.js';
@@ -79,7 +79,7 @@ export function handleSummary(data) {
   });
 
   return {
-    'results/payment/confirm/smoke.test.result.html': html,
+    [resultPath('results/payment/confirm/smoke.test.result.html')]: html,
     stdout: JSON.stringify(data, null, 2),
   };
 }
