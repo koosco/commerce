@@ -2,10 +2,10 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Counter, Trend } from 'k6/metrics';
 import { config } from '../../../config/index.js';
-import { generateHTMLReport } from '../../utils/htmlReporter.js';
+import { generateHTMLReport, resultPath } from '../../utils/htmlReporter.js';
 import { buildUrl } from '../../../lib/http.js';
-import { login } from '../../../lib/auth.js';
-import { fetchSkuIds, getRandomItem } from '../../../lib/dataLoader.js';
+import { loginMultipleUsers } from '../../../lib/auth.js';
+import { testUsers, getTokenForVu, getSkuForVu, fetchSkuIds } from '../../../lib/dataLoader.js';
 
 /**
  * Baseline Test - Create Order
@@ -31,25 +31,19 @@ export const options = {
 const BASE_URL = config.orderService;
 const API_PATH = config.paths.orders;
 
-const TEST_EMAIL = 'loadtest1@example.com';
-const TEST_PASSWORD = 'Test@1234';
-
 // 커스텀 메트릭
 const successfulOrders = new Counter('successful_orders');
 const orderLatency = new Trend('order_latency');
 
 export function setup() {
-  const token = login(config.authService, TEST_EMAIL, TEST_PASSWORD);
-  if (!token) {
-    throw new Error('Failed to obtain auth token in setup');
-  }
+  const tokens = loginMultipleUsers(config.authService, testUsers);
 
-  const skuIds = fetchSkuIds(config.catalogService, config.paths.products, token, 5);
+  const skuIds = fetchSkuIds(config.catalogService, config.paths.products, tokens[0], 5);
   if (skuIds.length === 0) {
     console.warn('No SKU IDs found. Baseline tests may fail.');
   }
 
-  return { token, skuIds };
+  return { tokens, skuIds };
 }
 
 export default function (data) {
@@ -59,11 +53,13 @@ export default function (data) {
     return;
   }
 
+  const token = getTokenForVu(data.tokens, __VU);
+  const skuId = getSkuForVu(data.skuIds, __VU);
   const url = buildUrl(BASE_URL, API_PATH);
   const payload = JSON.stringify({
     items: [
       {
-        skuId: getRandomItem(data.skuIds),
+        skuId,
         quantity: 1,
         unitPrice: 29900,
       },
@@ -80,7 +76,7 @@ export default function (data) {
   const params = {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${data.token}`,
+      Authorization: `Bearer ${token}`,
     },
   };
 
@@ -136,7 +132,7 @@ export function handleSummary(data) {
   });
 
   return {
-    'results/order/create-order/baseline.test.result.html': html,
+    [resultPath('results/order/create-order/baseline.test.result.html')]: html,
     stdout: JSON.stringify(data, null, 2),
   };
 }

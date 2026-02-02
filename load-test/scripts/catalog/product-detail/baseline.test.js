@@ -2,8 +2,10 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Counter, Trend } from 'k6/metrics';
 import { config } from '../../../config/index.js';
-import { generateHTMLReport } from '../../utils/htmlReporter.js';
+import { generateHTMLReport, resultPath } from '../../utils/htmlReporter.js';
 import { buildUrl } from '../../../lib/http.js';
+import { loginMultipleUsers } from '../../../lib/auth.js';
+import { testUsers, getTokenForVu } from '../../../lib/dataLoader.js';
 
 /**
  * Baseline Test - Product Detail
@@ -36,7 +38,13 @@ const TEST_PRODUCT_IDS = [1, 2, 3, 4, 5];
 const successfulRequests = new Counter('successful_requests');
 const requestLatency = new Trend('request_latency');
 
-export default function () {
+export function setup() {
+  const tokens = loginMultipleUsers(config.authService, testUsers);
+  return { tokens };
+}
+
+export default function (data) {
+  const token = getTokenForVu(data.tokens, __VU);
   const productId =
     TEST_PRODUCT_IDS[Math.floor(Math.random() * TEST_PRODUCT_IDS.length)];
   const url = buildUrl(BASE_URL, `${API_PATH}/${productId}`);
@@ -44,6 +52,7 @@ export default function () {
   const res = http.get(url, {
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -97,7 +106,7 @@ export function handleSummary(data) {
   });
 
   return {
-    'results/catalog/product-detail/baseline.test.result.html': html,
+    [resultPath('results/catalog/product-detail/baseline.test.result.html')]: html,
     stdout: JSON.stringify(data, null, 2),
   };
 }

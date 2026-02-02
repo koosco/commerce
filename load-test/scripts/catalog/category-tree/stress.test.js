@@ -2,9 +2,10 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Counter, Trend, Rate } from 'k6/metrics';
 import { config } from '../../../config/index.js';
-import { generateHTMLReport } from '../../utils/htmlReporter.js';
+import { generateHTMLReport, resultPath } from '../../utils/htmlReporter.js';
 import { buildUrl } from '../../../lib/http.js';
-import { login } from '../../../lib/auth.js';
+import { loginMultipleUsers } from '../../../lib/auth.js';
+import { testUsers, getTokenForVu } from '../../../lib/dataLoader.js';
 
 /**
  * Stress Test - Category Tree
@@ -34,31 +35,25 @@ export const options = {
 const BASE_URL = config.catalogService;
 const API_PATH = config.paths.categories;
 
-const TEST_EMAIL = 'loadtest1@example.com';
-const TEST_PASSWORD = 'Test@1234';
-
 // 커스텀 메트릭
 const successfulRequests = new Counter('successful_requests');
 const actualErrors = new Counter('actual_errors');
 const requestLatency = new Trend('request_latency');
 const errorRate = new Rate('error_rate');
 
-// 인증 토큰 획득
 export function setup() {
-  const token = login(config.authService, TEST_EMAIL, TEST_PASSWORD);
-  if (!token) {
-    throw new Error('Failed to obtain auth token in setup');
-  }
-  return { token };
+  const tokens = loginMultipleUsers(config.authService, testUsers);
+  return { tokens };
 }
 
 export default function (data) {
+  const token = getTokenForVu(data.tokens, __VU);
   const url = buildUrl(BASE_URL, `${API_PATH}/tree`);
 
   const res = http.get(url, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${data.token}`,
+      Authorization: `Bearer ${token}`,
     },
     timeout: '10s',
   });
@@ -118,7 +113,7 @@ export function handleSummary(data) {
   });
 
   return {
-    'results/catalog/category-tree/stress.test.result.html': html,
+    [resultPath('results/catalog/category-tree/stress.test.result.html')]: html,
     stdout: JSON.stringify(data, null, 2),
   };
 }

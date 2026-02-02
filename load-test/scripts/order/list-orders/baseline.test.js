@@ -2,9 +2,10 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Counter, Trend } from 'k6/metrics';
 import { config } from '../../../config/index.js';
-import { generateHTMLReport } from '../../utils/htmlReporter.js';
+import { generateHTMLReport, resultPath } from '../../utils/htmlReporter.js';
 import { buildUrl } from '../../../lib/http.js';
-import { login } from '../../../lib/auth.js';
+import { loginMultipleUsers } from '../../../lib/auth.js';
+import { testUsers, getTokenForVu } from '../../../lib/dataLoader.js';
 
 /**
  * Baseline Test - List Orders
@@ -30,29 +31,23 @@ export const options = {
 const BASE_URL = config.orderService;
 const API_PATH = config.paths.orders;
 
-const TEST_EMAIL = 'loadtest1@example.com';
-const TEST_PASSWORD = 'Test@1234';
-
 // 커스텀 메트릭
 const successfulRequests = new Counter('successful_requests');
 const requestLatency = new Trend('request_latency');
 
-// 인증 토큰 획득
 export function setup() {
-  const token = login(TEST_EMAIL, TEST_PASSWORD);
-  if (!token) {
-    throw new Error('Failed to obtain auth token in setup');
-  }
-  return { token };
+  const tokens = loginMultipleUsers(config.authService, testUsers);
+  return { tokens };
 }
 
 export default function (data) {
+  const token = getTokenForVu(data.tokens, __VU);
   const url = buildUrl(BASE_URL, API_PATH);
 
   const res = http.get(url, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${data.token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -106,7 +101,7 @@ export function handleSummary(data) {
   });
 
   return {
-    'results/order/list-orders/baseline.test.result.html': html,
+    [resultPath('results/order/list-orders/baseline.test.result.html')]: html,
     stdout: JSON.stringify(data, null, 2),
   };
 }

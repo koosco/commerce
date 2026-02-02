@@ -2,9 +2,10 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Counter, Trend, Rate } from 'k6/metrics';
 import { config } from '../../../config/index.js';
-import { generateHTMLReport } from '../../utils/htmlReporter.js';
+import { generateHTMLReport, resultPath } from '../../utils/htmlReporter.js';
 import { buildUrl } from '../../../lib/http.js';
-import { login } from '../../../lib/auth.js';
+import { loginMultipleUsers } from '../../../lib/auth.js';
+import { testUsers, getTokenForVu } from '../../../lib/dataLoader.js';
 
 /**
  * Stress Test - Product SKUs
@@ -34,9 +35,6 @@ export const options = {
 const BASE_URL = config.catalogService;
 const API_PATH = config.paths.products;
 
-const TEST_EMAIL = 'loadtest1@example.com';
-const TEST_PASSWORD = 'Test@1234';
-
 // 커스텀 메트릭
 const successfulRequests = new Counter('successful_requests');
 const actualErrors = new Counter('actual_errors');
@@ -44,15 +42,12 @@ const requestLatency = new Trend('request_latency');
 const errorRate = new Rate('error_rate');
 
 export function setup() {
-  const token = login(config.authService, TEST_EMAIL, TEST_PASSWORD);
-  if (!token) {
-    throw new Error('Failed to obtain auth token in setup');
-  }
+  const tokens = loginMultipleUsers(config.authService, testUsers);
 
-  // 동적으로 상품 ID 조회
+  // 동적으로 상품 ID 조회 (setup용 토큰 사용)
   const listUrl = buildUrl(BASE_URL, `${API_PATH}?page=0&size=1`);
   const res = http.get(listUrl, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { Authorization: `Bearer ${tokens[0]}` },
   });
 
   let productId = null;
@@ -69,7 +64,7 @@ export function setup() {
     console.warn('No products found in catalog. Product SKU tests will be skipped.');
   }
 
-  return { token, productId };
+  return { tokens, productId };
 }
 
 export default function (data) {
@@ -79,12 +74,13 @@ export default function (data) {
     return;
   }
 
+  const token = getTokenForVu(data.tokens, __VU);
   const url = buildUrl(BASE_URL, `${API_PATH}/${data.productId}/skus`);
 
   const res = http.get(url, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${data.token}`,
+      Authorization: `Bearer ${token}`,
     },
     timeout: '10s',
   });
@@ -144,7 +140,7 @@ export function handleSummary(data) {
   });
 
   return {
-    'results/catalog/product-skus/stress.test.result.html': html,
+    [resultPath('results/catalog/product-skus/stress.test.result.html')]: html,
     stdout: JSON.stringify(data, null, 2),
   };
 }

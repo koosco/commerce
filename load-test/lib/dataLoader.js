@@ -151,6 +151,26 @@ export function fetchSkuIds(catalogBaseUrl, productsPath, token, count = 5) {
 }
 
 /**
+ * Get token for current VU (round-robin distribution)
+ * @param {string[]} tokens - Array of JWT tokens from setup()
+ * @param {number} vuId - Virtual User ID (__VU)
+ * @returns {string} Token for this VU
+ */
+export function getTokenForVu(tokens, vuId) {
+  return tokens[(vuId - 1) % tokens.length];
+}
+
+/**
+ * Get SKU ID for current VU (round-robin distribution)
+ * @param {string[]} skuIds - Array of SKU IDs from setup()
+ * @param {number} vuId - Virtual User ID (__VU)
+ * @returns {string} SKU ID for this VU
+ */
+export function getSkuForVu(skuIds, vuId) {
+  return skuIds[(vuId - 1) % skuIds.length];
+}
+
+/**
  * Generate unique email for registration tests
  * @param {number} vuId - Virtual User ID
  * @param {number} iteration - Current iteration

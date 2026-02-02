@@ -76,3 +76,42 @@ export function loginAndGetHeaders(baseUrl, email, password) {
   const token = login(baseUrl, email, password);
   return token ? authHeaders(token) : null;
 }
+
+/**
+ * Login multiple users and collect their tokens
+ * Called in setup() to prepare tokens for all VUs
+ * @param {string} baseUrl - Auth service base URL
+ * @param {Array<{email: string, password: string}>} users - Array of user credentials
+ * @returns {string[]} Array of JWT tokens (null entries for failed logins are filtered out)
+ */
+export function loginMultipleUsers(baseUrl, users) {
+  const tokens = [];
+  let successCount = 0;
+
+  for (const user of users) {
+    const loginUrl = `${baseUrl}/api/auth/login`;
+    const payload = JSON.stringify({ email: user.email, password: user.password });
+
+    const res = http.post(loginUrl, payload, {
+      headers: { 'Content-Type': 'application/json' },
+      timeout: '10s',
+    });
+
+    if (res.status === 200 && res.headers['Authorization']) {
+      tokens.push(res.headers['Authorization']);
+      successCount++;
+    } else {
+      tokens.push(null);
+    }
+  }
+
+  // Filter out null tokens
+  const validTokens = tokens.filter((t) => t !== null);
+  console.log(`Multi-user login: ${successCount} succeeded out of ${users.length}`);
+
+  if (validTokens.length === 0) {
+    throw new Error('No users could be authenticated');
+  }
+
+  return validTokens;
+}

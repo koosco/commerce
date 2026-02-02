@@ -20,14 +20,12 @@ export const options = {
   iterations: 1, // Run once
 };
 
-// Test users to create
-const TEST_USERS = [
-  { email: 'loadtest1@example.com', password: 'Test@1234', name: 'Load Test User 1' },
-  { email: 'loadtest2@example.com', password: 'Test@1234', name: 'Load Test User 2' },
-  { email: 'loadtest3@example.com', password: 'Test@1234', name: 'Load Test User 3' },
-  { email: 'loadtest4@example.com', password: 'Test@1234', name: 'Load Test User 4' },
-  { email: 'loadtest5@example.com', password: 'Test@1234', name: 'Load Test User 5' },
-];
+// Test users to create (100 users for multi-user load testing)
+const TEST_USERS = Array.from({ length: 100 }, (_, i) => ({
+  email: `loadtest${i + 1}@example.com`,
+  password: 'Test@1234',
+  name: `Load Test User ${i + 1}`,
+}));
 
 export default function () {
   console.log(`Setting up test data for environment: ${config.name}`);

@@ -2,8 +2,10 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Counter, Trend } from 'k6/metrics';
 import { config } from '../../../config/index.js';
-import { generateHTMLReport } from '../../utils/htmlReporter.js';
+import { generateHTMLReport, resultPath } from '../../utils/htmlReporter.js';
 import { buildUrl } from '../../../lib/http.js';
+import { loginMultipleUsers } from '../../../lib/auth.js';
+import { testUsers, getTokenForVu } from '../../../lib/dataLoader.js';
 
 /**
  * Baseline Test - Payment Confirm
@@ -33,7 +35,13 @@ const API_PATH = config.paths.payments;
 const successfulPayments = new Counter('successful_payments');
 const paymentLatency = new Trend('payment_latency');
 
-export default function () {
+export function setup() {
+  const tokens = loginMultipleUsers(config.authService, testUsers);
+  return { tokens };
+}
+
+export default function (data) {
+  const token = getTokenForVu(data.tokens, __VU);
   const url = buildUrl(BASE_URL, `${API_PATH}/confirm`);
   const payload = JSON.stringify({
     paymentKey: `test_payment_key_${Date.now()}_${__VU}_${__ITER}`,
@@ -44,6 +52,7 @@ export default function () {
   const params = {
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
   };
 
@@ -103,7 +112,7 @@ export function handleSummary(data) {
   });
 
   return {
-    'results/payment/confirm/baseline.test.result.html': html,
+    [resultPath('results/payment/confirm/baseline.test.result.html')]: html,
     stdout: JSON.stringify(data, null, 2),
   };
 }

@@ -2,9 +2,9 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Counter, Trend } from 'k6/metrics';
 import { config } from '../../../config/index.js';
-import { generateHTMLReport } from '../../utils/htmlReporter.js';
-import { login } from '../../../lib/auth.js';
-import { fetchSkuIds } from '../../../lib/dataLoader.js';
+import { generateHTMLReport, resultPath } from '../../utils/htmlReporter.js';
+import { loginMultipleUsers } from '../../../lib/auth.js';
+import { testUsers, getTokenForVu, getSkuForVu, fetchSkuIds } from '../../../lib/dataLoader.js';
 
 /**
  * Baseline Test - 재고 감소 동시성 테스트
@@ -31,35 +31,32 @@ export const options = {
 const BASE_URL = config.inventoryService;
 const API_PATH = config.paths.inventory;
 
-const TEST_EMAIL = 'loadtest1@example.com';
-const TEST_PASSWORD = 'Test@1234';
-
 // 커스텀 메트릭
 const successfulDecreases = new Counter('successful_decreases');
 const decreaseLatency = new Trend('decrease_latency');
 
 export function setup() {
-  const token = login(config.authService, TEST_EMAIL, TEST_PASSWORD);
-  if (!token) {
-    throw new Error('Failed to obtain auth token in setup');
-  }
+  const tokens = loginMultipleUsers(config.authService, testUsers);
 
-  const skuIds = fetchSkuIds(config.catalogService, config.paths.products, token, 5);
+  // 10개 SKU 확보 → VU별 분산 (50 VU / 10 SKU = SKU당 5 VU 동시 접근)
+  const skuIds = fetchSkuIds(config.catalogService, config.paths.products, tokens[0], 10);
   if (skuIds.length === 0) {
     console.warn('No SKU IDs found. Baseline tests will fail.');
   }
 
-  return { skuId: skuIds.length > 0 ? skuIds[0] : null };
+  return { tokens, skuIds };
 }
 
 export default function (data) {
-  if (!data.skuId) {
-    console.warn('Skipping: no skuId available');
+  if (!data.skuIds || data.skuIds.length === 0) {
+    console.warn('Skipping: no skuIds available');
     sleep(1);
     return;
   }
 
-  const url = `${BASE_URL}${API_PATH}/${data.skuId}/decrease`;
+  const token = getTokenForVu(data.tokens, __VU);
+  const skuId = getSkuForVu(data.skuIds, __VU);
+  const url = `${BASE_URL}${API_PATH}/${skuId}/decrease`;
 
   const payload = JSON.stringify({
     quantity: 2,
@@ -124,7 +121,7 @@ export function handleSummary(data) {
   });
 
   return {
-    "results/inventory/decrease_concurrency/baseline.test.result.html": html,
+    [resultPath('results/inventory/decrease_concurrency/baseline.test.result.html')]: html,
     "stdout": JSON.stringify(data, null, 2),
   };
 }
