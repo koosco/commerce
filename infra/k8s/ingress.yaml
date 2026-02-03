@@ -42,8 +42,8 @@ metadata:
   namespace: commerce
 spec:
   rateLimit:
-    average: 100
-    burst: 200
+    average: 10000
+    burst: 20000
 
 ---
 # Traefik Middleware: Security Headers

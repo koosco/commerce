@@ -42,8 +42,8 @@ metadata:
   namespace: commerce
 spec:
   rateLimit:
-    average: 1000
-    burst: 2000
+    average: 10000
+    burst: 20000
 
 ---
 apiVersion: networking.k8s.io/v1
