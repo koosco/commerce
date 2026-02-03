@@ -15,14 +15,17 @@ import { testUsers, getTokenForVu } from '../../../lib/dataLoader.js';
  * - 시스템 Breaking Point 탐색
  */
 
+// Breaking Point: 500 VU (p95 > 1000ms at 800 VU)
+const B = 500;
+
 export const options = {
   stages: [
-    { duration: '2m', target: 100 },
-    { duration: '3m', target: 300 },
-    { duration: '5m', target: 500 },
-    { duration: '5m', target: 500 },
-    { duration: '3m', target: 200 },
-    { duration: '2m', target: 0 },
+    { duration: '2m', target: Math.round(B * 0.3) },   // warm-up: 150
+    { duration: '3m', target: Math.round(B * 0.65) },  // ramp to baseline: 325
+    { duration: '5m', target: Math.round(B * 0.65) },  // hold baseline: 325
+    { duration: '3m', target: B },                      // push to breaking point: 500
+    { duration: '5m', target: B },                      // hold at limit: 500
+    { duration: '2m', target: 0 },                      // cooldown
   ],
   thresholds: {
     http_req_duration: ['p(95)<1000', 'p(99)<2000'],

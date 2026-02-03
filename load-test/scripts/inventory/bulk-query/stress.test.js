@@ -14,14 +14,17 @@ import { testUsers, getTokenForVu, fetchSkuIds } from '../../../lib/dataLoader.j
  * - 시스템 Breaking Point 탐색
  */
 
+// Breaking Point: > 800 VU (estimated, bulk read similar to get-stock)
+const B = 800;
+
 export const options = {
   stages: [
-    { duration: '2m', target: 100 },
-    { duration: '3m', target: 300 },
-    { duration: '5m', target: 500 },
-    { duration: '5m', target: 500 },
-    { duration: '3m', target: 200 },
-    { duration: '2m', target: 0 },
+    { duration: '2m', target: Math.round(B * 0.3) },   // warm-up: 240
+    { duration: '3m', target: Math.round(B * 0.65) },  // ramp to baseline: 520
+    { duration: '5m', target: Math.round(B * 0.65) },  // hold baseline: 520
+    { duration: '3m', target: B },                      // push to breaking point: 800
+    { duration: '5m', target: B },                      // hold at limit: 800
+    { duration: '2m', target: 0 },                      // cooldown
   ],
   thresholds: {
     http_req_duration: ['p(95)<1000', 'p(99)<2000'],

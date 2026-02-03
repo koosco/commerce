@@ -14,11 +14,14 @@ import { testUsers, getTokenForVu, fetchSkuIds } from '../../../lib/dataLoader.j
  * - 성능 기준선(Baseline) 측정
  */
 
+// Breaking Point: > 800 VU → Baseline: 520 VU (0.65 * B)
+const BASELINE_VU = 520;
+
 export const options = {
   stages: [
-    { duration: '1m', target: 20 },
-    { duration: '1m', target: 50 },
-    { duration: '5m', target: 50 },
+    { duration: '1m', target: Math.round(BASELINE_VU * 0.4) },  // warm-up: 208
+    { duration: '1m', target: BASELINE_VU },                     // ramp: 520
+    { duration: '5m', target: BASELINE_VU },                     // hold: 520
   ],
   thresholds: {
     http_req_duration: ['p(95)<500', 'p(99)<1000'],

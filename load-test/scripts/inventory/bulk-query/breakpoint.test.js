@@ -4,33 +4,27 @@ import { Counter, Trend, Rate } from 'k6/metrics';
 import { config } from '../../../config/index.js';
 import { generateHTMLReport, resultPath } from '../../utils/htmlReporter.js';
 import { loginMultipleUsers } from '../../../lib/auth.js';
-import { testUsers, getTokenForVu, getSkuForVu, fetchSkuIds } from '../../../lib/dataLoader.js';
+import { testUsers, getTokenForVu, fetchSkuIds } from '../../../lib/dataLoader.js';
 
 /**
- * Stress Test - Increase Stock
+ * Breakpoint Test - Bulk Query
  *
- * 목적: 고부하 환경에서 재고 증가 시스템 한계 및 안정성 검증
- * - 대량의 동시 재고 증가 요청 처리 능력 테스트
- * - 시스템 Breaking Point 탐색
+ * 목적: 재고 일괄 조회의 최대 지속 가능 VU (Breaking Point) 탐색
+ * - 기존 stress max(500) 이상으로 점진적 증가
+ * - p(95) > 1000ms 또는 error rate > 5% 지점 식별
  */
-
-// Breaking Point: > 800 VU (p95 = 107ms at 800 VU, no degradation)
-const B = 800;
 
 export const options = {
   stages: [
-    { duration: '2m', target: Math.round(B * 0.3) },   // warm-up: 240
-    { duration: '3m', target: Math.round(B * 0.65) },  // ramp to baseline: 520
-    { duration: '5m', target: Math.round(B * 0.65) },  // hold baseline: 520
-    { duration: '3m', target: B },                      // push to breaking point: 800
-    { duration: '5m', target: B },                      // hold at limit: 800
-    { duration: '2m', target: 0 },                      // cooldown
+    { duration: '1m', target: 200 },
+    { duration: '2m', target: 500 },
+    { duration: '2m', target: 500 },
+    { duration: '2m', target: 800 },
+    { duration: '2m', target: 800 },
+    { duration: '1m', target: 0 },
   ],
   thresholds: {
-    http_req_duration: ['p(95)<1000', 'p(99)<2000'],
-    http_req_failed: ['rate<0.05'],
     successful_requests: ['count>0'],
-    error_rate: ['rate<0.01'],
   },
 };
 
@@ -48,7 +42,7 @@ export function setup() {
 
   const skuIds = fetchSkuIds(config.catalogService, config.paths.products, tokens[0], 5);
   if (skuIds.length === 0) {
-    console.warn('No SKU IDs found. Stress tests will fail.');
+    console.warn('No SKU IDs found. Tests will fail.');
   }
 
   return { tokens, skuIds };
@@ -62,32 +56,29 @@ export default function (data) {
   }
 
   const token = getTokenForVu(data.tokens, __VU);
-  const skuId = getSkuForVu(data.skuIds, __VU);
-  const url = `${BASE_URL}${API_PATH}/${skuId}/increase`;
+  const url = `${BASE_URL}${API_PATH}/bulk`;
   const payload = JSON.stringify({
-    quantity: 10,
+    skuIds: data.skuIds,
   });
 
   const res = http.post(url, payload, {
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
     timeout: '10s',
   });
 
-  // 응답 시간 기록
   if (res.status !== 0) {
     requestLatency.add(res.timings.duration);
   }
 
-  // 기본 검증
   check(res, {
     'status is 200': (r) => r.status === 200,
     'not timeout': (r) => r.status !== 0,
     'response time < 2s': (r) => r.timings.duration < 2000,
   });
 
-  // 성공 응답 처리 및 검증
   if (res.status === 200) {
     successfulRequests.add(1);
     errorRate.add(false);
@@ -98,26 +89,13 @@ export default function (data) {
           const body = JSON.parse(r.body);
           return body.success === true;
         } catch (e) {
-          console.error(`Parse error on success: ${e.message}`);
           return false;
         }
       },
     });
-  }
-  // 에러 응답 처리
-  else {
+  } else {
     actualErrors.add(1);
     errorRate.add(true);
-
-    console.error(
-      `[ERROR] Unexpected response - Status: ${res.status}, ` +
-        `Duration: ${res.timings.duration}ms, ` +
-        `Body: ${res.body ? res.body.substring(0, 200) : 'empty'}`
-    );
-
-    check(res, {
-      'no unexpected errors': () => false,
-    });
   }
 
   sleep(0.5);
@@ -125,12 +103,12 @@ export default function (data) {
 
 export function handleSummary(data) {
   const html = generateHTMLReport(data, {
-    title: 'Stress Test - Increase Stock',
+    title: 'Breakpoint Test - Bulk Query',
     theme: 'stress',
   });
 
   return {
-    [resultPath('results/inventory/increase-stock/stress.test.result.html')]: html,
+    [resultPath('results/inventory/bulk-query/breakpoint.test.result.html')]: html,
     stdout: JSON.stringify(data, null, 2),
   };
 }

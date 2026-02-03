@@ -62,4 +62,3 @@ infra/kafka/kafka-3.7.0/
 
 # Load test outputs
 load-test/data/
-load-test/results/
