@@ -6,8 +6,10 @@ import com.koosco.common.core.messaging.MessageContext
 import com.koosco.inventoryservice.inventory.application.command.ConfirmStockCommand
 import com.koosco.inventoryservice.inventory.application.contract.outbound.inventory.StockConfirmFailedEvent
 import com.koosco.inventoryservice.inventory.application.contract.outbound.inventory.StockConfirmedEvent
-import com.koosco.inventoryservice.inventory.application.port.IntegrationEventPublisher
+import com.koosco.inventoryservice.inventory.application.port.IntegrationEventProducer
+import com.koosco.inventoryservice.inventory.application.port.InventoryLogPort
 import com.koosco.inventoryservice.inventory.application.port.InventoryStockStorePort
+import com.koosco.inventoryservice.inventory.domain.enums.InventoryAction
 import com.koosco.inventoryservice.inventory.domain.enums.StockConfirmFailReason
 import com.koosco.inventoryservice.inventory.domain.exception.NotEnoughStockException
 import org.slf4j.LoggerFactory
@@ -15,7 +17,8 @@ import org.slf4j.LoggerFactory
 @UseCase
 class ConfirmStockUseCase(
     private val inventoryStockStore: InventoryStockStorePort,
-    private val integrationEventPublisher: IntegrationEventPublisher,
+    private val inventoryLogPort: InventoryLogPort,
+    private val integrationEventProducer: IntegrationEventProducer,
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -23,7 +26,8 @@ class ConfirmStockUseCase(
     fun execute(command: ConfirmStockCommand, context: MessageContext) {
         try {
             inventoryStockStore.confirm(
-                command.items.map {
+                orderId = command.orderId,
+                items = command.items.map {
                     InventoryStockStorePort.ConfirmItem(
                         skuId = it.skuId,
                         quantity = it.quantity,
@@ -34,12 +38,22 @@ class ConfirmStockUseCase(
             publishFailed(command, context, StockConfirmFailReason.SKU_NOT_FOUND)
             throw e
         } catch (e: NotEnoughStockException) {
-            // 예약 부족/상태 이상을 NotEnoughStock으로 매핑했다는 전제
             publishFailed(command, context, StockConfirmFailReason.NOT_ENOUGH_RESERVED)
             throw e
         }
 
-        integrationEventPublisher.publish(
+        inventoryLogPort.logBatch(
+            command.items.map {
+                InventoryLogPort.LogEntry(
+                    skuId = it.skuId,
+                    orderId = command.orderId,
+                    action = InventoryAction.CONFIRM,
+                    quantity = it.quantity,
+                )
+            },
+        )
+
+        integrationEventProducer.publish(
             StockConfirmedEvent(
                 orderId = command.orderId,
                 items = command.items.map {
@@ -58,10 +72,10 @@ class ConfirmStockUseCase(
     }
 
     private fun publishFailed(command: ConfirmStockCommand, context: MessageContext, reason: StockConfirmFailReason) {
-        integrationEventPublisher.publish(
+        integrationEventProducer.publish(
             StockConfirmFailedEvent(
                 orderId = command.orderId,
-                reason = reason, // enum 권장
+                reason = reason,
                 correlationId = context.correlationId,
                 causationId = context.causationId,
             ),

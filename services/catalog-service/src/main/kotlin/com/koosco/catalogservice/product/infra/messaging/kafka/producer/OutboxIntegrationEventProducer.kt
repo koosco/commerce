@@ -1,40 +1,37 @@
-package com.koosco.inventoryservice.inventory.infra.messaging.kafka.producer
+package com.koosco.catalogservice.product.infra.messaging.kafka.producer
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.koosco.inventoryservice.common.config.kafka.KafkaTopicResolver
-import com.koosco.inventoryservice.inventory.application.contract.InventoryIntegrationEvent
-import com.koosco.inventoryservice.inventory.application.port.IntegrationEventPublisher
-import com.koosco.inventoryservice.inventory.domain.entity.InventoryOutboxEntry
-import com.koosco.inventoryservice.inventory.infra.outbox.InventoryOutboxRepository
+import com.koosco.catalogservice.common.config.KafkaTopicResolver
+import com.koosco.catalogservice.product.application.contract.ProductIntegrationEvent
+import com.koosco.catalogservice.product.application.port.IntegrationEventProducer
+import com.koosco.catalogservice.product.domain.entity.CatalogOutboxEntry
+import com.koosco.catalogservice.product.infra.outbox.CatalogOutboxRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 /**
- * Outbox-based event publisher for inventory-service.
+ * Outbox-based event producer for catalog-service.
  *
- * Instead of publishing events directly to Kafka, this publisher saves events
+ * Instead of publishing events directly to Kafka, this producer saves events
  * to the outbox table within the same transaction as the domain operation.
  *
  * Debezium CDC then captures these inserts and publishes them to Kafka,
  * ensuring atomicity between database changes and event publishing.
- *
- * Note: Inventory operations use Redis for atomic stock updates.
- * The Outbox entry is saved after successful Redis operations.
  */
 @Component
-class OutboxIntegrationEventPublisher(
-    private val outboxRepository: InventoryOutboxRepository,
+class OutboxIntegrationEventProducer(
+    private val outboxRepository: CatalogOutboxRepository,
     private val topicResolver: KafkaTopicResolver,
     private val objectMapper: ObjectMapper,
 
     @Value("\${spring.application.name}")
     private val source: String,
-) : IntegrationEventPublisher {
+) : IntegrationEventProducer {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun publish(event: InventoryIntegrationEvent) {
+    override fun publish(event: ProductIntegrationEvent) {
         val cloudEvent = event.toCloudEvent(source)
         val topic = topicResolver.resolve(event)
         val partitionKey = event.getPartitionKey()
@@ -44,14 +41,14 @@ class OutboxIntegrationEventPublisher(
             objectMapper.writeValueAsString(cloudEvent)
         } catch (e: Exception) {
             logger.error(
-                "Failed to serialize CloudEvent: type=$eventType, orderId=${event.orderId}",
+                "Failed to serialize CloudEvent: type=$eventType, skuId=${event.skuId}",
                 e,
             )
             throw e
         }
 
-        val outboxEntry = InventoryOutboxEntry.create(
-            aggregateId = event.orderId.toString(),
+        val outboxEntry = CatalogOutboxEntry.create(
+            aggregateId = event.skuId,
             eventType = eventType,
             payload = payload,
             topic = topic,
@@ -61,7 +58,7 @@ class OutboxIntegrationEventPublisher(
         outboxRepository.save(outboxEntry)
 
         logger.info(
-            "Outbox entry saved: type=$eventType, orderId=${event.orderId}, topic=$topic",
+            "Outbox entry saved: type=$eventType, skuId=${event.skuId}, topic=$topic",
         )
     }
 }

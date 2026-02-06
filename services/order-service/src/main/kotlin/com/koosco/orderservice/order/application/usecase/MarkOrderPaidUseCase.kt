@@ -6,7 +6,7 @@ import com.koosco.common.core.messaging.MessageContext
 import com.koosco.orderservice.common.error.OrderErrorCode
 import com.koosco.orderservice.order.application.command.MarkOrderPaidCommand
 import com.koosco.orderservice.order.application.contract.outbound.order.OrderConfirmedEvent
-import com.koosco.orderservice.order.application.port.IntegrationEventPublisher
+import com.koosco.orderservice.order.application.port.IntegrationEventProducer
 import com.koosco.orderservice.order.application.port.OrderRepository
 import com.koosco.orderservice.order.domain.vo.Money
 import org.springframework.transaction.annotation.Transactional
@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional
 @UseCase
 class MarkOrderPaidUseCase(
     private val orderRepository: OrderRepository,
-    private val integrationEventPublisher: IntegrationEventPublisher,
+    private val integrationEventProducer: IntegrationEventProducer,
 ) {
     @Transactional
     fun execute(command: MarkOrderPaidCommand, context: MessageContext) {
@@ -42,7 +42,7 @@ class MarkOrderPaidUseCase(
         orderRepository.save(order)
 
         // Integration event 직접 생성 및 발행
-        integrationEventPublisher.publish(
+        integrationEventProducer.publish(
             OrderConfirmedEvent(
                 orderId = order.id!!,
                 items = order.items.map { OrderConfirmedEvent.ConfirmedItem(it.skuId, it.quantity) },

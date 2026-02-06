@@ -10,17 +10,17 @@ import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.util.concurrent.CopyOnWriteArrayList
 
-class AbstractEventPublisherTest {
+class AbstractEventProducerTest {
 
     private lateinit var objectMapper: ObjectMapper
-    private lateinit var testPublisher: TestEventPublisher
+    private lateinit var testProducer: TestEventProducer
 
     @BeforeEach
     fun setUp() {
         objectMapper = jacksonObjectMapper().apply {
             registerModule(JavaTimeModule())
         }
-        testPublisher = TestEventPublisher(objectMapper)
+        testProducer = TestEventProducer(objectMapper)
     }
 
     data class TestData(
@@ -48,11 +48,11 @@ class AbstractEventPublisherTest {
         )
 
         // when
-        testPublisher.publish(event)
+        testProducer.publish(event)
 
         // then
-        assertThat(testPublisher.publishedEvents).hasSize(1)
-        val published = testPublisher.publishedEvents[0]
+        assertThat(testProducer.publishedEvents).hasSize(1)
+        val published = testProducer.publishedEvents[0]
         assertThat(published.topic).isEqualTo("com-koosco-test-created")
         assertThat(published.key).isEqualTo("com.koosco.test.created")
         assertThat(published.payload).contains("\"type\":\"com.koosco.test.created\"")
@@ -69,11 +69,11 @@ class AbstractEventPublisherTest {
 
         // when & then
         assertThatThrownBy {
-            testPublisher.publish(invalidEvent)
+            testProducer.publish(invalidEvent)
         }.isInstanceOf(ValidationException::class.java)
             .hasMessageContaining("id")
 
-        assertThat(testPublisher.publishedEvents).isEmpty()
+        assertThat(testProducer.publishedEvents).isEmpty()
     }
 
     @Test
@@ -85,15 +85,15 @@ class AbstractEventPublisherTest {
         )
 
         // when
-        testPublisher.publishDomainEvent(
+        testProducer.publishDomainEvent(
             event = domainEvent,
             source = "urn:koosco:test-service",
             dataSchema = null,
         )
 
         // then
-        assertThat(testPublisher.publishedEvents).hasSize(1)
-        val published = testPublisher.publishedEvents[0]
+        assertThat(testProducer.publishedEvents).hasSize(1)
+        val published = testProducer.publishedEvents[0]
         assertThat(published.topic).isEqualTo("com-koosco-test-event")
         assertThat(published.key).isEqualTo("com.koosco.test.event")
         assertThat(published.payload).contains("\"type\":\"com.koosco.test.event\"")
@@ -110,7 +110,7 @@ class AbstractEventPublisherTest {
 
         // when & then
         assertThatThrownBy {
-            testPublisher.publishDomainEvent(
+            testProducer.publishDomainEvent(
                 event = invalidEvent,
                 source = "urn:koosco:test-service",
                 dataSchema = null,
@@ -118,7 +118,7 @@ class AbstractEventPublisherTest {
         }.isInstanceOf(ValidationException::class.java)
             .hasMessageContaining("aggregateId")
 
-        assertThat(testPublisher.publishedEvents).isEmpty()
+        assertThat(testProducer.publishedEvents).isEmpty()
     }
 
     @Test
@@ -143,13 +143,13 @@ class AbstractEventPublisherTest {
         )
 
         // when
-        testPublisher.publishBatch(events)
+        testProducer.publishBatch(events)
 
         // then
-        assertThat(testPublisher.publishedEvents).hasSize(3)
-        assertThat(testPublisher.publishedEvents[0].payload).contains("test1")
-        assertThat(testPublisher.publishedEvents[1].payload).contains("test2")
-        assertThat(testPublisher.publishedEvents[2].payload).contains("test3")
+        assertThat(testProducer.publishedEvents).hasSize(3)
+        assertThat(testProducer.publishedEvents[0].payload).contains("test1")
+        assertThat(testProducer.publishedEvents[1].payload).contains("test2")
+        assertThat(testProducer.publishedEvents[2].payload).contains("test3")
     }
 
     @Test
@@ -176,11 +176,11 @@ class AbstractEventPublisherTest {
 
         // when & then
         assertThatThrownBy {
-            testPublisher.publishBatch(events)
+            testProducer.publishBatch(events)
         }.isInstanceOf(ValidationException::class.java)
 
         // No events should be published if validation fails
-        assertThat(testPublisher.publishedEvents).isEmpty()
+        assertThat(testProducer.publishedEvents).isEmpty()
     }
 
     @Test
@@ -189,16 +189,16 @@ class AbstractEventPublisherTest {
         val events = emptyList<CloudEvent<*>>()
 
         // when
-        testPublisher.publishBatch(events)
+        testProducer.publishBatch(events)
 
         // then
-        assertThat(testPublisher.publishedEvents).isEmpty()
+        assertThat(testProducer.publishedEvents).isEmpty()
     }
 
     @Test
     fun `should use custom topic resolution`() {
         // given
-        val customPublisher = CustomTopicPublisher(objectMapper)
+        val customProducer = CustomTopicProducer(objectMapper)
         val event = CloudEvent.of(
             source = "urn:koosco:test-service",
             type = "com.koosco.order.created",
@@ -206,17 +206,17 @@ class AbstractEventPublisherTest {
         )
 
         // when
-        customPublisher.publish(event)
+        customProducer.publish(event)
 
         // then
-        assertThat(customPublisher.publishedEvents).hasSize(1)
-        assertThat(customPublisher.publishedEvents[0].topic).isEqualTo("custom-topic-created")
+        assertThat(customProducer.publishedEvents).hasSize(1)
+        assertThat(customProducer.publishedEvents[0].topic).isEqualTo("custom-topic-created")
     }
 
     @Test
     fun `should use custom key resolution`() {
         // given
-        val customPublisher = CustomKeyPublisher(objectMapper)
+        val customProducer = CustomKeyProducer(objectMapper)
         val event = CloudEvent.of(
             source = "urn:koosco:test-service",
             type = "com.koosco.test.created",
@@ -225,17 +225,17 @@ class AbstractEventPublisherTest {
         )
 
         // when
-        customPublisher.publish(event)
+        customProducer.publish(event)
 
         // then
-        assertThat(customPublisher.publishedEvents).hasSize(1)
-        assertThat(customPublisher.publishedEvents[0].key).isEqualTo("test-subject-123")
+        assertThat(customProducer.publishedEvents).hasSize(1)
+        assertThat(customProducer.publishedEvents[0].key).isEqualTo("test-subject-123")
     }
 
     @Test
     fun `should handle serialization errors`() {
         // given
-        val publisherWithBrokenMapper = TestEventPublisher(
+        val producerWithBrokenMapper = TestEventProducer(
             ObjectMapper().apply {
                 // Intentionally misconfigured to cause serialization errors
             },
@@ -248,15 +248,15 @@ class AbstractEventPublisherTest {
 
         // when & then
         assertThatThrownBy {
-            publisherWithBrokenMapper.publish(event)
-        }.isInstanceOf(EventPublishException::class.java)
+            producerWithBrokenMapper.publish(event)
+        }.isInstanceOf(EventProduceException::class.java)
             .hasMessageContaining("Failed to publish CloudEvent")
     }
 
     @Test
     fun `should handle publish errors`() {
         // given
-        val failingPublisher = FailingEventPublisher(objectMapper)
+        val failingProducer = FailingEventProducer(objectMapper)
         val event = CloudEvent.of(
             source = "urn:koosco:test-service",
             type = "com.koosco.test.created",
@@ -265,8 +265,8 @@ class AbstractEventPublisherTest {
 
         // when & then
         assertThatThrownBy {
-            failingPublisher.publish(event)
-        }.isInstanceOf(EventPublishException::class.java)
+            failingProducer.publish(event)
+        }.isInstanceOf(EventProduceException::class.java)
             .hasMessageContaining("Simulated publish failure")
     }
 
@@ -280,10 +280,10 @@ class AbstractEventPublisherTest {
         )
 
         // when
-        testPublisher.publishWithValidation(event)
+        testProducer.publishWithValidation(event)
 
         // then
-        assertThat(testPublisher.publishedEvents).hasSize(1)
+        assertThat(testProducer.publishedEvents).hasSize(1)
     }
 
     // Test implementation classes
@@ -294,9 +294,9 @@ class AbstractEventPublisherTest {
         val payload: String,
     )
 
-    class TestEventPublisher(
+    class TestEventProducer(
         objectMapper: ObjectMapper,
-    ) : AbstractEventPublisher(objectMapper) {
+    ) : AbstractEventProducer(objectMapper) {
 
         val publishedEvents = CopyOnWriteArrayList<PublishedEvent>()
 
@@ -305,9 +305,9 @@ class AbstractEventPublisherTest {
         }
     }
 
-    class CustomTopicPublisher(
+    class CustomTopicProducer(
         objectMapper: ObjectMapper,
-    ) : AbstractEventPublisher(objectMapper) {
+    ) : AbstractEventProducer(objectMapper) {
 
         val publishedEvents = CopyOnWriteArrayList<PublishedEvent>()
 
@@ -318,9 +318,9 @@ class AbstractEventPublisherTest {
         override fun resolveTopic(event: CloudEvent<*>): String = "custom-topic-${event.type.substringAfterLast(".")}"
     }
 
-    class CustomKeyPublisher(
+    class CustomKeyProducer(
         objectMapper: ObjectMapper,
-    ) : AbstractEventPublisher(objectMapper) {
+    ) : AbstractEventProducer(objectMapper) {
 
         val publishedEvents = CopyOnWriteArrayList<PublishedEvent>()
 
@@ -331,10 +331,10 @@ class AbstractEventPublisherTest {
         override fun resolveKey(event: CloudEvent<*>): String? = event.subject
     }
 
-    class FailingEventPublisher(
+    class FailingEventProducer(
         objectMapper: ObjectMapper,
-    ) : AbstractEventPublisher(objectMapper) {
+    ) : AbstractEventProducer(objectMapper) {
 
-        override fun publishRaw(topic: String, key: String?, payload: String): Unit = throw EventPublishException("Simulated publish failure")
+        override fun publishRaw(topic: String, key: String?, payload: String): Unit = throw EventProduceException("Simulated publish failure")
     }
 }

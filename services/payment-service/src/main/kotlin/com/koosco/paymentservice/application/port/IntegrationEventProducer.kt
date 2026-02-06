@@ -3,11 +3,11 @@ package com.koosco.paymentservice.application.port
 import com.koosco.paymentservice.application.contract.PaymentIntegrationEvent
 
 /**
- * fileName       : IntegrationEventPublisher
+ * fileName       : IntegrationEventProducer
  * author         : koo
  * date           : 2025. 12. 24. 오후 9:05
  * description    :
  */
-interface IntegrationEventPublisher {
+interface IntegrationEventProducer {
     fun publish(event: PaymentIntegrationEvent)
 }

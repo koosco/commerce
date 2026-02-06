@@ -3,7 +3,7 @@ package com.koosco.paymentservice.integration.kafka
 import com.koosco.common.core.test.KafkaContainerTestBase
 import com.koosco.paymentservice.application.contract.outbound.payment.PaymentCreatedEvent
 import com.koosco.paymentservice.application.port.IdempotencyRepository
-import com.koosco.paymentservice.application.port.IntegrationEventPublisher
+import com.koosco.paymentservice.application.port.IntegrationEventProducer
 import com.koosco.paymentservice.application.port.PaymentGateway
 import com.koosco.paymentservice.application.port.PaymentRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -19,7 +19,7 @@ import java.time.Duration
 import java.util.UUID
 
 /**
- * Integration tests for KafkaIntegrationEventPublisher.
+ * Integration tests for KafkaIntegrationEventProducer.
  *
  * Verifies that PaymentCreatedEvent is correctly published to Kafka
  * in CloudEvent format.
@@ -27,10 +27,10 @@ import java.util.UUID
 @SpringBootTest
 @Testcontainers
 @ActiveProfiles("test")
-class KafkaPaymentEventPublisherIntegrationTest : KafkaContainerTestBase() {
+class KafkaPaymentEventProducerIntegrationTest : KafkaContainerTestBase() {
 
     @Autowired
-    private lateinit var eventPublisher: IntegrationEventPublisher
+    private lateinit var eventProducer: IntegrationEventProducer
 
     @Value("\${payment.topic.mappings.payment.created}")
     private lateinit var paymentCreatedTopic: String
@@ -53,7 +53,7 @@ class KafkaPaymentEventPublisherIntegrationTest : KafkaContainerTestBase() {
         val event = PaymentCreatedEvent(paymentId = paymentId, orderId = orderId)
 
         // When
-        eventPublisher.publish(event)
+        eventProducer.publish(event)
 
         // Then
         val records = consumeMessages(paymentCreatedTopic, 1, Duration.ofSeconds(15))
@@ -80,7 +80,7 @@ class KafkaPaymentEventPublisherIntegrationTest : KafkaContainerTestBase() {
         val event = PaymentCreatedEvent(paymentId = paymentId, orderId = orderId)
 
         // When
-        eventPublisher.publish(event)
+        eventProducer.publish(event)
 
         // Then
         val records = consumeMessages(paymentCreatedTopic, 1, Duration.ofSeconds(15))
@@ -98,7 +98,7 @@ class KafkaPaymentEventPublisherIntegrationTest : KafkaContainerTestBase() {
         val event = PaymentCreatedEvent(paymentId = paymentId, orderId = orderId)
 
         // When
-        eventPublisher.publish(event)
+        eventProducer.publish(event)
 
         // Then
         val records = consumeMessages(paymentCreatedTopic, 1, Duration.ofSeconds(15))
@@ -124,7 +124,7 @@ class KafkaPaymentEventPublisherIntegrationTest : KafkaContainerTestBase() {
         }
 
         // When
-        events.forEach { eventPublisher.publish(it) }
+        events.forEach { eventProducer.publish(it) }
 
         // Then
         val records = consumeMessages(paymentCreatedTopic, 3, Duration.ofSeconds(20))
@@ -150,8 +150,8 @@ class KafkaPaymentEventPublisherIntegrationTest : KafkaContainerTestBase() {
         )
 
         // When
-        eventPublisher.publish(event1)
-        eventPublisher.publish(event2)
+        eventProducer.publish(event1)
+        eventProducer.publish(event2)
 
         // Then
         val records = consumeMessages(paymentCreatedTopic, 2, Duration.ofSeconds(15))

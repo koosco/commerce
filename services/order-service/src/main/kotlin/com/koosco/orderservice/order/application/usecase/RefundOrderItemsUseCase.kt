@@ -2,7 +2,7 @@ package com.koosco.orderservice.order.application.usecase
 
 import com.koosco.common.core.annotation.UseCase
 import com.koosco.orderservice.order.application.command.RefundOrderItemsCommand
-import com.koosco.orderservice.order.application.port.IntegrationEventPublisher
+import com.koosco.orderservice.order.application.port.IntegrationEventProducer
 import com.koosco.orderservice.order.application.port.OrderRepository
 import com.koosco.orderservice.order.application.result.RefundResult
 import org.springframework.transaction.annotation.Transactional
@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional
 @UseCase
 class RefundOrderItemsUseCase(
     private val orderRepository: OrderRepository,
-    private val integrationEventPublisher: IntegrationEventPublisher,
+    private val integrationEventProducer: IntegrationEventProducer,
 ) {
 
     @Transactional

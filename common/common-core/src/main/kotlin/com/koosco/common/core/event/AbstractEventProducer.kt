@@ -3,8 +3,8 @@ package com.koosco.common.core.event
 import com.fasterxml.jackson.databind.ObjectMapper
 
 /**
- * Abstract base class for event publishers with automatic validation.
- * This class provides a template for implementing event publishers that always validate events before publishing.
+ * Abstract base class for event producers with automatic validation.
+ * This class provides a template for implementing event producers that always validate events before publishing.
  *
  * Subclasses must implement:
  * - [publishRaw]: Low-level publishing method that sends serialized events to the message broker
@@ -22,10 +22,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
  * Example implementation:
  * ```
  * @Component
- * class KafkaEventPublisher(
+ * class KafkaEventProducer(
  *     objectMapper: ObjectMapper,
  *     private val kafkaTemplate: KafkaTemplate<String, String>
- * ) : AbstractEventPublisher(objectMapper) {
+ * ) : AbstractEventProducer(objectMapper) {
  *
  *     override fun publishRaw(topic: String, key: String?, payload: String) {
  *         kafkaTemplate.send(topic, key, payload).get()
@@ -39,9 +39,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
  *
  * @param objectMapper Jackson ObjectMapper for JSON serialization
  */
-abstract class AbstractEventPublisher(
+abstract class AbstractEventProducer(
     private val objectMapper: ObjectMapper,
-) : EventPublisher {
+) : EventProducer {
 
     /**
      * Low-level method to publish raw serialized event payload.
@@ -50,7 +50,7 @@ abstract class AbstractEventPublisher(
      * @param topic The destination topic/queue
      * @param key Optional message key for partitioning (can be null)
      * @param payload The serialized event payload (JSON string)
-     * @throws EventPublishException if publishing fails
+     * @throws EventProduceException if publishing fails
      */
     protected abstract fun publishRaw(topic: String, key: String?, payload: String)
 
@@ -89,7 +89,7 @@ abstract class AbstractEventPublisher(
      *
      * @param event The CloudEvent to publish
      * @throws ValidationException if event validation fails
-     * @throws EventPublishException if publishing fails
+     * @throws EventProduceException if publishing fails
      */
     override fun publish(event: CloudEvent<*>) {
         try {
@@ -108,12 +108,12 @@ abstract class AbstractEventPublisher(
         } catch (e: ValidationException) {
             // Re-throw validation exceptions as-is
             throw e
-        } catch (e: EventPublishException) {
-            // Re-throw publish exceptions as-is
+        } catch (e: EventProduceException) {
+            // Re-throw produce exceptions as-is
             throw e
         } catch (e: Exception) {
             // Wrap other exceptions
-            throw EventPublishException("Failed to publish CloudEvent: ${event.type}", e)
+            throw EventProduceException("Failed to publish CloudEvent: ${event.type}", e)
         }
     }
 
@@ -131,7 +131,7 @@ abstract class AbstractEventPublisher(
      * @param source The source identifier (e.g., "urn:koosco:order-service")
      * @param dataSchema Optional schema URI for the event data
      * @throws ValidationException if event validation fails
-     * @throws EventPublishException if publishing fails
+     * @throws EventProduceException if publishing fails
      */
     override fun publishDomainEvent(
         event: DomainEvent,
@@ -150,10 +150,10 @@ abstract class AbstractEventPublisher(
             publish(cloudEvent)
         } catch (e: ValidationException) {
             throw e
-        } catch (e: EventPublishException) {
+        } catch (e: EventProduceException) {
             throw e
         } catch (e: Exception) {
-            throw EventPublishException("Failed to publish DomainEvent: ${event.getEventType()}", e)
+            throw EventProduceException("Failed to publish DomainEvent: ${event.getEventType()}", e)
         }
     }
 
@@ -171,7 +171,7 @@ abstract class AbstractEventPublisher(
      * @param events The CloudEvents to publish
      * @param validate Ignored - validation always happens
      * @throws ValidationException if any event validation fails
-     * @throws EventPublishException if any publishing fails
+     * @throws EventProduceException if any publishing fails
      */
     override fun publishBatch(
         events: List<CloudEvent<*>>,
@@ -191,10 +191,10 @@ abstract class AbstractEventPublisher(
             }
         } catch (e: ValidationException) {
             throw e
-        } catch (e: EventPublishException) {
+        } catch (e: EventProduceException) {
             throw e
         } catch (e: Exception) {
-            throw EventPublishException("Failed to publish batch of ${events.size} events", e)
+            throw EventProduceException("Failed to publish batch of ${events.size} events", e)
         }
     }
 
@@ -204,7 +204,7 @@ abstract class AbstractEventPublisher(
      *
      * @param event The CloudEvent to publish
      * @throws ValidationException if validation fails
-     * @throws EventPublishException if publishing fails
+     * @throws EventProduceException if publishing fails
      */
     override fun publishWithValidation(event: CloudEvent<*>) {
         // Validation is always performed in publish()

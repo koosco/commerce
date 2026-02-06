@@ -1,37 +1,37 @@
-package com.koosco.catalogservice.product.infra.messaging.kafka.producer
+package com.koosco.paymentservice.infra.messaging.kafka.producer
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.koosco.catalogservice.common.config.KafkaTopicResolver
-import com.koosco.catalogservice.product.application.contract.ProductIntegrationEvent
-import com.koosco.catalogservice.product.application.port.IntegrationEventPublisher
-import com.koosco.catalogservice.product.domain.entity.CatalogOutboxEntry
-import com.koosco.catalogservice.product.infra.outbox.CatalogOutboxRepository
+import com.koosco.paymentservice.application.contract.PaymentIntegrationEvent
+import com.koosco.paymentservice.application.port.IntegrationEventProducer
+import com.koosco.paymentservice.domain.entity.PaymentOutboxEntry
+import com.koosco.paymentservice.infra.messaging.kafka.KafkaTopicResolver
+import com.koosco.paymentservice.infra.outbox.PaymentOutboxRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 /**
- * Outbox-based event publisher for catalog-service.
+ * Outbox-based event producer for payment-service.
  *
- * Instead of publishing events directly to Kafka, this publisher saves events
+ * Instead of publishing events directly to Kafka, this producer saves events
  * to the outbox table within the same transaction as the domain operation.
  *
  * Debezium CDC then captures these inserts and publishes them to Kafka,
  * ensuring atomicity between database changes and event publishing.
  */
 @Component
-class OutboxIntegrationEventPublisher(
-    private val outboxRepository: CatalogOutboxRepository,
+class OutboxIntegrationEventProducer(
+    private val outboxRepository: PaymentOutboxRepository,
     private val topicResolver: KafkaTopicResolver,
     private val objectMapper: ObjectMapper,
 
     @Value("\${spring.application.name}")
     private val source: String,
-) : IntegrationEventPublisher {
+) : IntegrationEventProducer {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun publish(event: ProductIntegrationEvent) {
+    override fun publish(event: PaymentIntegrationEvent) {
         val cloudEvent = event.toCloudEvent(source)
         val topic = topicResolver.resolve(event)
         val partitionKey = event.getPartitionKey()
@@ -41,14 +41,14 @@ class OutboxIntegrationEventPublisher(
             objectMapper.writeValueAsString(cloudEvent)
         } catch (e: Exception) {
             logger.error(
-                "Failed to serialize CloudEvent: type=$eventType, skuId=${event.skuId}",
+                "Failed to serialize CloudEvent: type=$eventType, paymentId=${event.paymentId}",
                 e,
             )
             throw e
         }
 
-        val outboxEntry = CatalogOutboxEntry.create(
-            aggregateId = event.skuId,
+        val outboxEntry = PaymentOutboxEntry.create(
+            aggregateId = event.paymentId,
             eventType = eventType,
             payload = payload,
             topic = topic,
@@ -58,7 +58,7 @@ class OutboxIntegrationEventPublisher(
         outboxRepository.save(outboxEntry)
 
         logger.info(
-            "Outbox entry saved: type=$eventType, skuId=${event.skuId}, topic=$topic",
+            "Outbox entry saved: type=$eventType, paymentId=${event.paymentId}, topic=$topic",
         )
     }
 }

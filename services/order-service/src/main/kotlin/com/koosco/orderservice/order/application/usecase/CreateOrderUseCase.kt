@@ -4,7 +4,7 @@ import com.koosco.common.core.annotation.UseCase
 import com.koosco.orderservice.order.application.command.CreateOrderCommand
 import com.koosco.orderservice.order.application.contract.outbound.order.OrderPlacedEvent
 import com.koosco.orderservice.order.application.contract.outbound.order.OrderPlacedEvent.PlacedItem
-import com.koosco.orderservice.order.application.port.IntegrationEventPublisher
+import com.koosco.orderservice.order.application.port.IntegrationEventProducer
 import com.koosco.orderservice.order.application.port.OrderRepository
 import com.koosco.orderservice.order.application.result.CreateOrderResult
 import com.koosco.orderservice.order.domain.Order
@@ -28,7 +28,7 @@ import java.util.UUID
 @UseCase
 class CreateOrderUseCase(
     private val orderRepository: OrderRepository,
-    private val integrationEventPublisher: IntegrationEventPublisher,
+    private val integrationEventProducer: IntegrationEventProducer,
 ) {
 
     @Transactional
@@ -60,7 +60,7 @@ class CreateOrderUseCase(
         savedOrder.place()
 
         // Integration event 직접 생성 및 발행
-        integrationEventPublisher.publish(
+        integrationEventProducer.publish(
             OrderPlacedEvent(
                 orderId = savedOrder.id!!,
                 userId = savedOrder.userId,
