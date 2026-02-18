@@ -14,8 +14,11 @@ import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.*
 import org.springframework.kafka.listener.ConsumerAwareRebalanceListener
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer
+import org.springframework.kafka.listener.DefaultErrorHandler
 import org.springframework.kafka.support.serializer.JsonDeserializer
 import org.springframework.kafka.support.serializer.JsonSerializer
+import org.springframework.util.backoff.ExponentialBackOff
 
 @EnableKafka
 @Configuration
@@ -62,12 +65,50 @@ class KafkaConfig(private val kafkaProperties: KafkaProperties) {
     }
 
     @Bean
+    fun deadLetterPublishingRecoverer(): DeadLetterPublishingRecoverer {
+        val recoverer = DeadLetterPublishingRecoverer(kafkaTemplate()) { record, _ ->
+            TopicPartition("${record.topic()}.DLT", record.partition())
+        }
+        return recoverer
+    }
+
+    @Bean
+    fun kafkaErrorHandler(): DefaultErrorHandler {
+        val backOff = ExponentialBackOff().apply {
+            initialInterval = 1_000L
+            multiplier = 2.0
+            maxInterval = 10_000L
+            maxAttempts = MAX_RETRY_ATTEMPTS
+        }
+
+        return DefaultErrorHandler(deadLetterPublishingRecoverer(), backOff).apply {
+            setRetryListeners(
+                { record, ex, deliveryAttempt ->
+                    log.warn(
+                        "Retry attempt {} for topic={}, partition={}, offset={}: {}",
+                        deliveryAttempt,
+                        record.topic(),
+                        record.partition(),
+                        record.offset(),
+                        ex.message,
+                    )
+                },
+            )
+        }
+    }
+
+    companion object {
+        private const val MAX_RETRY_ATTEMPTS = 3
+    }
+
+    @Bean
     fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, CloudEvent<*>> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, CloudEvent<*>>()
         factory.consumerFactory = consumerFactory()
         factory.containerProperties.ackMode =
             org.springframework.kafka.listener.ContainerProperties.AckMode.MANUAL_IMMEDIATE
         factory.containerProperties.setConsumerRebalanceListener(inventoryRebalanceListener())
+        factory.setCommonErrorHandler(kafkaErrorHandler())
         return factory
     }
 
@@ -77,29 +118,29 @@ class KafkaConfig(private val kafkaProperties: KafkaProperties) {
             consumer: Consumer<*, *>,
             partitions: Collection<TopicPartition>,
         ) {
-            log.warn("⚠️ Rebalance 시작 - 파티션 revoke 전: {}", partitions)
+            log.warn("Rebalance started - before partition revoke: {}", partitions)
             try {
                 consumer.commitSync()
-                log.info("✅ Offset 커밋 완료 before revoke")
+                log.info("Offset commit completed before revoke")
             } catch (e: Exception) {
-                log.error("❌ Offset 커밋 실패: {}", e.message, e)
+                log.error("Offset commit failed: {}", e.message, e)
             }
         }
 
         override fun onPartitionsRevoked(partitions: Collection<TopicPartition>) {
-            log.info("📉 파티션 revoke 완료: {}", partitions)
+            log.info("Partitions revoked: {}", partitions)
         }
 
         override fun onPartitionsAssigned(consumer: Consumer<*, *>, partitions: Collection<TopicPartition>) {
-            log.info("📈 새 파티션 할당됨: {}", partitions)
+            log.info("New partitions assigned: {}", partitions)
             partitions.forEach { partition ->
                 val position = consumer.position(partition)
-                log.info("  → {}: offset={}", partition, position)
+                log.info("  -> {}: offset={}", partition, position)
             }
         }
 
         override fun onPartitionsLost(consumer: Consumer<*, *>, partitions: Collection<TopicPartition>) {
-            log.error("🚨 파티션 손실 (급작스러운 revoke): {}", partitions)
+            log.error("Partitions lost (unexpected revoke): {}", partitions)
         }
     }
 }
