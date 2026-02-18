@@ -5,11 +5,13 @@ import com.koosco.catalogservice.product.application.command.UpdateProductComman
 import com.koosco.catalogservice.product.application.port.ProductRepository
 import com.koosco.common.core.annotation.UseCase
 import com.koosco.common.core.exception.NotFoundException
+import org.springframework.cache.annotation.CacheEvict
 import org.springframework.transaction.annotation.Transactional
 
 @UseCase
 class UpdateProductUseCase(private val productRepository: ProductRepository) {
 
+    @CacheEvict(cacheNames = ["productDetail"], key = "#command.productId")
     @Transactional
     fun execute(command: UpdateProductCommand) {
         val product = productRepository.findOrNull(command.productId)

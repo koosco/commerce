@@ -13,6 +13,7 @@ import com.koosco.catalogservice.product.domain.vo.CreateOptionSpec
 import com.koosco.catalogservice.product.domain.vo.OptionGroupCreateSpec
 import com.koosco.common.core.annotation.UseCase
 import org.slf4j.LoggerFactory
+import org.springframework.cache.annotation.CacheEvict
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
@@ -26,6 +27,7 @@ class CreateProductUseCase(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
+    @CacheEvict(cacheNames = ["productDetail"], allEntries = true)
     @Transactional
     fun execute(command: CreateProductCommand): ProductInfo {
         // Category 조회 및 code 추출
