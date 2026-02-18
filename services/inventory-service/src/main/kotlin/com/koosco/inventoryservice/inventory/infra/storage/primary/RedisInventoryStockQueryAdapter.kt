@@ -1,6 +1,8 @@
 package com.koosco.inventoryservice.inventory.infra.storage.primary
 
 import com.koosco.inventoryservice.inventory.application.port.InventoryStockQueryPort
+import com.koosco.inventoryservice.inventory.infra.config.CacheConfig.Companion.STOCK_QUERY_CACHE
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Component
 class RedisInventoryStockQueryAdapter(private val redisTemplate: RedisTemplate<String, String>) :
     InventoryStockQueryPort {
 
+    @Cacheable(cacheNames = [STOCK_QUERY_CACHE], key = "#skuId")
     override fun getStock(skuId: String): InventoryStockQueryPort.StockView {
         val stock = getInt(stockKey(skuId))
         val reserved = getInt(reservedKey(skuId))
