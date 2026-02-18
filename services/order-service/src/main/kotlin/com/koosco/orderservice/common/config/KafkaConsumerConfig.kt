@@ -1,6 +1,7 @@
 package com.koosco.orderservice.common.config
 
 import com.koosco.common.core.event.CloudEvent
+import com.koosco.common.core.exception.BaseException
 import jakarta.annotation.PostConstruct
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -59,6 +60,8 @@ class KafkaConsumerConfig(
             maxAttempts = 3
         }
         return DefaultErrorHandler(recoverer, backOff).also {
+            it.addNotRetryableExceptions(BaseException::class.java)
+            it.setCommitRecovered(true)
             logger.info("Kafka DLQ error handler configured: 3 retries with exponential backoff")
         }
     }
