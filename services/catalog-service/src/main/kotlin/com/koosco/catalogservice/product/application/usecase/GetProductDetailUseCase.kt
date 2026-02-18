@@ -6,11 +6,13 @@ import com.koosco.catalogservice.product.application.port.ProductRepository
 import com.koosco.catalogservice.product.application.result.ProductInfo
 import com.koosco.common.core.annotation.UseCase
 import com.koosco.common.core.exception.NotFoundException
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.transaction.annotation.Transactional
 
 @UseCase
 class GetProductDetailUseCase(private val productRepository: ProductRepository) {
 
+    @Cacheable(cacheNames = ["productDetail"], key = "#command.productId")
     @Transactional(readOnly = true)
     fun execute(command: GetProductDetailCommand): ProductInfo {
         val product = productRepository.findByIdWithOptions(command.productId)

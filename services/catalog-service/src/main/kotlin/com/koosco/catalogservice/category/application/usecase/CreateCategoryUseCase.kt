@@ -8,11 +8,13 @@ import com.koosco.catalogservice.common.error.CatalogErrorCode
 import com.koosco.common.core.annotation.UseCase
 import com.koosco.common.core.exception.ConflictException
 import com.koosco.common.core.exception.NotFoundException
+import org.springframework.cache.annotation.CacheEvict
 import org.springframework.transaction.annotation.Transactional
 
 @UseCase
 class CreateCategoryUseCase(private val categoryRepository: CategoryRepository) {
 
+    @CacheEvict(cacheNames = ["categoryTree"], allEntries = true)
     @Transactional
     fun execute(command: CreateCategoryCommand): CategoryInfo {
         val parent = if (command.parentId != null) {

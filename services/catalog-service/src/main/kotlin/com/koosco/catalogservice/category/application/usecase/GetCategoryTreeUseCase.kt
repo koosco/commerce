@@ -4,6 +4,7 @@ import com.koosco.catalogservice.category.application.converter.CategoryTreeBuil
 import com.koosco.catalogservice.category.application.dto.CategoryTreeInfo
 import com.koosco.catalogservice.category.application.port.CategoryRepository
 import com.koosco.common.core.annotation.UseCase
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.transaction.annotation.Transactional
 
 @UseCase
@@ -11,6 +12,7 @@ class GetCategoryTreeUseCase(
     private val categoryRepository: CategoryRepository,
     private val categoryTreeBuilder: CategoryTreeBuilder,
 ) {
+    @Cacheable(cacheNames = ["categoryTree"])
     @Transactional(readOnly = true)
     fun execute(): List<CategoryTreeInfo> {
         val allCategories = categoryRepository.findAllByOrderByDepthAscOrderingAsc()
