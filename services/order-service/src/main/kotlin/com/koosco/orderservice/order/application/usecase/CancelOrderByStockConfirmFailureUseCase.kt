@@ -5,7 +5,7 @@ import com.koosco.common.core.exception.NotFoundException
 import com.koosco.common.core.messaging.MessageContext
 import com.koosco.orderservice.common.error.OrderErrorCode
 import com.koosco.orderservice.order.application.contract.outbound.order.OrderCancelledEvent
-import com.koosco.orderservice.order.application.port.IntegrationEventPublisher
+import com.koosco.orderservice.order.application.port.IntegrationEventProducer
 import com.koosco.orderservice.order.application.port.OrderRepository
 import com.koosco.orderservice.order.domain.OrderStatus
 import com.koosco.orderservice.order.domain.enums.OrderCancelReason
@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional
 @UseCase
 class CancelOrderByStockConfirmFailureUseCase(
     private val orderRepository: OrderRepository,
-    private val integrationEventPublisher: IntegrationEventPublisher,
+    private val integrationEventProducer: IntegrationEventProducer,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -48,7 +48,7 @@ class CancelOrderByStockConfirmFailureUseCase(
         orderRepository.save(order)
 
         // Integration event 발행 - inventory-service에서 예약 해제, payment-service에서 환불
-        integrationEventPublisher.publish(
+        integrationEventProducer.publish(
             OrderCancelledEvent(
                 orderId = order.id!!,
                 reason = OrderCancelReason.STOCK_CONFIRM_FAILED,

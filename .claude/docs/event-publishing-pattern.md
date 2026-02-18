@@ -8,18 +8,18 @@
 services/{service}/
 ├── application/
 │   ├── port/
-│   │   └── IntegrationEventPublisher.kt    # Port 인터페이스
+│   │   └── IntegrationEventProducer.kt    # Port 인터페이스
 │   └── contract/
 │       └── {Service}IntegrationEvent.kt    # 이벤트 계약
 └── infra/
     └── messaging/kafka/producer/
-        └── KafkaIntegrationEventPublisher.kt  # Kafka 어댑터
+        └── OutboxIntegrationEventProducer.kt  # Kafka 어댑터 (Outbox 패턴)
 ```
 
 ## 네이밍 컨벤션
 
-- Port: `IntegrationEventPublisher` (Port 접미사 사용 금지)
-- Adapter: `KafkaIntegrationEventPublisher` (Adapter 접미사 사용 금지)
+- Port: `IntegrationEventProducer` (Port 접미사 사용 금지)
+- Adapter: `OutboxIntegrationEventProducer` (Adapter 접미사 사용 금지)
 
 ## 발행 패턴
 
@@ -27,14 +27,14 @@ services/{service}/
 @UseCase
 class CreateOrderUseCase(
     private val orderRepository: OrderRepository,
-    private val integrationEventPublisher: IntegrationEventPublisher,
+    private val integrationEventProducer: IntegrationEventProducer,
 ) {
     @Transactional
     fun execute(command: CreateOrderCommand): CreateOrderResult {
         val savedOrder = orderRepository.save(order)
 
         // Integration Event 직접 생성 및 발행
-        integrationEventPublisher.publish(
+        integrationEventProducer.publish(
             OrderPlacedEvent(
                 orderId = savedOrder.id!!,
                 userId = savedOrder.userId,
@@ -57,5 +57,5 @@ class CreateOrderUseCase(
 
 ## 관련 제약사항
 
-- **Event publishing naming**: Port는 `IntegrationEventPublisher`, Adapter는 `KafkaIntegrationEventPublisher`로 통일
+- **Event publishing naming**: Port는 `IntegrationEventProducer`, Adapter는 `OutboxIntegrationEventProducer`로 통일
 - **No Domain Event extraction pattern**: `pullDomainEvents()` 패턴 사용 금지, Integration Event 직접 발행

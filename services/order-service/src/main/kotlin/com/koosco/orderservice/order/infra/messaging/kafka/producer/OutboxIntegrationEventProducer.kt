@@ -2,7 +2,7 @@ package com.koosco.orderservice.order.infra.messaging.kafka.producer
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.koosco.orderservice.order.application.contract.OrderIntegrationEvent
-import com.koosco.orderservice.order.application.port.IntegrationEventPublisher
+import com.koosco.orderservice.order.application.port.IntegrationEventProducer
 import com.koosco.orderservice.order.domain.entity.OrderOutboxEntry
 import com.koosco.orderservice.order.infra.messaging.kafka.KafkaTopicResolver
 import com.koosco.orderservice.order.infra.outbox.OrderOutboxRepository
@@ -11,9 +11,9 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 /**
- * Outbox-based event publisher.
+ * Outbox-based event producer.
  *
- * Instead of publishing events directly to Kafka, this publisher saves events
+ * Instead of publishing events directly to Kafka, this producer saves events
  * to the outbox table within the same transaction as the domain operation.
  *
  * Debezium CDC then captures these inserts and publishes them to Kafka,
@@ -26,20 +26,20 @@ import org.springframework.stereotype.Component
  *
  * ## Flow
  * 1. UseCase saves domain entity and calls publish()
- * 2. This publisher saves OutboxEntry in same transaction
+ * 2. This producer saves OutboxEntry in same transaction
  * 3. Transaction commits (atomic)
  * 4. Debezium captures INSERT via binlog
  * 5. Debezium publishes to Kafka topic
  */
 @Component
-class OutboxIntegrationEventPublisher(
+class OutboxIntegrationEventProducer(
     private val outboxRepository: OrderOutboxRepository,
     private val topicResolver: KafkaTopicResolver,
     private val objectMapper: ObjectMapper,
 
     @Value("\${spring.application.name}")
     private val source: String,
-) : IntegrationEventPublisher {
+) : IntegrationEventProducer {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 

@@ -82,7 +82,7 @@ implementation(project(":common:common-observability"))  // 로깅, Actuator, Pr
 2. **No synchronous inter-service calls**: Use Kafka for all service communication
 3. **Idempotent consumers**: All Kafka consumers must handle duplicate messages
 4. **No backward-incompatible changes** to common modules without coordination
-5. **Event publishing naming**: Port는 `IntegrationEventPublisher`, Adapter는 `KafkaIntegrationEventPublisher`로 통일
+5. **Event publishing naming**: Port는 `IntegrationEventProducer`, Adapter는 `OutboxIntegrationEventProducer`로 통일
 6. **No Domain Event extraction pattern**: `pullDomainEvents()` 패턴 사용 금지, Integration Event 직접 발행
 7. **Consumer group ID**: property 참조 필수 (`${spring.kafka.consumer.group-id}`), hardcoding 금지
 8. **라이브러리 모듈에 `spring.application.name` 설정 금지**: common 모듈이 서비스의 이름을 덮어쓰는 문제 방지
@@ -106,7 +106,7 @@ Metrics (Prometheus 9090, Grafana 3000), Actuator (`/actuator/prometheus`), SSoT
 ```kotlin
 throw NotFoundException(OrderErrorCode.ORDER_NOT_FOUND)  // Exception
 return ApiResponse.success(data)                          // API response
-integrationEventPublisher.publish(event)                  // Event publishing
+integrationEventProducer.publish(event)                   // Event publishing
 ```
 
 ## Custom Skills

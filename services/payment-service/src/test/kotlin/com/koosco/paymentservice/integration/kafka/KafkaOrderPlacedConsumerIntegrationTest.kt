@@ -4,7 +4,7 @@ import com.koosco.common.core.event.CloudEvent
 import com.koosco.common.core.test.KafkaContainerTestBase
 import com.koosco.paymentservice.application.contract.inbound.order.OrderPlacedEvent
 import com.koosco.paymentservice.application.port.IdempotencyRepository
-import com.koosco.paymentservice.application.port.IntegrationEventPublisher
+import com.koosco.paymentservice.application.port.IntegrationEventProducer
 import com.koosco.paymentservice.application.port.PaymentGateway
 import com.koosco.paymentservice.application.port.PaymentRepository
 import com.koosco.paymentservice.domain.entity.Payment
@@ -54,7 +54,7 @@ class KafkaOrderPlacedConsumerIntegrationTest : KafkaContainerTestBase() {
     private lateinit var paymentGateway: PaymentGateway
 
     @MockBean
-    private lateinit var integrationEventPublisher: IntegrationEventPublisher
+    private lateinit var integrationEventProducer: IntegrationEventProducer
 
     @Test
     @DisplayName("should consume OrderPlacedEvent and create payment")
@@ -309,7 +309,7 @@ class KafkaOrderPlacedConsumerIntegrationTest : KafkaContainerTestBase() {
         await()
             .atMost(15, TimeUnit.SECONDS)
             .untilAsserted {
-                verify(integrationEventPublisher, times(1)).publish(any())
+                verify(integrationEventProducer, times(1)).publish(any())
             }
     }
 }

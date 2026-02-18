@@ -1,16 +1,16 @@
 package com.koosco.common.core.event
 
 /**
- * Interface for publishing events in MSA architecture.
+ * Interface for producing events in distributed architecture.
  * Implementations can use various message brokers (Kafka, RabbitMQ, etc.)
  *
  * Example implementation:
  * ```
  * @Component
- * class KafkaEventPublisher(
+ * class KafkaEventProducer(
  *     private val kafkaTemplate: KafkaTemplate<String, String>,
  *     private val objectMapper: ObjectMapper
- * ) : EventPublisher {
+ * ) : EventProducer {
  *     override fun publish(event: CloudEvent<*>) {
  *         val json = objectMapper.writeValueAsString(event)
  *         kafkaTemplate.send("events", event.type, json)
@@ -18,13 +18,13 @@ package com.koosco.common.core.event
  * }
  * ```
  */
-interface EventPublisher {
+interface EventProducer {
     /**
      * Publish a CloudEvent.
      * Implementation should handle serialization and routing.
      *
      * @param event The CloudEvent to publish
-     * @throws EventPublishException if publishing fails
+     * @throws EventProduceException if publishing fails
      */
     fun publish(event: CloudEvent<*>)
 
@@ -35,7 +35,7 @@ interface EventPublisher {
      * @param source The source identifier (e.g., service name, URI)
      * @param dataSchema Optional schema URI for the event data
      * @param validate Whether to validate the event before publishing (default: true)
-     * @throws EventPublishException if publishing fails
+     * @throws EventProduceException if publishing fails
      * @throws ValidationException if validation is enabled and fails
      */
     fun publishDomainEvent(
@@ -60,7 +60,7 @@ interface EventPublisher {
      *
      * @param events The CloudEvents to publish
      * @param validate Whether to validate each event before publishing (default: true)
-     * @throws EventPublishException if any publishing fails
+     * @throws EventProduceException if any publishing fails
      * @throws ValidationException if validation is enabled and any event fails validation
      */
     fun publishBatch(
@@ -80,7 +80,7 @@ interface EventPublisher {
      * Convenience method that always validates before publishing.
      *
      * @param event The CloudEvent to publish
-     * @throws EventPublishException if publishing fails
+     * @throws EventProduceException if publishing fails
      * @throws ValidationException if validation fails
      */
     fun publishWithValidation(event: CloudEvent<*>) {
@@ -90,9 +90,9 @@ interface EventPublisher {
 }
 
 /**
- * Exception thrown when event publishing fails.
+ * Exception thrown when event producing fails.
  */
-class EventPublishException(
+class EventProduceException(
     message: String,
     cause: Throwable? = null,
 ) : RuntimeException(message, cause)

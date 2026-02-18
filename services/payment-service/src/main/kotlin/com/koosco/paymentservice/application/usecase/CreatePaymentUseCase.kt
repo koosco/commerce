@@ -5,7 +5,7 @@ import com.koosco.common.core.messaging.MessageContext
 import com.koosco.paymentservice.application.command.CreatePaymentCommand
 import com.koosco.paymentservice.application.contract.outbound.payment.PaymentCreatedEvent
 import com.koosco.paymentservice.application.port.IdempotencyRepository
-import com.koosco.paymentservice.application.port.IntegrationEventPublisher
+import com.koosco.paymentservice.application.port.IntegrationEventProducer
 import com.koosco.paymentservice.application.port.PaymentRepository
 import com.koosco.paymentservice.domain.entity.Payment
 import com.koosco.paymentservice.domain.entity.PaymentIdempotency
@@ -25,7 +25,7 @@ import java.util.UUID
 class CreatePaymentUseCase(
     private val idempotencyRepository: IdempotencyRepository,
     private val paymentRepository: PaymentRepository,
-    private val integrationEventPublisher: IntegrationEventPublisher,
+    private val integrationEventProducer: IntegrationEventProducer,
 ) {
 
     @Transactional
@@ -56,7 +56,7 @@ class CreatePaymentUseCase(
                 ),
             )
 
-            integrationEventPublisher.publish(
+            integrationEventProducer.publish(
                 PaymentCreatedEvent(savedPayment.paymentId.toString(), savedPayment.orderId),
             )
         } catch (e: DataIntegrityViolationException) {

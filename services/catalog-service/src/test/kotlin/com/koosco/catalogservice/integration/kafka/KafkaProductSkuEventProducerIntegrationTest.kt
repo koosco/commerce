@@ -2,7 +2,7 @@ package com.koosco.catalogservice.integration.kafka
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.koosco.catalogservice.product.application.contract.outbound.ProductSkuCreatedEvent
-import com.koosco.catalogservice.product.application.port.IntegrationEventPublisher
+import com.koosco.catalogservice.product.application.port.IntegrationEventProducer
 import com.koosco.common.core.event.CloudEvent
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -36,7 +36,7 @@ import java.util.UUID
 @SpringBootTest
 @Testcontainers
 @ActiveProfiles("test")
-class KafkaProductSkuEventPublisherIntegrationTest {
+class KafkaProductSkuEventProducerIntegrationTest {
 
     companion object {
         @Container
@@ -54,7 +54,7 @@ class KafkaProductSkuEventPublisherIntegrationTest {
     }
 
     @Autowired
-    private lateinit var eventPublisher: IntegrationEventPublisher
+    private lateinit var eventProducer: IntegrationEventProducer
 
     @Autowired
     private lateinit var kafkaTemplate: KafkaTemplate<String, CloudEvent<*>>
@@ -97,7 +97,7 @@ class KafkaProductSkuEventPublisherIntegrationTest {
         )
 
         // When - publish and wait for completion
-        eventPublisher.publish(event)
+        eventProducer.publish(event)
 
         // Flush the producer to ensure message is sent
         kafkaTemplate.flush()
@@ -176,7 +176,7 @@ class KafkaProductSkuEventPublisherIntegrationTest {
         val expectedKeys = events.map { it.skuId }.toSet()
 
         // When
-        events.forEach { eventPublisher.publish(it) }
+        events.forEach { eventProducer.publish(it) }
         kafkaTemplate.flush()
 
         // Then

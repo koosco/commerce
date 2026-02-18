@@ -3,7 +3,7 @@ package com.koosco.orderservice.integration.kafka
 import com.koosco.orderservice.order.application.contract.outbound.order.OrderCancelledEvent
 import com.koosco.orderservice.order.application.contract.outbound.order.OrderConfirmedEvent
 import com.koosco.orderservice.order.application.contract.outbound.order.OrderPlacedEvent
-import com.koosco.orderservice.order.application.port.IntegrationEventPublisher
+import com.koosco.orderservice.order.application.port.IntegrationEventProducer
 import com.koosco.orderservice.order.domain.enums.OrderCancelReason
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await
@@ -26,11 +26,11 @@ import java.util.UUID
 @SpringBootTest
 @Testcontainers
 @ActiveProfiles("test")
-@DisplayName("KafkaOrderEventPublisher Integration Tests")
-class KafkaOrderEventPublisherIntegrationTest : KafkaIntegrationTestBase() {
+@DisplayName("KafkaOrderEventProducer Integration Tests")
+class KafkaOrderEventProducerIntegrationTest : KafkaIntegrationTestBase() {
 
     @Autowired
-    private lateinit var eventPublisher: IntegrationEventPublisher
+    private lateinit var eventProducer: IntegrationEventProducer
 
     @Value("\${order.topic.mappings.order.placed}")
     private lateinit var orderPlacedTopic: String
@@ -63,7 +63,7 @@ class KafkaOrderEventPublisherIntegrationTest : KafkaIntegrationTestBase() {
             )
 
             // When
-            eventPublisher.publish(event)
+            eventProducer.publish(event)
 
             // Then
             await().atMost(Duration.ofSeconds(10)).untilAsserted {
@@ -99,7 +99,7 @@ class KafkaOrderEventPublisherIntegrationTest : KafkaIntegrationTestBase() {
             )
 
             // When
-            eventPublisher.publish(event)
+            eventProducer.publish(event)
 
             // Then
             await().atMost(Duration.ofSeconds(10)).untilAsserted {
@@ -138,7 +138,7 @@ class KafkaOrderEventPublisherIntegrationTest : KafkaIntegrationTestBase() {
             )
 
             // When
-            eventPublisher.publish(event)
+            eventProducer.publish(event)
 
             // Then
             await().atMost(Duration.ofSeconds(10)).untilAsserted {
@@ -171,7 +171,7 @@ class KafkaOrderEventPublisherIntegrationTest : KafkaIntegrationTestBase() {
             )
 
             // When
-            eventPublisher.publish(event)
+            eventProducer.publish(event)
 
             // Then
             await().atMost(Duration.ofSeconds(10)).untilAsserted {
@@ -212,7 +212,7 @@ class KafkaOrderEventPublisherIntegrationTest : KafkaIntegrationTestBase() {
             )
 
             // When
-            eventPublisher.publish(event)
+            eventProducer.publish(event)
 
             // Then
             await().atMost(Duration.ofSeconds(10)).untilAsserted {
@@ -245,7 +245,7 @@ class KafkaOrderEventPublisherIntegrationTest : KafkaIntegrationTestBase() {
             )
 
             // When
-            eventPublisher.publish(event)
+            eventProducer.publish(event)
 
             // Then
             await().atMost(Duration.ofSeconds(10)).untilAsserted {
@@ -276,7 +276,7 @@ class KafkaOrderEventPublisherIntegrationTest : KafkaIntegrationTestBase() {
             )
 
             // When
-            eventPublisher.publish(event)
+            eventProducer.publish(event)
 
             // Then
             await().atMost(Duration.ofSeconds(10)).untilAsserted {

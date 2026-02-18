@@ -3,7 +3,7 @@ package com.koosco.catalogservice.product.application.usecase
 import com.koosco.catalogservice.category.application.port.CategoryRepository
 import com.koosco.catalogservice.product.application.command.CreateProductCommand
 import com.koosco.catalogservice.product.application.contract.outbound.ProductSkuCreatedEvent
-import com.koosco.catalogservice.product.application.port.IntegrationEventPublisher
+import com.koosco.catalogservice.product.application.port.IntegrationEventProducer
 import com.koosco.catalogservice.product.application.port.ProductRepository
 import com.koosco.catalogservice.product.application.result.ProductInfo
 import com.koosco.catalogservice.product.domain.entity.Product
@@ -22,7 +22,7 @@ class CreateProductUseCase(
     private val categoryRepository: CategoryRepository,
     private val skuGenerator: SkuGenerator,
     private val productValidator: ProductValidator,
-    private val integrationEventPublisher: IntegrationEventPublisher,
+    private val integrationEventProducer: IntegrationEventProducer,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -76,7 +76,7 @@ class CreateProductUseCase(
         )
 
         product.skus.forEach {
-            integrationEventPublisher.publish(
+            integrationEventProducer.publish(
                 ProductSkuCreatedEvent(
                     skuId = it.skuId,
                     productId = savedProduct.id!!,

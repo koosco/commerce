@@ -6,7 +6,7 @@ import com.koosco.paymentservice.application.command.PaymentApproveCommand
 import com.koosco.paymentservice.application.contract.outbound.payment.PaymentCompletedEvent
 import com.koosco.paymentservice.application.contract.outbound.payment.PaymentFailedEvent
 import com.koosco.paymentservice.application.port.IdempotencyRepository
-import com.koosco.paymentservice.application.port.IntegrationEventPublisher
+import com.koosco.paymentservice.application.port.IntegrationEventProducer
 import com.koosco.paymentservice.application.port.PaymentGateway
 import com.koosco.paymentservice.application.port.PaymentRepository
 import com.koosco.paymentservice.common.PaymentErrorCode
@@ -23,7 +23,7 @@ class ApprovePaymentUseCase(
     private val idempotencyRepository: IdempotencyRepository,
     private val paymentRepository: PaymentRepository,
     private val paymentGateway: PaymentGateway,
-    private val integrationEventPublisher: IntegrationEventPublisher,
+    private val integrationEventProducer: IntegrationEventProducer,
 ) {
 
     fun execute(paymentId: UUID, command: PaymentApproveCommand, idempotencyKey: String) {
@@ -49,7 +49,7 @@ class ApprovePaymentUseCase(
             payment.approve(transaction)
             paymentRepository.save(payment)
 
-            integrationEventPublisher.publish(
+            integrationEventProducer.publish(
                 PaymentCompletedEvent(
                     paymentId = payment.paymentId.toString(),
                     orderId = payment.orderId,
@@ -71,7 +71,7 @@ class ApprovePaymentUseCase(
             payment.fail(transaction)
             paymentRepository.save(payment)
 
-            integrationEventPublisher.publish(
+            integrationEventProducer.publish(
                 PaymentFailedEvent(
                     paymentId = payment.paymentId.toString(),
                     orderId = payment.orderId,

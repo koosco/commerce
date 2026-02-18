@@ -4,7 +4,7 @@ import com.koosco.inventoryservice.inventory.application.contract.outbound.inven
 import com.koosco.inventoryservice.inventory.application.contract.outbound.inventory.StockConfirmedEvent
 import com.koosco.inventoryservice.inventory.application.contract.outbound.inventory.StockReservationFailedEvent
 import com.koosco.inventoryservice.inventory.application.contract.outbound.inventory.StockReservedEvent
-import com.koosco.inventoryservice.inventory.application.port.IntegrationEventPublisher
+import com.koosco.inventoryservice.inventory.application.port.IntegrationEventProducer
 import com.koosco.inventoryservice.inventory.application.port.InventoryStockSnapshotQueryPort
 import com.koosco.inventoryservice.inventory.domain.enums.StockConfirmFailReason
 import com.koosco.inventoryservice.inventory.domain.enums.StockReservationFailReason
@@ -24,20 +24,20 @@ import java.util.UUID
 /**
  * Integration tests for Kafka stock event publishing.
  *
- * Tests that the IntegrationEventPublisher correctly publishes events
+ * Tests that the IntegrationEventProducer correctly publishes events
  * with valid CloudEvent format to the appropriate Kafka topics.
  */
 @SpringBootTest
 @Testcontainers
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-class KafkaStockEventPublisherIntegrationTest : KafkaContainerTestBase() {
+class KafkaStockEventProducerIntegrationTest : KafkaContainerTestBase() {
 
     @MockitoBean
     private lateinit var inventoryStockSnapshotQueryPort: InventoryStockSnapshotQueryPort
 
     @Autowired
-    private lateinit var eventPublisher: IntegrationEventPublisher
+    private lateinit var eventProducer: IntegrationEventProducer
 
     @Value("\${inventory.topic.mappings.stock.reserved}")
     private lateinit var stockReservedTopic: String
@@ -80,7 +80,7 @@ class KafkaStockEventPublisherIntegrationTest : KafkaContainerTestBase() {
 
         // When
         val startTimestamp = System.currentTimeMillis()
-        eventPublisher.publish(event)
+        eventProducer.publish(event)
 
         // Then
         val records = consumeMessages(stockReservedTopic, 1, Duration.ofSeconds(15), startTimestamp)
@@ -121,7 +121,7 @@ class KafkaStockEventPublisherIntegrationTest : KafkaContainerTestBase() {
 
         // When
         val startTimestamp = System.currentTimeMillis()
-        eventPublisher.publish(event)
+        eventProducer.publish(event)
 
         // Then
         val records = consumeMessages(stockReservationFailedTopic, 1, Duration.ofSeconds(15), startTimestamp)
@@ -158,7 +158,7 @@ class KafkaStockEventPublisherIntegrationTest : KafkaContainerTestBase() {
 
         // When
         val startTimestamp = System.currentTimeMillis()
-        eventPublisher.publish(event)
+        eventProducer.publish(event)
 
         // Then
         val records = consumeMessages(stockConfirmedTopic, 1, Duration.ofSeconds(15), startTimestamp)
@@ -191,7 +191,7 @@ class KafkaStockEventPublisherIntegrationTest : KafkaContainerTestBase() {
 
         // When
         val startTimestamp = System.currentTimeMillis()
-        eventPublisher.publish(event)
+        eventProducer.publish(event)
 
         // Then
         val records = consumeMessages(stockConfirmFailedTopic, 1, Duration.ofSeconds(15), startTimestamp)
@@ -222,7 +222,7 @@ class KafkaStockEventPublisherIntegrationTest : KafkaContainerTestBase() {
 
         // When
         val startTimestamp = System.currentTimeMillis()
-        eventPublisher.publish(event)
+        eventProducer.publish(event)
 
         // Then
         val records = consumeMessages(stockReservedTopic, 1, Duration.ofSeconds(15), startTimestamp)
@@ -246,7 +246,7 @@ class KafkaStockEventPublisherIntegrationTest : KafkaContainerTestBase() {
 
         // When
         val startTimestamp = System.currentTimeMillis()
-        eventPublisher.publish(event)
+        eventProducer.publish(event)
 
         // Then
         val records = consumeMessages(stockReservedTopic, 1, Duration.ofSeconds(15), startTimestamp)

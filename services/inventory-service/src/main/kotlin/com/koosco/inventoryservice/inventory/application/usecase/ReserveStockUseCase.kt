@@ -6,22 +6,19 @@ import com.koosco.common.core.messaging.MessageContext
 import com.koosco.inventoryservice.inventory.application.command.ReserveStockCommand
 import com.koosco.inventoryservice.inventory.application.contract.outbound.inventory.StockReservationFailedEvent
 import com.koosco.inventoryservice.inventory.application.contract.outbound.inventory.StockReservedEvent
-import com.koosco.inventoryservice.inventory.application.port.IntegrationEventPublisher
+import com.koosco.inventoryservice.inventory.application.port.IntegrationEventProducer
+import com.koosco.inventoryservice.inventory.application.port.InventoryLogPort
 import com.koosco.inventoryservice.inventory.application.port.InventoryStockStorePort
+import com.koosco.inventoryservice.inventory.domain.enums.InventoryAction
 import com.koosco.inventoryservice.inventory.domain.enums.StockReservationFailReason
 import com.koosco.inventoryservice.inventory.domain.exception.NotEnoughStockException
 import org.slf4j.LoggerFactory
 
-/**
- * fileName       : ReserveStockUseCase
- * author         : koo
- * date           : 2025. 12. 22. 오전 6:33
- * description    : 재고 예약 Usecase
- */
 @UseCase
 class ReserveStockUseCase(
     private val inventoryStockStore: InventoryStockStorePort,
-    private val integrationEventPublisher: IntegrationEventPublisher,
+    private val inventoryLogPort: InventoryLogPort,
+    private val integrationEventProducer: IntegrationEventProducer,
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -29,7 +26,8 @@ class ReserveStockUseCase(
     fun execute(command: ReserveStockCommand, context: MessageContext) {
         try {
             inventoryStockStore.reserve(
-                command.items.map {
+                orderId = command.orderId,
+                items = command.items.map {
                     InventoryStockStorePort.ReserveItem(
                         skuId = it.skuId,
                         quantity = it.quantity,
@@ -44,8 +42,18 @@ class ReserveStockUseCase(
             throw e
         }
 
-        // ✅ 성공 이벤트
-        integrationEventPublisher.publish(
+        inventoryLogPort.logBatch(
+            command.items.map {
+                InventoryLogPort.LogEntry(
+                    skuId = it.skuId,
+                    orderId = command.orderId,
+                    action = InventoryAction.RESERVE,
+                    quantity = it.quantity,
+                )
+            },
+        )
+
+        integrationEventProducer.publish(
             StockReservedEvent(
                 orderId = command.orderId,
                 items = command.items.map {
@@ -76,7 +84,7 @@ class ReserveStockUseCase(
             )
         }
 
-        integrationEventPublisher.publish(
+        integrationEventProducer.publish(
             StockReservationFailedEvent(
                 orderId = command.orderId,
                 reason = reason,
