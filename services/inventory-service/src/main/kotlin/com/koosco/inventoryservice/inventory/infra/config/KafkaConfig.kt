@@ -1,6 +1,7 @@
 package com.koosco.inventoryservice.inventory.infra.config
 
 import com.koosco.common.core.event.CloudEvent
+import com.koosco.common.core.exception.BaseException
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.TopicPartition
@@ -82,6 +83,8 @@ class KafkaConfig(private val kafkaProperties: KafkaProperties) {
         }
 
         return DefaultErrorHandler(deadLetterPublishingRecoverer(), backOff).apply {
+            addNotRetryableExceptions(BaseException::class.java)
+            setCommitRecovered(true)
             setRetryListeners(
                 { record, ex, deliveryAttempt ->
                     log.warn(
