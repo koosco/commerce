@@ -8,13 +8,6 @@ import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.script.DefaultRedisScript
 import org.springframework.stereotype.Component
 
-/**
- * fileName       : RedisInventoryStockAdapter
- * author         : koo
- * date           : 2025. 12. 29. 오전 4:12
- * description    :
- */
-
 @Component
 class RedisInventoryStockAdapter(
     private val redisTemplate: RedisTemplate<String, String>,
@@ -42,9 +35,8 @@ class RedisInventoryStockAdapter(
         items.forEach { item ->
             val result = exec(
                 addStockScript,
-                stockKey(item.skuId),
-                null,
-                item.quantity,
+                listOf(stockKey(item.skuId)),
+                item.quantity.toString(),
             )
 
             when (result) {
@@ -53,13 +45,13 @@ class RedisInventoryStockAdapter(
         }
     }
 
-    override fun reserve(items: List<InventoryStockStorePort.ReserveItem>) {
+    override fun reserve(orderId: Long, items: List<InventoryStockStorePort.ReserveItem>) {
         items.forEach { item ->
             val result = exec(
                 reserveStockScript,
-                stockKey(item.skuId),
-                reservedKey(item.skuId),
-                item.quantity,
+                listOf(stockKey(item.skuId), reservedKey(item.skuId), ordersKey(item.skuId)),
+                item.quantity.toString(),
+                orderId.toString(),
             )
 
             when (result) {
@@ -72,13 +64,13 @@ class RedisInventoryStockAdapter(
         }
     }
 
-    override fun confirm(items: List<InventoryStockStorePort.ConfirmItem>) {
+    override fun confirm(orderId: Long, items: List<InventoryStockStorePort.ConfirmItem>) {
         items.forEach { item ->
             val result = exec(
                 confirmStockScript,
-                reservedKey(item.skuId),
-                null,
-                item.quantity,
+                listOf(reservedKey(item.skuId), ordersKey(item.skuId)),
+                item.quantity.toString(),
+                orderId.toString(),
             )
 
             when (result) {
@@ -88,13 +80,13 @@ class RedisInventoryStockAdapter(
         }
     }
 
-    override fun cancel(items: List<InventoryStockStorePort.CancelItem>) {
+    override fun cancel(orderId: Long, items: List<InventoryStockStorePort.CancelItem>) {
         items.forEach { item ->
             val result = exec(
                 cancelStockScript,
-                stockKey(item.skuId),
-                reservedKey(item.skuId),
-                item.quantity,
+                listOf(stockKey(item.skuId), reservedKey(item.skuId), ordersKey(item.skuId)),
+                item.quantity.toString(),
+                orderId.toString(),
             )
 
             when (result) {
@@ -108,9 +100,8 @@ class RedisInventoryStockAdapter(
         items.forEach { item ->
             val result = exec(
                 decreaseStockScript,
-                stockKey(item.skuId),
-                null,
-                item.quantity,
+                listOf(stockKey(item.skuId)),
+                item.quantity.toString(),
             )
 
             when (result) {
@@ -123,15 +114,18 @@ class RedisInventoryStockAdapter(
         }
     }
 
-    private fun exec(script: DefaultRedisScript<Long>, k1: String, k2: String?, qty: Int): Long {
-        val keys = listOfNotNull(k1, k2)
+    override fun getOrderIds(skuId: String): Set<Long> {
+        val members = redisTemplate.opsForSet().members(ordersKey(skuId)) ?: emptySet()
+        return members.mapNotNull { it.toLongOrNull() }.toSet()
+    }
 
-        return redisTemplate.execute(script, keys, qty.toString())
+    private fun exec(script: DefaultRedisScript<Long>, keys: List<String>, vararg args: String): Long =
+        redisTemplate.execute(script, keys, *args)
             ?: throw IllegalStateException(
                 "Redis script execution returned null. script=$script",
             )
-    }
 
     private fun stockKey(skuId: String) = "inventory:stock:$skuId"
     private fun reservedKey(skuId: String) = "inventory:reserved:$skuId"
+    private fun ordersKey(skuId: String) = "inventory:orders:$skuId"
 }

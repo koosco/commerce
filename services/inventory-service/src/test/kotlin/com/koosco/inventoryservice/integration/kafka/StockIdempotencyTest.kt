@@ -67,9 +67,9 @@ class StockIdempotencyTest : KafkaContainerTestBase() {
         kafkaTemplate = createTestKafkaTemplate()
 
         // Default mock behavior
-        doNothing().whenever(inventoryStockStore).reserve(any())
-        doNothing().whenever(inventoryStockStore).confirm(any())
-        doNothing().whenever(inventoryStockStore).cancel(any())
+        doNothing().whenever(inventoryStockStore).reserve(any(), any())
+        doNothing().whenever(inventoryStockStore).confirm(any(), any())
+        doNothing().whenever(inventoryStockStore).cancel(any(), any())
     }
 
     @Test
@@ -106,7 +106,7 @@ class StockIdempotencyTest : KafkaContainerTestBase() {
         // Then - reserve should be called at least twice (once per message)
         // The actual idempotency is handled by the InventoryStockStore implementation
         await().atMost(Duration.ofSeconds(15)).untilAsserted {
-            verify(inventoryStockStore, atLeast(2)).reserve(any())
+            verify(inventoryStockStore, atLeast(2)).reserve(any(), any())
         }
     }
 
@@ -141,7 +141,7 @@ class StockIdempotencyTest : KafkaContainerTestBase() {
 
         // Then - confirm should be called at least twice
         await().atMost(Duration.ofSeconds(15)).untilAsserted {
-            verify(inventoryStockStore, atLeast(2)).confirm(any())
+            verify(inventoryStockStore, atLeast(2)).confirm(any(), any())
         }
     }
 
@@ -177,7 +177,7 @@ class StockIdempotencyTest : KafkaContainerTestBase() {
 
         // Then - cancel should be called at least twice
         await().atMost(Duration.ofSeconds(15)).untilAsserted {
-            verify(inventoryStockStore, atLeast(2)).cancel(any())
+            verify(inventoryStockStore, atLeast(2)).cancel(any(), any())
         }
     }
 
@@ -196,7 +196,7 @@ class StockIdempotencyTest : KafkaContainerTestBase() {
 
         // Then - both events should be processed
         await().atMost(Duration.ofSeconds(15)).untilAsserted {
-            verify(inventoryStockStore, atLeast(2)).reserve(any())
+            verify(inventoryStockStore, atLeast(2)).reserve(any(), any())
         }
     }
 
@@ -230,7 +230,7 @@ class StockIdempotencyTest : KafkaContainerTestBase() {
 
         // Then
         await().atMost(Duration.ofSeconds(15)).untilAsserted {
-            verify(inventoryStockStore, atLeast(1)).reserve(any())
+            verify(inventoryStockStore, atLeast(1)).reserve(any(), any())
         }
     }
 
@@ -254,7 +254,7 @@ class StockIdempotencyTest : KafkaContainerTestBase() {
 
         // Then - all events should be processed
         await().atMost(Duration.ofSeconds(20)).untilAsserted {
-            verify(inventoryStockStore, atLeast(5)).reserve(any())
+            verify(inventoryStockStore, atLeast(5)).reserve(any(), any())
         }
     }
 
@@ -276,7 +276,7 @@ class StockIdempotencyTest : KafkaContainerTestBase() {
 
         // Then
         await().atMost(Duration.ofSeconds(15)).untilAsserted {
-            verify(inventoryStockStore, times(3)).reserve(any())
+            verify(inventoryStockStore, times(3)).reserve(any(), any())
         }
     }
 

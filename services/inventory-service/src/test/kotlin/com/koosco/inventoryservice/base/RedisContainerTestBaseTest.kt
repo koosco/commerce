@@ -6,12 +6,14 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.redis.core.StringRedisTemplate
+import org.springframework.test.context.ActiveProfiles
 import kotlin.test.assertNotNull
 
 /**
  * RedisContainerTestBase 사용 예제 및 검증 테스트
  */
 @SpringBootTest
+@ActiveProfiles("test")
 class RedisContainerTestBaseTest : RedisContainerTestBase() {
 
     @Autowired
