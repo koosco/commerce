@@ -1,11 +1,6 @@
 package com.koosco.orderservice.order.domain
 
-import com.koosco.common.core.event.DomainEvent
 import com.koosco.orderservice.order.domain.enums.OrderCancelReason
-import com.koosco.orderservice.order.domain.event.OrderCancelled
-import com.koosco.orderservice.order.domain.event.OrderItemsRefunded
-import com.koosco.orderservice.order.domain.event.OrderPaid
-import com.koosco.orderservice.order.domain.event.OrderPlaced
 import com.koosco.orderservice.order.domain.exception.InvalidOrderStatus
 import com.koosco.orderservice.order.domain.exception.PaymentMisMatch
 import com.koosco.orderservice.order.domain.vo.Money
@@ -21,7 +16,6 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
-import jakarta.persistence.Transient
 import java.time.LocalDateTime
 
 @Entity
@@ -69,9 +63,6 @@ class Order(
     val items: MutableList<OrderItem> = mutableListOf(),
 ) {
 
-    @Transient
-    private val domainEvents: MutableList<DomainEvent> = mutableListOf()
-
     companion object {
         fun create(userId: Long, itemSpecs: List<OrderItemSpec>, amount: OrderAmount): Order {
             val order = Order(
@@ -93,8 +84,6 @@ class Order(
         }
     }
 
-    fun pullDomainEvents(): List<DomainEvent> = domainEvents.toList().also { domainEvents.clear() }
-
     /**
      * ==== ORDER FLOW ====
      */
@@ -103,28 +92,12 @@ class Order(
             throw InvalidOrderStatus()
         }
 
-        val orderId = requireNotNull(id) {
+        requireNotNull(id) {
             "Order must be persisted before placing"
         }
 
         status = OrderStatus.CREATED
         updatedAt = LocalDateTime.now()
-
-        domainEvents.add(
-            OrderPlaced(
-                orderId = orderId,
-                userId = userId,
-                totalAmount = totalAmount.amount,
-                payableAmount = payableAmount.amount,
-                items = items.map {
-                    Item(
-                        skuId = it.skuId,
-                        quantity = it.quantity,
-                        unitPrice = it.unitPrice.amount,
-                    )
-                },
-            ),
-        )
     }
 
     fun markReserved() {
@@ -164,20 +137,6 @@ class Order(
 
         status = OrderStatus.PAID
         updatedAt = LocalDateTime.now()
-
-        domainEvents.add(
-            OrderPaid(
-                orderId = id!!,
-                paidAmount = payableAmount.amount,
-                items = items.map {
-                    Item(
-                        skuId = it.skuId,
-                        quantity = it.quantity,
-                        unitPrice = it.unitPrice.amount,
-                    )
-                },
-            ),
-        )
     }
 
     fun confirmStock() {
@@ -196,26 +155,8 @@ class Order(
 
         status = OrderStatus.CANCELLED
         updatedAt = LocalDateTime.now()
-
-        domainEvents.add(
-            OrderCancelled(
-                orderId = id!!,
-                reason = reason,
-                items = items.map {
-                    Item(
-                        skuId = it.skuId,
-                        quantity = it.quantity,
-                        unitPrice = it.unitPrice.amount,
-                    )
-                },
-            ),
-        )
     }
 
-    /**
-     * 재고 예약 실패로 인한 주문 실패 처리
-     * CREATED 상태에서만 FAILED로 전이 가능
-     */
     fun markFailed(reason: OrderCancelReason) {
         if (status != OrderStatus.CREATED) {
             throw InvalidOrderStatus("재고 예약 실패 처리는 CREATED 상태에서만 가능합니다. 현재 상태: $status")
@@ -236,20 +177,6 @@ class Order(
 
         status = OrderStatus.CANCELLED
         updatedAt = LocalDateTime.now()
-
-        domainEvents.add(
-            OrderCancelled(
-                orderId = id!!,
-                reason = OrderCancelReason.STOCK_CONFIRM_FAILED,
-                items = items.map {
-                    Item(
-                        skuId = it.skuId,
-                        quantity = it.quantity,
-                        unitPrice = it.unitPrice.amount,
-                    )
-                },
-            ),
-        )
     }
 
     /**
@@ -284,20 +211,6 @@ class Order(
         } else {
             OrderStatus.PARTIALLY_REFUNDED
         }
-
-        domainEvents.add(
-            OrderItemsRefunded(
-                orderId = id!!,
-                refundedAmount = refundAmount.amount,
-                refundedItems = listOf(
-                    Item(
-                        skuId = item.skuId,
-                        quantity = item.quantity,
-                        unitPrice = refundAmount.amount,
-                    ),
-                ),
-            ),
-        )
 
         return refundAmount
     }

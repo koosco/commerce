@@ -1,9 +1,5 @@
 package com.koosco.inventoryservice.inventory.domain.entity
 
-import com.koosco.common.core.event.DomainEvent
-import com.koosco.inventoryservice.inventory.domain.event.StockReservationCanceled
-import com.koosco.inventoryservice.inventory.domain.event.StockReservationConfirmed
-import com.koosco.inventoryservice.inventory.domain.event.StockReserved
 import com.koosco.inventoryservice.inventory.domain.exception.NotEnoughStockException
 import com.koosco.inventoryservice.inventory.domain.vo.Stock
 import jakarta.persistence.*
@@ -28,25 +24,12 @@ class Inventory(
 
     @Column(name = "updated_at", nullable = false)
     var updatedAt: LocalDateTime = LocalDateTime.now(),
-
-    @Transient
-    private var _domainEvents: MutableList<DomainEvent>? = null,
 ) {
-
-    private val domainEvents: MutableList<DomainEvent>
-        get() = _domainEvents ?: mutableListOf<DomainEvent>().also { _domainEvents = it }
-
-    @PostLoad
-    fun onLoad() {
-        _domainEvents = mutableListOf()
-    }
 
     @PreUpdate
     fun onUpdate() {
         this.updatedAt = LocalDateTime.now()
     }
-
-    fun pullDomainEvents(): List<DomainEvent> = domainEvents.toList().also { domainEvents.clear() }
 
     fun updateStock(quantity: Int) {
         stock = Stock(quantity, this.stock.reserved)
@@ -66,13 +49,6 @@ class Inventory(
     fun reserve(quantity: Int) {
         try {
             stock = stock.reserve(quantity)
-
-            domainEvents.add(
-                StockReserved(
-                    skuId = this.skuId,
-                    quantity = quantity,
-                ),
-            )
         } catch (e: NotEnoughStockException) {
             throw NotEnoughStockException(
                 message = "Not enough stock for skuId=$skuId: requested=$quantity, available=${stock.available}",
@@ -86,24 +62,10 @@ class Inventory(
     /** 예약 재고 확정 (결제 성공 시) */
     fun confirm(quantity: Int) {
         stock = stock.confirm(quantity)
-
-        domainEvents.add(
-            StockReservationConfirmed(
-                skuId = this.skuId,
-                quantity = quantity,
-            ),
-        )
     }
 
     /** 예약 취소 (결제 실패/주문 취소) */
     fun cancelReservation(quantity: Int) {
         stock = stock.cancelReservation(quantity)
-
-        domainEvents.add(
-            StockReservationCanceled(
-                skuId = this.skuId,
-                quantity = quantity,
-            ),
-        )
     }
 }
