@@ -1,6 +1,7 @@
 package com.koosco.paymentservice.infra.config
 
 import com.koosco.common.core.event.CloudEvent
+import com.koosco.common.core.exception.BaseException
 import jakarta.annotation.PostConstruct
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -12,8 +13,13 @@ import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.ConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
+import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.listener.ContainerProperties
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer
+import org.springframework.kafka.listener.DefaultErrorHandler
+import org.springframework.kafka.listener.RetryListener
 import org.springframework.kafka.support.serializer.JsonDeserializer
+import org.springframework.util.backoff.ExponentialBackOff
 
 @EnableKafka
 @Configuration
@@ -22,6 +28,7 @@ class KafkaConsumerConfig(
     private val bootstrapServers: String,
     @Value("\${spring.kafka.consumer.group-id:payment-service-group}")
     private val groupId: String,
+    private val kafkaTemplate: KafkaTemplate<String, CloudEvent<*>>,
 ) {
 
     private val logger = LoggerFactory.getLogger(KafkaConsumerConfig::class.java)
@@ -47,11 +54,42 @@ class KafkaConsumerConfig(
     }
 
     @Bean
+    fun deadLetterPublishingRecoverer(): DeadLetterPublishingRecoverer = DeadLetterPublishingRecoverer(kafkaTemplate)
+
+    @Bean
+    fun defaultErrorHandler(): DefaultErrorHandler {
+        val backOff = ExponentialBackOff().apply {
+            initialInterval = 1_000L
+            multiplier = 2.0
+            maxInterval = 10_000L
+            maxElapsedTime = 30_000L
+        }
+
+        val errorHandler = DefaultErrorHandler(deadLetterPublishingRecoverer(), backOff)
+        errorHandler.addNotRetryableExceptions(BaseException::class.java)
+        errorHandler.setCommitRecovered(true)
+        errorHandler.setRetryListeners(
+            RetryListener { record, ex, deliveryAttempt ->
+                logger.warn(
+                    "Retry attempt {} for topic={}, partition={}, offset={}: {}",
+                    deliveryAttempt,
+                    record.topic(),
+                    record.partition(),
+                    record.offset(),
+                    ex.message,
+                )
+            },
+        )
+        return errorHandler
+    }
+
+    @Bean
     fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, CloudEvent<*>> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, CloudEvent<*>>()
         factory.consumerFactory = consumerFactory()
         factory.containerProperties.ackMode =
             ContainerProperties.AckMode.MANUAL_IMMEDIATE
+        factory.setCommonErrorHandler(defaultErrorHandler())
         return factory
     }
 }
