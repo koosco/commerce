@@ -1,6 +1,7 @@
 package com.koosco.paymentservice.infra.config
 
 import com.koosco.common.core.event.CloudEvent
+import com.koosco.common.core.exception.BaseException
 import jakarta.annotation.PostConstruct
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -65,6 +66,8 @@ class KafkaConsumerConfig(
         }
 
         val errorHandler = DefaultErrorHandler(deadLetterPublishingRecoverer(), backOff)
+        errorHandler.addNotRetryableExceptions(BaseException::class.java)
+        errorHandler.setCommitRecovered(true)
         errorHandler.setRetryListeners(
             RetryListener { record, ex, deliveryAttempt ->
                 logger.warn(
