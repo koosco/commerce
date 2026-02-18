@@ -12,13 +12,15 @@ interface InventoryStockStorePort {
 
     fun add(items: List<AddItem>)
 
-    fun reserve(items: List<ReserveItem>)
+    fun reserve(orderId: Long, items: List<ReserveItem>)
 
-    fun confirm(items: List<ConfirmItem>)
+    fun confirm(orderId: Long, items: List<ConfirmItem>)
 
-    fun cancel(items: List<CancelItem>)
+    fun cancel(orderId: Long, items: List<CancelItem>)
 
     fun decrease(items: List<DecreaseItem>)
+
+    fun getOrderIds(skuId: String): Set<Long>
 
     data class ReserveItem(val skuId: String, val quantity: Int)
 

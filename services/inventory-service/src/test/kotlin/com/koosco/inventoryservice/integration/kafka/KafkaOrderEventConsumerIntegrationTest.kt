@@ -64,9 +64,9 @@ class KafkaOrderEventConsumerIntegrationTest : KafkaContainerTestBase() {
         kafkaTemplate = createTestKafkaTemplate()
 
         // Default mock behavior
-        doNothing().whenever(inventoryStockStore).reserve(any())
-        doNothing().whenever(inventoryStockStore).confirm(any())
-        doNothing().whenever(inventoryStockStore).cancel(any())
+        doNothing().whenever(inventoryStockStore).reserve(any(), any())
+        doNothing().whenever(inventoryStockStore).confirm(any(), any())
+        doNothing().whenever(inventoryStockStore).cancel(any(), any())
     }
 
     @Test
@@ -100,7 +100,7 @@ class KafkaOrderEventConsumerIntegrationTest : KafkaContainerTestBase() {
 
         // Then
         await().atMost(Duration.ofSeconds(15)).untilAsserted {
-            verify(inventoryStockStore, atLeastOnce()).reserve(any())
+            verify(inventoryStockStore, atLeastOnce()).reserve(any(), any())
         }
     }
 
@@ -133,7 +133,7 @@ class KafkaOrderEventConsumerIntegrationTest : KafkaContainerTestBase() {
 
         // Then
         await().atMost(Duration.ofSeconds(15)).untilAsserted {
-            verify(inventoryStockStore, atLeastOnce()).confirm(any())
+            verify(inventoryStockStore, atLeastOnce()).confirm(any(), any())
         }
     }
 
@@ -167,7 +167,7 @@ class KafkaOrderEventConsumerIntegrationTest : KafkaContainerTestBase() {
 
         // Then
         await().atMost(Duration.ofSeconds(15)).untilAsserted {
-            verify(inventoryStockStore, atLeastOnce()).cancel(any())
+            verify(inventoryStockStore, atLeastOnce()).cancel(any(), any())
         }
     }
 
@@ -190,7 +190,7 @@ class KafkaOrderEventConsumerIntegrationTest : KafkaContainerTestBase() {
         Thread.sleep(2000) // Give time for consumer to process
 
         // Verify reserve was NOT called since data is null
-        verify(inventoryStockStore, org.mockito.kotlin.never()).reserve(any())
+        verify(inventoryStockStore, org.mockito.kotlin.never()).reserve(any(), any())
     }
 
     @Test
@@ -223,7 +223,7 @@ class KafkaOrderEventConsumerIntegrationTest : KafkaContainerTestBase() {
 
         // Then
         await().atMost(Duration.ofSeconds(20)).untilAsserted {
-            verify(inventoryStockStore, org.mockito.kotlin.atLeast(3)).reserve(any())
+            verify(inventoryStockStore, org.mockito.kotlin.atLeast(3)).reserve(any(), any())
         }
     }
 
@@ -256,7 +256,7 @@ class KafkaOrderEventConsumerIntegrationTest : KafkaContainerTestBase() {
 
         // Then
         await().atMost(Duration.ofSeconds(15)).untilAsserted {
-            verify(inventoryStockStore, atLeastOnce()).cancel(any())
+            verify(inventoryStockStore, atLeastOnce()).cancel(any(), any())
         }
     }
 
@@ -290,7 +290,7 @@ class KafkaOrderEventConsumerIntegrationTest : KafkaContainerTestBase() {
 
         // Then
         await().atMost(Duration.ofSeconds(15)).untilAsserted {
-            verify(inventoryStockStore, atLeastOnce()).reserve(any())
+            verify(inventoryStockStore, atLeastOnce()).reserve(any(), any())
         }
     }
 }
