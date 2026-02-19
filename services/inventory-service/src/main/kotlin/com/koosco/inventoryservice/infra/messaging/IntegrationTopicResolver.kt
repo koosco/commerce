@@ -1,6 +1,6 @@
 package com.koosco.inventoryservice.infra.messaging
 
-import com.koosco.inventoryservice.application.contract.InventoryIntegrationEvent
+import com.koosco.inventoryservice.contract.InventoryIntegrationEvent
 
 /**
  * fileName       : IntegrationTopicResolver

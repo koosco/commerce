@@ -4,8 +4,8 @@ import com.koosco.common.core.event.CloudEvent
 import com.koosco.common.core.messaging.MessageContext
 import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.inventoryservice.application.command.CancelStockCommand
-import com.koosco.inventoryservice.application.contract.inbound.order.OrderCancelledEvent
 import com.koosco.inventoryservice.application.usecase.ReleaseStockUseCase
+import com.koosco.inventoryservice.contract.inbound.order.OrderCancelledEvent
 import com.koosco.inventoryservice.domain.entity.InventoryEventIdempotency.Companion.Actions
 import com.koosco.inventoryservice.domain.enums.StockCancelReason.Companion.mapCancelReason
 import com.koosco.inventoryservice.infra.idempotency.IdempotencyChecker

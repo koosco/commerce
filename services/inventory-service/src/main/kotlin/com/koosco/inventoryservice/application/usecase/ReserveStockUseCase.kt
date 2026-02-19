@@ -4,11 +4,11 @@ import com.koosco.common.core.annotation.UseCase
 import com.koosco.common.core.exception.NotFoundException
 import com.koosco.common.core.messaging.MessageContext
 import com.koosco.inventoryservice.application.command.ReserveStockCommand
-import com.koosco.inventoryservice.application.contract.outbound.inventory.StockReservationFailedEvent
-import com.koosco.inventoryservice.application.contract.outbound.inventory.StockReservedEvent
 import com.koosco.inventoryservice.application.port.IntegrationEventProducer
 import com.koosco.inventoryservice.application.port.InventoryLogPort
 import com.koosco.inventoryservice.application.port.InventoryStockStorePort
+import com.koosco.inventoryservice.contract.outbound.inventory.StockReservationFailedEvent
+import com.koosco.inventoryservice.contract.outbound.inventory.StockReservedEvent
 import com.koosco.inventoryservice.domain.enums.InventoryAction
 import com.koosco.inventoryservice.domain.enums.StockReservationFailReason
 import com.koosco.inventoryservice.domain.exception.NotEnoughStockException

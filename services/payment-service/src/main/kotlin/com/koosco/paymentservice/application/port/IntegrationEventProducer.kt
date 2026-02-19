@@ -1,6 +1,6 @@
 package com.koosco.paymentservice.application.port
 
-import com.koosco.paymentservice.application.contract.PaymentIntegrationEvent
+import com.koosco.paymentservice.contract.PaymentIntegrationEvent
 
 /**
  * fileName       : IntegrationEventProducer

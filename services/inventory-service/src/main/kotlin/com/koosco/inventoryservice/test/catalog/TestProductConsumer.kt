@@ -2,8 +2,8 @@ package com.koosco.inventoryservice.test.catalog
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.koosco.common.core.event.CloudEvent
-import com.koosco.inventoryservice.application.contract.inbound.catalog.ProductSkuCreatedEvent
 import com.koosco.inventoryservice.application.usecase.InventorySeedUseCase
+import com.koosco.inventoryservice.contract.inbound.catalog.ProductSkuCreatedEvent
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.kafka.annotation.KafkaListener

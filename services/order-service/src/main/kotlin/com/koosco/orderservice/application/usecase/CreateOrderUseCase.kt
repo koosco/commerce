@@ -2,11 +2,11 @@ package com.koosco.orderservice.application.usecase
 
 import com.koosco.common.core.annotation.UseCase
 import com.koosco.orderservice.application.command.CreateOrderCommand
-import com.koosco.orderservice.application.contract.outbound.order.OrderPlacedEvent
-import com.koosco.orderservice.application.contract.outbound.order.OrderPlacedEvent.PlacedItem
 import com.koosco.orderservice.application.port.IntegrationEventProducer
 import com.koosco.orderservice.application.port.OrderRepository
 import com.koosco.orderservice.application.result.CreateOrderResult
+import com.koosco.orderservice.contract.outbound.order.OrderPlacedEvent
+import com.koosco.orderservice.contract.outbound.order.OrderPlacedEvent.PlacedItem
 import com.koosco.orderservice.domain.entity.Order
 import com.koosco.orderservice.domain.vo.OrderAmount
 import com.koosco.orderservice.domain.vo.OrderItemSpec

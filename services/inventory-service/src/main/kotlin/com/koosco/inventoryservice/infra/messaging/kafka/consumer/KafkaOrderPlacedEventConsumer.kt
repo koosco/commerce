@@ -4,8 +4,8 @@ import com.koosco.common.core.event.CloudEvent
 import com.koosco.common.core.messaging.MessageContext
 import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.inventoryservice.application.command.ReserveStockCommand
-import com.koosco.inventoryservice.application.contract.inbound.order.OrderPlacedEvent
 import com.koosco.inventoryservice.application.usecase.ReserveStockUseCase
+import com.koosco.inventoryservice.contract.inbound.order.OrderPlacedEvent
 import com.koosco.inventoryservice.domain.entity.InventoryEventIdempotency.Companion.Actions
 import com.koosco.inventoryservice.domain.exception.NotEnoughStockException
 import com.koosco.inventoryservice.infra.idempotency.IdempotencyChecker

@@ -1,9 +1,9 @@
 package com.koosco.orderservice.test.payment
 
 import com.koosco.common.core.response.ApiResponse
-import com.koosco.orderservice.application.contract.inbound.payment.PaymentCompletedEvent
-import com.koosco.orderservice.application.contract.inbound.payment.PaymentCreatedEvent
-import com.koosco.orderservice.application.contract.inbound.payment.PaymentFailedEvent
+import com.koosco.orderservice.contract.inbound.payment.PaymentCompletedEvent
+import com.koosco.orderservice.contract.inbound.payment.PaymentCreatedEvent
+import com.koosco.orderservice.contract.inbound.payment.PaymentFailedEvent
 import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.*
 

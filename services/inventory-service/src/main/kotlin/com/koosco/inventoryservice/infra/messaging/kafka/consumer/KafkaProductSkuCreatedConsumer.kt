@@ -3,8 +3,8 @@ package com.koosco.inventoryservice.infra.messaging.kafka.consumer
 import com.koosco.common.core.event.CloudEvent
 import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.inventoryservice.application.command.InitStockCommand
-import com.koosco.inventoryservice.application.contract.inbound.catalog.ProductSkuCreatedEvent
 import com.koosco.inventoryservice.application.usecase.InitializeStockUseCase
+import com.koosco.inventoryservice.contract.inbound.catalog.ProductSkuCreatedEvent
 import com.koosco.inventoryservice.domain.entity.InventoryEventIdempotency.Companion.Actions
 import com.koosco.inventoryservice.infra.idempotency.IdempotencyChecker
 import jakarta.validation.Valid

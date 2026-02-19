@@ -1,7 +1,7 @@
 package com.koosco.paymentservice.order
 
 import com.koosco.common.core.event.CloudEvent
-import com.koosco.paymentservice.application.contract.inbound.order.OrderPlacedEvent
+import com.koosco.paymentservice.contract.inbound.order.OrderPlacedEvent
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.kafka.core.KafkaTemplate

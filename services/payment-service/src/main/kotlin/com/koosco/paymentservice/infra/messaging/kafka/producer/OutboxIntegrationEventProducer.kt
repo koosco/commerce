@@ -1,8 +1,8 @@
 package com.koosco.paymentservice.infra.messaging.kafka.producer
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.koosco.paymentservice.application.contract.PaymentIntegrationEvent
 import com.koosco.paymentservice.application.port.IntegrationEventProducer
+import com.koosco.paymentservice.contract.PaymentIntegrationEvent
 import com.koosco.paymentservice.domain.entity.PaymentOutboxEntry
 import com.koosco.paymentservice.infra.messaging.kafka.KafkaTopicResolver
 import com.koosco.paymentservice.infra.outbox.PaymentOutboxRepository

@@ -1,6 +1,6 @@
 package com.koosco.orderservice.infra.messaging.kafka
 
-import com.koosco.orderservice.application.contract.OrderIntegrationEvent
+import com.koosco.orderservice.contract.OrderIntegrationEvent
 import com.koosco.orderservice.infra.messaging.TopicResolver
 import org.springframework.stereotype.Component
 

@@ -1,9 +1,9 @@
 package com.koosco.inventoryservice.test.order
 
 import com.koosco.common.core.response.ApiResponse
-import com.koosco.inventoryservice.application.contract.inbound.order.OrderCancelledEvent
-import com.koosco.inventoryservice.application.contract.inbound.order.OrderConfirmedEvent
-import com.koosco.inventoryservice.application.contract.inbound.order.OrderPlacedEvent
+import com.koosco.inventoryservice.contract.inbound.order.OrderCancelledEvent
+import com.koosco.inventoryservice.contract.inbound.order.OrderConfirmedEvent
+import com.koosco.inventoryservice.contract.inbound.order.OrderPlacedEvent
 import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.*
 

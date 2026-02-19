@@ -1,11 +1,11 @@
 package com.koosco.catalogservice.application.usecase
 
 import com.koosco.catalogservice.application.command.CreateProductCommand
-import com.koosco.catalogservice.application.contract.outbound.ProductSkuCreatedEvent
 import com.koosco.catalogservice.application.port.CategoryRepository
 import com.koosco.catalogservice.application.port.IntegrationEventProducer
 import com.koosco.catalogservice.application.port.ProductRepository
 import com.koosco.catalogservice.application.result.ProductInfo
+import com.koosco.catalogservice.contract.outbound.ProductSkuCreatedEvent
 import com.koosco.catalogservice.domain.entity.Product
 import com.koosco.catalogservice.domain.service.ProductValidator
 import com.koosco.catalogservice.domain.service.SkuGenerator

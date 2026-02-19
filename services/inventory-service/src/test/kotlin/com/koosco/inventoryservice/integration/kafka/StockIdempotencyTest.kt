@@ -1,11 +1,11 @@
 package com.koosco.inventoryservice.integration.kafka
 
 import com.koosco.common.core.event.CloudEvent
-import com.koosco.inventoryservice.application.contract.inbound.order.OrderCancelledEvent
-import com.koosco.inventoryservice.application.contract.inbound.order.OrderConfirmedEvent
-import com.koosco.inventoryservice.application.contract.inbound.order.OrderPlacedEvent
 import com.koosco.inventoryservice.application.port.InventoryStockSnapshotQueryPort
 import com.koosco.inventoryservice.application.port.InventoryStockStorePort
+import com.koosco.inventoryservice.contract.inbound.order.OrderCancelledEvent
+import com.koosco.inventoryservice.contract.inbound.order.OrderConfirmedEvent
+import com.koosco.inventoryservice.contract.inbound.order.OrderPlacedEvent
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

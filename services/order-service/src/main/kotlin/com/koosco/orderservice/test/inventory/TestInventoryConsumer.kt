@@ -2,9 +2,9 @@ package com.koosco.orderservice.test.inventory
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.koosco.common.core.event.CloudEvent
-import com.koosco.orderservice.application.contract.outbound.order.OrderCancelledEvent
-import com.koosco.orderservice.application.contract.outbound.order.OrderConfirmedEvent
-import com.koosco.orderservice.application.contract.outbound.order.OrderPlacedEvent
+import com.koosco.orderservice.contract.outbound.order.OrderCancelledEvent
+import com.koosco.orderservice.contract.outbound.order.OrderConfirmedEvent
+import com.koosco.orderservice.contract.outbound.order.OrderPlacedEvent
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.kafka.annotation.KafkaListener

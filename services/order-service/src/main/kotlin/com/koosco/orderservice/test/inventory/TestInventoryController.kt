@@ -1,10 +1,10 @@
 package com.koosco.orderservice.test.inventory
 
 import com.koosco.common.core.response.ApiResponse
-import com.koosco.orderservice.application.contract.inbound.inventory.StockConfirmFailedEvent
-import com.koosco.orderservice.application.contract.inbound.inventory.StockConfirmedEvent
-import com.koosco.orderservice.application.contract.inbound.inventory.StockReserveFailedEvent
-import com.koosco.orderservice.application.contract.inbound.inventory.StockReservedEvent
+import com.koosco.orderservice.contract.inbound.inventory.StockConfirmFailedEvent
+import com.koosco.orderservice.contract.inbound.inventory.StockConfirmedEvent
+import com.koosco.orderservice.contract.inbound.inventory.StockReserveFailedEvent
+import com.koosco.orderservice.contract.inbound.inventory.StockReservedEvent
 import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.*
 

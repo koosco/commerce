@@ -1,12 +1,12 @@
 package com.koosco.inventoryservice.integration.kafka
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.koosco.inventoryservice.application.contract.outbound.inventory.StockConfirmFailedEvent
-import com.koosco.inventoryservice.application.contract.outbound.inventory.StockConfirmedEvent
-import com.koosco.inventoryservice.application.contract.outbound.inventory.StockReservationFailedEvent
-import com.koosco.inventoryservice.application.contract.outbound.inventory.StockReservedEvent
 import com.koosco.inventoryservice.application.port.IntegrationEventProducer
 import com.koosco.inventoryservice.application.port.InventoryStockSnapshotQueryPort
+import com.koosco.inventoryservice.contract.outbound.inventory.StockConfirmFailedEvent
+import com.koosco.inventoryservice.contract.outbound.inventory.StockConfirmedEvent
+import com.koosco.inventoryservice.contract.outbound.inventory.StockReservationFailedEvent
+import com.koosco.inventoryservice.contract.outbound.inventory.StockReservedEvent
 import com.koosco.inventoryservice.domain.enums.StockConfirmFailReason
 import com.koosco.inventoryservice.domain.enums.StockReservationFailReason
 import com.koosco.inventoryservice.infra.outbox.JpaInventoryOutboxRepository

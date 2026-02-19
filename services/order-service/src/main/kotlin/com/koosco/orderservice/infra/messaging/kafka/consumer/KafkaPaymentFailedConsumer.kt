@@ -4,8 +4,8 @@ import com.koosco.common.core.event.CloudEvent
 import com.koosco.common.core.messaging.MessageContext
 import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.orderservice.application.command.CancelOrderCommand
-import com.koosco.orderservice.application.contract.inbound.payment.PaymentFailedEvent
 import com.koosco.orderservice.application.usecase.CancelOrderByPaymentFailureUseCase
+import com.koosco.orderservice.contract.inbound.payment.PaymentFailedEvent
 import com.koosco.orderservice.domain.entity.OrderEventIdempotency.Companion.Actions
 import com.koosco.orderservice.domain.enums.OrderCancelReason
 import com.koosco.orderservice.infra.idempotency.IdempotencyChecker

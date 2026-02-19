@@ -1,9 +1,9 @@
 package com.koosco.orderservice.integration.kafka
 
-import com.koosco.orderservice.application.contract.outbound.order.OrderCancelledEvent
-import com.koosco.orderservice.application.contract.outbound.order.OrderConfirmedEvent
-import com.koosco.orderservice.application.contract.outbound.order.OrderPlacedEvent
 import com.koosco.orderservice.application.port.IntegrationEventProducer
+import com.koosco.orderservice.contract.outbound.order.OrderCancelledEvent
+import com.koosco.orderservice.contract.outbound.order.OrderConfirmedEvent
+import com.koosco.orderservice.contract.outbound.order.OrderPlacedEvent
 import com.koosco.orderservice.domain.enums.OrderCancelReason
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await

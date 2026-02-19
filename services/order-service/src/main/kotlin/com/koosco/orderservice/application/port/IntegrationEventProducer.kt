@@ -1,6 +1,6 @@
 package com.koosco.orderservice.application.port
 
-import com.koosco.orderservice.application.contract.OrderIntegrationEvent
+import com.koosco.orderservice.contract.OrderIntegrationEvent
 
 /**
  * fileName       : IntegrationEventProducer

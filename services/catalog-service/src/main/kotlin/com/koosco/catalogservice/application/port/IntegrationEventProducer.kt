@@ -1,6 +1,6 @@
 package com.koosco.catalogservice.application.port
 
-import com.koosco.catalogservice.application.contract.ProductIntegrationEvent
+import com.koosco.catalogservice.contract.ProductIntegrationEvent
 
 /**
  * fileName       : IntegrationEventProducer

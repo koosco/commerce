@@ -1,6 +1,6 @@
 package com.koosco.paymentservice.infra.messaging.kafka
 
-import com.koosco.paymentservice.application.contract.PaymentIntegrationEvent
+import com.koosco.paymentservice.contract.PaymentIntegrationEvent
 import com.koosco.paymentservice.infra.messaging.TopicResolver
 import org.springframework.stereotype.Component
 

@@ -1,8 +1,8 @@
 package com.koosco.orderservice.infra.messaging.kafka.producer
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.koosco.orderservice.application.contract.OrderIntegrationEvent
 import com.koosco.orderservice.application.port.IntegrationEventProducer
+import com.koosco.orderservice.contract.OrderIntegrationEvent
 import com.koosco.orderservice.domain.entity.OrderOutboxEntry
 import com.koosco.orderservice.infra.messaging.kafka.KafkaTopicResolver
 import com.koosco.orderservice.infra.outbox.OrderOutboxRepository

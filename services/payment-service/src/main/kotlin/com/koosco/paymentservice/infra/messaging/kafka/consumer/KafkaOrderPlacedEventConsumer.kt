@@ -4,8 +4,8 @@ import com.koosco.common.core.event.CloudEvent
 import com.koosco.common.core.messaging.MessageContext
 import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.paymentservice.application.command.CreatePaymentCommand
-import com.koosco.paymentservice.application.contract.inbound.order.OrderPlacedEvent
 import com.koosco.paymentservice.application.usecase.CreatePaymentUseCase
+import com.koosco.paymentservice.contract.inbound.order.OrderPlacedEvent
 import com.koosco.paymentservice.domain.exception.DuplicatePaymentException
 import com.koosco.paymentservice.domain.exception.PaymentBusinessException
 import jakarta.validation.Valid

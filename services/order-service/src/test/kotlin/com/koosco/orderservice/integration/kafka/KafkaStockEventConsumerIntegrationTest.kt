@@ -1,12 +1,12 @@
 package com.koosco.orderservice.integration.kafka
 
 import com.koosco.common.core.event.CloudEvent
-import com.koosco.orderservice.application.contract.inbound.inventory.StockConfirmFailedEvent
-import com.koosco.orderservice.application.contract.inbound.inventory.StockConfirmedEvent
-import com.koosco.orderservice.application.contract.inbound.inventory.StockReserveFailedEvent
-import com.koosco.orderservice.application.contract.inbound.inventory.StockReservedEvent
 import com.koosco.orderservice.application.usecase.MarkOrderConfirmedUseCase
 import com.koosco.orderservice.application.usecase.MarkOrderPaymentPendingUseCase
+import com.koosco.orderservice.contract.inbound.inventory.StockConfirmFailedEvent
+import com.koosco.orderservice.contract.inbound.inventory.StockConfirmedEvent
+import com.koosco.orderservice.contract.inbound.inventory.StockReserveFailedEvent
+import com.koosco.orderservice.contract.inbound.inventory.StockReservedEvent
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.DisplayName

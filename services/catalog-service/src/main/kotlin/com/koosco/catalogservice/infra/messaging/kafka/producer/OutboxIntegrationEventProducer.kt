@@ -1,9 +1,9 @@
 package com.koosco.catalogservice.infra.messaging.kafka.producer
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.koosco.catalogservice.application.contract.ProductIntegrationEvent
 import com.koosco.catalogservice.application.port.IntegrationEventProducer
 import com.koosco.catalogservice.common.config.KafkaTopicResolver
+import com.koosco.catalogservice.contract.ProductIntegrationEvent
 import com.koosco.catalogservice.domain.entity.CatalogOutboxEntry
 import com.koosco.catalogservice.infra.outbox.CatalogOutboxRepository
 import org.slf4j.LoggerFactory

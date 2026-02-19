@@ -1,6 +1,6 @@
 package com.koosco.catalogservice.infra.messaging
 
-import com.koosco.catalogservice.application.contract.ProductIntegrationEvent
+import com.koosco.catalogservice.contract.ProductIntegrationEvent
 
 /**
  * fileName       : IntegrationTopicResolver

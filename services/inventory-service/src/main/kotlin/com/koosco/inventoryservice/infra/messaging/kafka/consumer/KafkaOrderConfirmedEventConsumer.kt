@@ -4,8 +4,8 @@ import com.koosco.common.core.event.CloudEvent
 import com.koosco.common.core.messaging.MessageContext
 import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.inventoryservice.application.command.ConfirmStockCommand
-import com.koosco.inventoryservice.application.contract.inbound.order.OrderConfirmedEvent
 import com.koosco.inventoryservice.application.usecase.ConfirmStockUseCase
+import com.koosco.inventoryservice.contract.inbound.order.OrderConfirmedEvent
 import com.koosco.inventoryservice.domain.entity.InventoryEventIdempotency.Companion.Actions
 import com.koosco.inventoryservice.domain.exception.NotEnoughStockException
 import com.koosco.inventoryservice.infra.idempotency.IdempotencyChecker

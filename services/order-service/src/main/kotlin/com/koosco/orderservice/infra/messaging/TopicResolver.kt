@@ -1,6 +1,6 @@
 package com.koosco.orderservice.infra.messaging
 
-import com.koosco.orderservice.application.contract.OrderIntegrationEvent
+import com.koosco.orderservice.contract.OrderIntegrationEvent
 
 /**
  * fileName       : IntegrationTopicResolver
