@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface JpaAddressRepository : JpaRepository<Address, Long> {
 
+    fun findByIdAndMemberId(id: Long, memberId: Long): Address?
+
     fun findByMemberId(memberId: Long): List<Address>
 
     fun countByMemberId(memberId: Long): Int

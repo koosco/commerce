@@ -3,13 +3,17 @@ package com.koosco.userservice.api.controller
 import com.koosco.common.core.response.ApiResponse
 import com.koosco.commonsecurity.resolver.AuthId
 import com.koosco.userservice.api.CreateAddressRequest
+import com.koosco.userservice.application.command.DeleteAddressCommand
 import com.koosco.userservice.application.command.GetAddressesCommand
 import com.koosco.userservice.application.usecase.CreateAddressUseCase
+import com.koosco.userservice.application.usecase.DeleteAddressUseCase
 import com.koosco.userservice.application.usecase.GetAddressesUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -21,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController
 class AddressController(
     private val getAddressesUseCase: GetAddressesUseCase,
     private val createAddressUseCase: CreateAddressUseCase,
+    private val deleteAddressUseCase: DeleteAddressUseCase,
 ) {
 
     @Operation(summary = "배송지 목록 조회", description = "본인의 배송지 목록을 조회합니다.")
@@ -35,5 +40,12 @@ class AddressController(
     fun createAddress(@AuthId userId: Long, @Valid @RequestBody request: CreateAddressRequest): ApiResponse<Any> {
         val result = createAddressUseCase.execute(request.toCommand(userId))
         return ApiResponse.success(result)
+    }
+
+    @Operation(summary = "배송지 삭제", description = "배송지를 삭제합니다.")
+    @DeleteMapping("/{addressId}")
+    fun deleteAddress(@AuthId userId: Long, @PathVariable addressId: Long): ApiResponse<Any> {
+        deleteAddressUseCase.execute(DeleteAddressCommand(userId, addressId))
+        return ApiResponse.success()
     }
 }

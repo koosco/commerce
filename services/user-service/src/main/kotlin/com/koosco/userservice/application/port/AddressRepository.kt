@@ -6,7 +6,11 @@ interface AddressRepository {
 
     fun save(address: Address): Address
 
+    fun findByIdAndMemberId(addressId: Long, memberId: Long): Address?
+
     fun findByMemberId(memberId: Long): List<Address>
 
     fun countByMemberId(memberId: Long): Int
+
+    fun delete(address: Address)
 }

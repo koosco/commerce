@@ -12,3 +12,5 @@ data class CreateAddressCommand(
 )
 
 data class GetAddressesCommand(val userId: Long)
+
+data class DeleteAddressCommand(val userId: Long, val addressId: Long)
