@@ -28,8 +28,8 @@ else
     INGRESS_FILE = $(K8S_DIR)/ingress-dev.yaml
 endif
 
-# Services (all 6 microservices)
-SERVICES = auth-service user-service catalog-service inventory-service order-service payment-service
+# Services (all 5 microservices)
+SERVICES = user-service catalog-service inventory-service order-service payment-service
 
 # -------------------------------
 # Include sub-makefiles

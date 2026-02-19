@@ -7,7 +7,8 @@ import org.springframework.stereotype.Component
 class PublicEndpoints : PublicEndpointProvider {
     override fun publicEndpoints(): Array<String> = arrayOf(
         "/api/users",
-        "/api/users/login",
         "/api/users/**",
+        "/api/auth/login",
+        "/api/auth/refresh",
     )
 }

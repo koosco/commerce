@@ -1,16 +1,19 @@
 # User Service Guide
 
-사용자 등록 및 프로필 관리를 담당하는 서비스입니다.
+사용자 등록, 프로필 관리, 인증(JWT 발급/로그인)을 담당하는 서비스입니다.
 
 - **Port**: 8081
 - **Database**: commerce-user (MariaDB)
+- **Cache**: Redis (refresh token 저장)
 
 ## 핵심 기능
 
 - 회원가입 (이메일, 비밀번호, 이름, 전화번호)
+- 로그인 / 로그아웃 (JWT Access Token + Refresh Token)
+- 토큰 갱신 (Refresh Token → 새 토큰 발급)
 - 프로필 조회/수정
-- 계정 삭제 (soft delete)
-- 관리자 강제 수정/삭제
+- 계정 탈퇴 (soft delete, WITHDRAWN)
+- 관리자 강제 수정/잠금 (LOCKED)
 
 ## Clean Architecture 계층
 
@@ -18,38 +21,36 @@
 user-service/
 ├── api/                    # REST 컨트롤러, 요청 DTO
 ├── application/            # Use Cases, Commands, Ports
-│   ├── usecase/            # RegisterUseCase, GetUserDetailUseCase 등
-│   ├── port/               # AuthServiceClient (외부 포트)
-│   └── repository/         # UserRepository
-├── domain/                 # 엔티티, Value Objects
-│   ├── entity/User.kt
-│   └── vo/                 # Email, Phone VO
+│   ├── usecase/            # Register, Login, Refresh, Logout 등
+│   ├── port/               # UserRepository, TokenGeneratorPort, RefreshTokenStorePort
+│   ├── command/            # CreateUserCommand, LoginCommand 등
+│   └── dto/                # UserDto, AuthTokenDto
+├── domain/                 # 엔티티, Value Objects, Enums
+│   ├── entity/             # Member, OAuthAccount, Address
+│   ├── enums/              # MemberStatus, MemberRole, OAuthProvider
+│   └── vo/                 # Email, Phone, EncryptedPassword
 └── infra/                  # 구현체
-    ├── persist/            # JPA Repository, Converters
-    └── client/             # Feign Client (Auth Service 연동)
+    ├── persist/            # JPA Repository, QueryDSL, Converters
+    ├── security/           # JwtTokenGeneratorAdapter
+    ├── redis/              # RedisRefreshTokenAdapter
+    └── config/             # SecurityBeanConfig, RedisConfig, PublicEndpoints
 ```
 
 ## Value Object 기반 도메인 검증
 
-Email, Phone VO와 JPA Converter 사용 — 상세: `@services/user-service/.claude/docs/value-objects.md`
-
-## 서비스 간 통신 (Auth Service 연동)
-
-**Kafka 이벤트 없음** - Feign Client로 동기 통신, 보상 트랜잭션 패턴 적용
-
-상세: `@services/user-service/.claude/docs/compensation-transaction.md`
+Email, Phone, EncryptedPassword VO와 JPA Converter 사용
 
 ## 도메인 모델
 
 ```kotlin
-@Entity
-class User(
-    val email: Email,           // VO
+@Entity @Table(name = "member_user")
+class Member(
+    val email: Email,                   // VO
     var name: String,
-    var phone: Phone,           // VO
-    var status: UserStatus,     // ACTIVE, INACTIVE, BLOCKED
-    val role: UserRole,         // ROLE_USER, ROLE_ADMIN
-    val provider: AuthProvider, // LOCAL, GOOGLE, KAKAO
+    var phone: Phone?,                  // VO, nullable
+    var passwordHash: EncryptedPassword?, // VO, nullable (소셜 전용 사용자)
+    val role: MemberRole,               // USER, ADMIN
+    var status: MemberStatus,           // ACTIVE, DORMANT, LOCKED, WITHDRAWN
 )
 ```
 
@@ -60,10 +61,20 @@ class User(
 | POST | `/api/users` | X | 회원가입 |
 | GET | `/api/users/{userId}` | X | 사용자 조회 |
 | PATCH | `/api/users/me` | O | 본인 정보 수정 |
-| DELETE | `/api/users/me` | O | 본인 계정 삭제 |
-| PATCH | `/api/admin/users/{userId}` | O (ADMIN) | 강제 수정 |
-| DELETE | `/api/admin/users/{userId}` | O (ADMIN) | 강제 삭제 |
+| DELETE | `/api/users/me` | O | 본인 계정 탈퇴 |
+| PATCH | `/api/users/{userId}` | O (ADMIN) | 강제 수정 |
+| DELETE | `/api/users/{userId}` | O (ADMIN) | 강제 잠금 |
+| POST | `/api/auth/login` | X | 로그인 |
+| POST | `/api/auth/refresh` | X | 토큰 갱신 |
+| POST | `/api/auth/logout` | O | 로그아웃 |
+
+## 인증 플로우
+
+- **로그인**: Member 조회 → BCrypt 검증 → JWT 발급 → Redis에 Refresh Token 저장
+- **토큰 갱신**: Cookie에서 Refresh Token 추출 → Redis 검증 → 새 토큰 발급
+- **로그아웃**: Redis에서 Refresh Token 삭제
+- **Refresh Token**: Redis key `member:refresh-token:{userId}`, TTL 7일
 
 ## 에러 코드
 
-상세: `@services/user-service/.claude/docs/error-codes.md`
+`MemberErrorCode` 참조 — MEMBER-4xx-xxx 형식

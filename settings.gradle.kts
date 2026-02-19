@@ -6,7 +6,6 @@ include(":common:common-security")
 include(":common:common-observability")
 
 // Service modules
-include(":services:auth-service")
 include(":services:user-service")
 include(":services:catalog-service")
 include(":services:inventory-service")

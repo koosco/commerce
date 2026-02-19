@@ -31,7 +31,7 @@ The project is a distributed system created as a portfolio for a junior backend 
 ```
 mono/
 ├── common/                   # Shared modules (common-core, common-security, common-observability)
-├── services/                 # auth(8089), user(8081), catalog(8084), inventory(8083), order(8085), payment(8087)
+├── services/                 # user(8081), catalog(8084), inventory(8083), order(8085), payment(8087)
 ├── infra/                    # Docker, Kafka, k8s, monitoring
 └── load-test/                # k6 load testing (NOT in Gradle build)
 ```
@@ -144,5 +144,4 @@ Each service has its own `.claude/CLAUDE.md` with specific guidance:
 - `services/payment-service/` - Toss Payments, idempotency, outbox
 - `services/inventory-service/` - Redis + MariaDB hybrid stock management
 - `services/catalog-service/` - Products, categories, SKUs
-- `services/user-service/` - User registration, profile management
-- `services/auth-service/` - JWT issuance, login flow
+- `services/user-service/` - User registration, profile management, JWT issuance, login flow

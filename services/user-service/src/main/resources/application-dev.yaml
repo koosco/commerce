@@ -1,11 +1,4 @@
 spring:
-  cloud:
-    openfeign:
-      client:
-        config:
-          auth-service:
-            connect-timeout: 3000
-            read-timeout: 5000
   datasource:
     url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:commerce-user}
     username: ${DB_USERNAME:admin}
@@ -30,9 +23,10 @@ spring:
           batch_size: 20
         order_inserts: true
         order_updates: true
-
-auth-service:
-  url: ${AUTH_SERVICE_URL:http://auth-service.commerce.svc.cluster.local}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 logging:
   level:

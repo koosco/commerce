@@ -19,7 +19,7 @@ class AdminController(
 
     @Operation(
         summary = "사용자 삭제",
-        description = "사용자를 삭제하고 BLOCK 처리합니다.",
+        description = "사용자를 삭제하고 LOCK 처리합니다.",
     )
     @DeleteMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")

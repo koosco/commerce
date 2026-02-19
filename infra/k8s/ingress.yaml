@@ -108,13 +108,13 @@ spec:
                   number: 80
 
           # ==========================================
-          # Auth Service - 인증/인가
+          # Auth - 인증/인가 (user-service에서 처리)
           # ==========================================
           - path: /api/auth
             pathType: Prefix
             backend:
               service:
-                name: auth-service
+                name: user-service
                 port:
                   number: 80
 

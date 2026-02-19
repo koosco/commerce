@@ -8,19 +8,11 @@ plugins {
     id("com.diffplug.spotless")
 }
 
-val springCloudVersion by extra("2025.0.0")
-
 description = "user-service"
 
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion")
     }
 }
 
@@ -50,8 +42,13 @@ dependencies {
     kapt("jakarta.annotation:jakarta.annotation-api")
     kapt("jakarta.persistence:jakarta.persistence-api")
 
-    // open feign
-    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+    // JWT 생성 (auth-service에서 이동)
+    implementation("io.jsonwebtoken:jjwt-api:0.12.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
+
+    // Redis (refresh token 저장)
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
     // swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1")
