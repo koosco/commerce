@@ -1,7 +1,7 @@
 package com.koosco.catalogservice.common.config
 
-import com.koosco.catalogservice.product.application.contract.ProductIntegrationEvent
-import com.koosco.catalogservice.product.infra.messaging.TopicResolver
+import com.koosco.catalogservice.application.contract.ProductIntegrationEvent
+import com.koosco.catalogservice.infra.messaging.TopicResolver
 import org.springframework.stereotype.Component
 
 /**

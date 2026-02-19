@@ -1,8 +1,8 @@
 package com.koosco.catalogservice.integration.kafka
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.koosco.catalogservice.product.application.contract.outbound.ProductSkuCreatedEvent
-import com.koosco.catalogservice.product.application.port.IntegrationEventProducer
+import com.koosco.catalogservice.application.contract.outbound.ProductSkuCreatedEvent
+import com.koosco.catalogservice.application.port.IntegrationEventProducer
 import com.koosco.common.core.event.CloudEvent
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
