@@ -20,6 +20,12 @@ class Address(
     val label: String,
 
     @Column(nullable = false)
+    val recipient: String,
+
+    @Column(nullable = false)
+    val phone: String,
+
+    @Column(nullable = false)
     val zipCode: String,
 
     @Column(nullable = false)
@@ -34,4 +40,31 @@ class Address(
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
     var updatedAt: LocalDateTime = LocalDateTime.now(),
-)
+) {
+    companion object {
+        fun create(
+            member: Member,
+            label: String,
+            recipient: String,
+            phone: String,
+            zipCode: String,
+            address: String,
+            addressDetail: String,
+            isDefault: Boolean,
+        ): Address = Address(
+            member = member,
+            label = label,
+            recipient = recipient,
+            phone = phone,
+            zipCode = zipCode,
+            address = address,
+            addressDetail = addressDetail,
+            isDefault = isDefault,
+        )
+    }
+
+    fun clearDefault() {
+        isDefault = false
+        updatedAt = LocalDateTime.now()
+    }
+}

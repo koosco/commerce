@@ -10,8 +10,17 @@ data class CreateOrderCommand(
     val userId: Long,
     val items: List<OrderItemCommand>,
     val discountAmount: Money = Money(0L),
+    val shippingAddress: ShippingAddressCommand,
 ) {
     data class OrderItemCommand(val skuId: String, val quantity: Int, val unitPrice: Money)
+
+    data class ShippingAddressCommand(
+        val recipient: String,
+        val phone: String,
+        val zipCode: String,
+        val address: String,
+        val addressDetail: String,
+    )
 }
 
 /**

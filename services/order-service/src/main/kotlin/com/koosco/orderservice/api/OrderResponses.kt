@@ -59,6 +59,14 @@ data class OrderItemResponse(
     }
 }
 
+data class ShippingAddressResponse(
+    val recipient: String,
+    val phone: String,
+    val zipCode: String,
+    val address: String,
+    val addressDetail: String,
+)
+
 data class OrderDetailResponse(
     val orderId: Long,
     val userId: Long,
@@ -67,6 +75,7 @@ data class OrderDetailResponse(
     val discountAmount: Long,
     val payableAmount: Long,
     val refundedAmount: Long,
+    val shippingAddress: ShippingAddressResponse,
     val items: List<OrderItemResponse>,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
@@ -80,6 +89,13 @@ data class OrderDetailResponse(
             discountAmount = result.discountAmount,
             payableAmount = result.payableAmount,
             refundedAmount = result.refundedAmount,
+            shippingAddress = ShippingAddressResponse(
+                recipient = result.shippingAddress.recipient,
+                phone = result.shippingAddress.phone,
+                zipCode = result.shippingAddress.zipCode,
+                address = result.shippingAddress.address,
+                addressDetail = result.shippingAddress.addressDetail,
+            ),
             items = result.items.map { OrderItemResponse.from(it) },
             createdAt = result.createdAt,
             updatedAt = result.updatedAt,

@@ -10,6 +10,7 @@ import com.koosco.orderservice.application.result.CreateOrderResult
 import com.koosco.orderservice.domain.entity.Order
 import com.koosco.orderservice.domain.vo.OrderAmount
 import com.koosco.orderservice.domain.vo.OrderItemSpec
+import com.koosco.orderservice.domain.vo.ShippingAddress
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
@@ -48,11 +49,21 @@ class CreateOrderUseCase(
             discount = command.discountAmount,
         )
 
+        // 배송지 스냅샷
+        val shippingAddress = ShippingAddress(
+            recipient = command.shippingAddress.recipient,
+            phone = command.shippingAddress.phone,
+            zipCode = command.shippingAddress.zipCode,
+            address = command.shippingAddress.address,
+            addressDetail = command.shippingAddress.addressDetail,
+        )
+
         // 주문 생성
         val order = Order.create(
             userId = command.userId,
             itemSpecs = itemSpecs,
             amount = orderAmount,
+            shippingAddress = shippingAddress,
         )
 
         val savedOrder = orderRepository.save(order)

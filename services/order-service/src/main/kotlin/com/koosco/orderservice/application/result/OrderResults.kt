@@ -4,6 +4,7 @@ import com.koosco.orderservice.domain.entity.Order
 import com.koosco.orderservice.domain.entity.OrderItem
 import com.koosco.orderservice.domain.enums.OrderItemStatus
 import com.koosco.orderservice.domain.enums.OrderStatus
+import com.koosco.orderservice.domain.vo.ShippingAddress
 import java.time.LocalDateTime
 
 /**
@@ -51,6 +52,7 @@ data class OrderDetailResult(
     val discountAmount: Long,
     val payableAmount: Long,
     val refundedAmount: Long,
+    val shippingAddress: ShippingAddress,
     val items: List<OrderItemDetailResult>,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
@@ -64,6 +66,7 @@ data class OrderDetailResult(
             discountAmount = order.discountAmount.amount,
             payableAmount = order.payableAmount.amount,
             refundedAmount = order.refundedAmount.amount,
+            shippingAddress = order.shippingAddress,
             items = order.items.map { OrderItemDetailResult.from(it) },
             createdAt = order.createdAt,
             updatedAt = order.updatedAt,

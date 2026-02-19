@@ -8,8 +8,10 @@ import com.koosco.orderservice.domain.exception.PaymentMisMatch
 import com.koosco.orderservice.domain.vo.Money
 import com.koosco.orderservice.domain.vo.OrderAmount
 import com.koosco.orderservice.domain.vo.OrderItemSpec
+import com.koosco.orderservice.domain.vo.ShippingAddress
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
+import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
@@ -51,6 +53,9 @@ class Order(
     @Column(nullable = false)
     var refundedAmount: Money = Money(0L),
 
+    @Embedded
+    val shippingAddress: ShippingAddress,
+
     @Column(nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
@@ -66,13 +71,19 @@ class Order(
 ) {
 
     companion object {
-        fun create(userId: Long, itemSpecs: List<OrderItemSpec>, amount: OrderAmount): Order {
+        fun create(
+            userId: Long,
+            itemSpecs: List<OrderItemSpec>,
+            amount: OrderAmount,
+            shippingAddress: ShippingAddress,
+        ): Order {
             val order = Order(
                 userId = userId,
                 status = OrderStatus.INIT,
                 totalAmount = amount.total,
                 discountAmount = amount.discount,
                 payableAmount = amount.payable,
+                shippingAddress = shippingAddress,
                 items = mutableListOf(),
             )
 

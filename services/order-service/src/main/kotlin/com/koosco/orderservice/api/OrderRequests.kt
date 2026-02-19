@@ -18,11 +18,41 @@ data class CreateOrderRequest(
     @field:NotNull
     @field:Min(0)
     val discountAmount: Long = 0L,
+
+    @field:NotNull
+    @field:Valid
+    val shippingAddress: ShippingAddressRequest,
 ) {
     fun toCommand(userId: Long): CreateOrderCommand = CreateOrderCommand(
         userId = userId,
         items = items.map { it.toCommand() },
         discountAmount = Money(discountAmount),
+        shippingAddress = shippingAddress.toCommand(),
+    )
+}
+
+data class ShippingAddressRequest(
+    @field:NotNull
+    val recipient: String,
+
+    @field:NotNull
+    val phone: String,
+
+    @field:NotNull
+    val zipCode: String,
+
+    @field:NotNull
+    val address: String,
+
+    @field:NotNull
+    val addressDetail: String,
+) {
+    fun toCommand(): CreateOrderCommand.ShippingAddressCommand = CreateOrderCommand.ShippingAddressCommand(
+        recipient = recipient,
+        phone = phone,
+        zipCode = zipCode,
+        address = address,
+        addressDetail = addressDetail,
     )
 }
 
