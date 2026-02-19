@@ -1,10 +1,10 @@
 package com.koosco.orderservice.integration.kafka
 
-import com.koosco.orderservice.order.application.contract.outbound.order.OrderCancelledEvent
-import com.koosco.orderservice.order.application.contract.outbound.order.OrderConfirmedEvent
-import com.koosco.orderservice.order.application.contract.outbound.order.OrderPlacedEvent
-import com.koosco.orderservice.order.application.port.IntegrationEventProducer
-import com.koosco.orderservice.order.domain.enums.OrderCancelReason
+import com.koosco.orderservice.application.contract.outbound.order.OrderCancelledEvent
+import com.koosco.orderservice.application.contract.outbound.order.OrderConfirmedEvent
+import com.koosco.orderservice.application.contract.outbound.order.OrderPlacedEvent
+import com.koosco.orderservice.application.port.IntegrationEventProducer
+import com.koosco.orderservice.domain.enums.OrderCancelReason
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.DisplayName

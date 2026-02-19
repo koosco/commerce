@@ -1,13 +1,15 @@
 package com.koosco.inventoryservice.integration.kafka
 
-import com.koosco.inventoryservice.inventory.application.contract.outbound.inventory.StockConfirmFailedEvent
-import com.koosco.inventoryservice.inventory.application.contract.outbound.inventory.StockConfirmedEvent
-import com.koosco.inventoryservice.inventory.application.contract.outbound.inventory.StockReservationFailedEvent
-import com.koosco.inventoryservice.inventory.application.contract.outbound.inventory.StockReservedEvent
-import com.koosco.inventoryservice.inventory.application.port.IntegrationEventProducer
-import com.koosco.inventoryservice.inventory.application.port.InventoryStockSnapshotQueryPort
-import com.koosco.inventoryservice.inventory.domain.enums.StockConfirmFailReason
-import com.koosco.inventoryservice.inventory.domain.enums.StockReservationFailReason
+import com.fasterxml.jackson.databind.JsonNode
+import com.koosco.inventoryservice.application.contract.outbound.inventory.StockConfirmFailedEvent
+import com.koosco.inventoryservice.application.contract.outbound.inventory.StockConfirmedEvent
+import com.koosco.inventoryservice.application.contract.outbound.inventory.StockReservationFailedEvent
+import com.koosco.inventoryservice.application.contract.outbound.inventory.StockReservedEvent
+import com.koosco.inventoryservice.application.port.IntegrationEventProducer
+import com.koosco.inventoryservice.application.port.InventoryStockSnapshotQueryPort
+import com.koosco.inventoryservice.domain.enums.StockConfirmFailReason
+import com.koosco.inventoryservice.domain.enums.StockReservationFailReason
+import com.koosco.inventoryservice.infra.outbox.JpaInventoryOutboxRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -18,7 +20,6 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.testcontainers.junit.jupiter.Testcontainers
-import java.time.Duration
 import java.util.UUID
 
 /**
@@ -39,6 +40,9 @@ class KafkaStockEventProducerIntegrationTest : KafkaContainerTestBase() {
     @Autowired
     private lateinit var eventProducer: IntegrationEventProducer
 
+    @Autowired
+    private lateinit var outboxRepository: JpaInventoryOutboxRepository
+
     @Value("\${inventory.topic.mappings.stock.reserved}")
     private lateinit var stockReservedTopic: String
 
@@ -53,12 +57,7 @@ class KafkaStockEventProducerIntegrationTest : KafkaContainerTestBase() {
 
     @BeforeEach
     fun setUp() {
-        createTopics(
-            stockReservedTopic,
-            stockReservationFailedTopic,
-            stockConfirmedTopic,
-            stockConfirmFailedTopic,
-        )
+        outboxRepository.deleteAll()
     }
 
     @Test
@@ -79,23 +78,17 @@ class KafkaStockEventProducerIntegrationTest : KafkaContainerTestBase() {
         )
 
         // When
-        val startTimestamp = System.currentTimeMillis()
         eventProducer.publish(event)
 
         // Then
-        val records = consumeMessages(stockReservedTopic, 1, Duration.ofSeconds(15), startTimestamp)
-
-        assertThat(records).hasSize(1)
-
-        val record = records.first()
-        assertValidCloudEvent(record)
-        assertEventType(record, "stock.reserved")
-
-        val cloudEvent = record.value()
-        assertThat(cloudEvent.source).isEqualTo("inventory-service")
-        assertThat(cloudEvent.subject).isEqualTo("inventory/$orderId")
-        assertThat(cloudEvent.data).isNotNull
-        assertThat(record.key()).isEqualTo(orderId.toString())
+        val data = assertOutboxCloudEvent(
+            orderId = orderId,
+            expectedEventType = "stock.reserved",
+            expectedTopic = stockReservedTopic,
+        )
+        assertThat(data["items"]).isNotNull
+        assertThat(data["correlationId"].asText()).isEqualTo(correlationId)
+        assertThat(data["causationId"].asText()).isEqualTo(causationId)
     }
 
     @Test
@@ -120,23 +113,18 @@ class KafkaStockEventProducerIntegrationTest : KafkaContainerTestBase() {
         )
 
         // When
-        val startTimestamp = System.currentTimeMillis()
         eventProducer.publish(event)
 
         // Then
-        val records = consumeMessages(stockReservationFailedTopic, 1, Duration.ofSeconds(15), startTimestamp)
-
-        assertThat(records).hasSize(1)
-
-        val record = records.first()
-        assertValidCloudEvent(record)
-        assertEventType(record, "stock.reservation.failed")
-
-        val cloudEvent = record.value()
-        assertThat(cloudEvent.source).isEqualTo("inventory-service")
-        assertThat(cloudEvent.subject).isEqualTo("inventory/$orderId")
-        assertThat(cloudEvent.data).isNotNull
-        assertThat(record.key()).isEqualTo(orderId.toString())
+        val data = assertOutboxCloudEvent(
+            orderId = orderId,
+            expectedEventType = "stock.reservation.failed",
+            expectedTopic = stockReservationFailedTopic,
+        )
+        assertThat(data["reason"].asText()).isEqualTo(StockReservationFailReason.NOT_ENOUGH_STOCK.name)
+        assertThat(data["failedItems"]).isNotNull
+        assertThat(data["correlationId"].asText()).isEqualTo(correlationId)
+        assertThat(data["causationId"].asText()).isEqualTo(causationId)
     }
 
     @Test
@@ -157,23 +145,17 @@ class KafkaStockEventProducerIntegrationTest : KafkaContainerTestBase() {
         )
 
         // When
-        val startTimestamp = System.currentTimeMillis()
         eventProducer.publish(event)
 
         // Then
-        val records = consumeMessages(stockConfirmedTopic, 1, Duration.ofSeconds(15), startTimestamp)
-
-        assertThat(records).hasSize(1)
-
-        val record = records.first()
-        assertValidCloudEvent(record)
-        assertEventType(record, "stock.confirmed")
-
-        val cloudEvent = record.value()
-        assertThat(cloudEvent.source).isEqualTo("inventory-service")
-        assertThat(cloudEvent.subject).isEqualTo("inventory/$orderId")
-        assertThat(cloudEvent.data).isNotNull
-        assertThat(record.key()).isEqualTo(orderId.toString())
+        val data = assertOutboxCloudEvent(
+            orderId = orderId,
+            expectedEventType = "stock.confirmed",
+            expectedTopic = stockConfirmedTopic,
+        )
+        assertThat(data["items"]).isNotNull
+        assertThat(data["correlationId"].asText()).isEqualTo(correlationId)
+        assertThat(data["causationId"].asText()).isEqualTo(causationId)
     }
 
     @Test
@@ -190,23 +172,17 @@ class KafkaStockEventProducerIntegrationTest : KafkaContainerTestBase() {
         )
 
         // When
-        val startTimestamp = System.currentTimeMillis()
         eventProducer.publish(event)
 
         // Then
-        val records = consumeMessages(stockConfirmFailedTopic, 1, Duration.ofSeconds(15), startTimestamp)
-
-        assertThat(records).hasSize(1)
-
-        val record = records.first()
-        assertValidCloudEvent(record)
-        assertEventType(record, "stock.confirm.failed")
-
-        val cloudEvent = record.value()
-        assertThat(cloudEvent.source).isEqualTo("inventory-service")
-        assertThat(cloudEvent.subject).isEqualTo("inventory/$orderId")
-        assertThat(cloudEvent.data).isNotNull
-        assertThat(record.key()).isEqualTo(orderId.toString())
+        val data = assertOutboxCloudEvent(
+            orderId = orderId,
+            expectedEventType = "stock.confirm.failed",
+            expectedTopic = stockConfirmFailedTopic,
+        )
+        assertThat(data["reason"].asText()).isEqualTo(StockConfirmFailReason.NOT_ENOUGH_RESERVED.name)
+        assertThat(data["correlationId"].asText()).isEqualTo(correlationId)
+        assertThat(data["causationId"].asText()).isEqualTo(causationId)
     }
 
     @Test
@@ -221,14 +197,15 @@ class KafkaStockEventProducerIntegrationTest : KafkaContainerTestBase() {
         )
 
         // When
-        val startTimestamp = System.currentTimeMillis()
         eventProducer.publish(event)
 
         // Then
-        val records = consumeMessages(stockReservedTopic, 1, Duration.ofSeconds(15), startTimestamp)
-
-        assertThat(records).hasSize(1)
-        assertThat(records.first().key()).isEqualTo(orderId.toString())
+        val data = assertOutboxCloudEvent(
+            orderId = orderId,
+            expectedEventType = "stock.reserved",
+            expectedTopic = stockReservedTopic,
+        )
+        assertThat(data["orderId"].asLong()).isEqualTo(orderId)
     }
 
     @Test
@@ -245,20 +222,34 @@ class KafkaStockEventProducerIntegrationTest : KafkaContainerTestBase() {
         )
 
         // When
-        val startTimestamp = System.currentTimeMillis()
         eventProducer.publish(event)
 
         // Then
-        val records = consumeMessages(stockReservedTopic, 1, Duration.ofSeconds(15), startTimestamp)
+        val data = assertOutboxCloudEvent(
+            orderId = orderId,
+            expectedEventType = "stock.reserved",
+            expectedTopic = stockReservedTopic,
+        )
+        assertThat(data["correlationId"].asText()).isEqualTo(correlationId)
+        assertThat(data["causationId"].asText()).isEqualTo(causationId)
+    }
 
-        assertThat(records).hasSize(1)
+    private fun assertOutboxCloudEvent(orderId: Long, expectedEventType: String, expectedTopic: String): JsonNode {
+        val outboxEntry = outboxRepository.findAll()
+            .filter { it.aggregateId == orderId.toString() && it.eventType == expectedEventType }
+            .maxByOrNull { it.id }
 
-        val cloudEvent = records.first().value()
-        assertThat(cloudEvent.data).isNotNull
+        assertThat(outboxEntry).isNotNull
+        assertThat(outboxEntry!!.topic).isEqualTo(expectedTopic)
+        assertThat(outboxEntry.partitionKey).isEqualTo(orderId.toString())
 
-        // Verify the data contains correlationId and causationId
-        val dataMap = objectMapper.convertValue(cloudEvent.data, Map::class.java)
-        assertThat(dataMap["correlationId"]).isEqualTo(correlationId)
-        assertThat(dataMap["causationId"]).isEqualTo(causationId)
+        val payload = objectMapper.readTree(outboxEntry.payload)
+        assertThat(payload["id"].asText()).isNotBlank
+        assertThat(payload["specversion"].asText()).isEqualTo("1.0")
+        assertThat(payload["source"].asText()).isEqualTo("inventory-service")
+        assertThat(payload["type"].asText()).isEqualTo(expectedEventType)
+        assertThat(payload["subject"].asText()).isEqualTo("inventory/$orderId")
+        assertThat(payload["data"]).isNotNull
+        return payload["data"]
     }
 }

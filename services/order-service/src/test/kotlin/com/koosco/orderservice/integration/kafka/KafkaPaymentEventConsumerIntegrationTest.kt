@@ -1,12 +1,12 @@
 package com.koosco.orderservice.integration.kafka
 
 import com.koosco.common.core.event.CloudEvent
-import com.koosco.orderservice.order.application.contract.inbound.payment.PaymentCompletedEvent
-import com.koosco.orderservice.order.application.contract.inbound.payment.PaymentCreatedEvent
-import com.koosco.orderservice.order.application.contract.inbound.payment.PaymentFailedEvent
-import com.koosco.orderservice.order.application.usecase.CancelOrderByPaymentFailureUseCase
-import com.koosco.orderservice.order.application.usecase.MarkOrderPaidUseCase
-import com.koosco.orderservice.order.application.usecase.MarkOrderPaymentCreatedUseCase
+import com.koosco.orderservice.application.contract.inbound.payment.PaymentCompletedEvent
+import com.koosco.orderservice.application.contract.inbound.payment.PaymentCreatedEvent
+import com.koosco.orderservice.application.contract.inbound.payment.PaymentFailedEvent
+import com.koosco.orderservice.application.usecase.CancelOrderByPaymentFailureUseCase
+import com.koosco.orderservice.application.usecase.MarkOrderPaidUseCase
+import com.koosco.orderservice.application.usecase.MarkOrderPaymentCreatedUseCase
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested

@@ -1,11 +1,11 @@
 package com.koosco.inventoryservice.integration.kafka
 
 import com.koosco.common.core.event.CloudEvent
-import com.koosco.inventoryservice.inventory.application.contract.inbound.order.OrderCancelledEvent
-import com.koosco.inventoryservice.inventory.application.contract.inbound.order.OrderConfirmedEvent
-import com.koosco.inventoryservice.inventory.application.contract.inbound.order.OrderPlacedEvent
-import com.koosco.inventoryservice.inventory.application.port.InventoryStockSnapshotQueryPort
-import com.koosco.inventoryservice.inventory.application.port.InventoryStockStorePort
+import com.koosco.inventoryservice.application.contract.inbound.order.OrderCancelledEvent
+import com.koosco.inventoryservice.application.contract.inbound.order.OrderConfirmedEvent
+import com.koosco.inventoryservice.application.contract.inbound.order.OrderPlacedEvent
+import com.koosco.inventoryservice.application.port.InventoryStockSnapshotQueryPort
+import com.koosco.inventoryservice.application.port.InventoryStockStorePort
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -103,10 +103,9 @@ class StockIdempotencyTest : KafkaContainerTestBase() {
         kafkaTemplate.send(orderPlacedTopic, orderId.toString(), cloudEvent).get()
         kafkaTemplate.send(orderPlacedTopic, orderId.toString(), cloudEvent).get()
 
-        // Then - reserve should be called at least twice (once per message)
-        // The actual idempotency is handled by the InventoryStockStore implementation
+        // Then - duplicate eventId must be processed only once
         await().atMost(Duration.ofSeconds(15)).untilAsserted {
-            verify(inventoryStockStore, atLeast(2)).reserve(any(), any())
+            verify(inventoryStockStore, times(1)).reserve(any(), any())
         }
     }
 
@@ -139,9 +138,9 @@ class StockIdempotencyTest : KafkaContainerTestBase() {
         kafkaTemplate.send(orderConfirmedTopic, orderId.toString(), cloudEvent).get()
         kafkaTemplate.send(orderConfirmedTopic, orderId.toString(), cloudEvent).get()
 
-        // Then - confirm should be called at least twice
+        // Then - duplicate eventId must be processed only once
         await().atMost(Duration.ofSeconds(15)).untilAsserted {
-            verify(inventoryStockStore, atLeast(2)).confirm(any(), any())
+            verify(inventoryStockStore, times(1)).confirm(any(), any())
         }
     }
 
@@ -175,9 +174,9 @@ class StockIdempotencyTest : KafkaContainerTestBase() {
         kafkaTemplate.send(orderCancelledTopic, orderId.toString(), cloudEvent).get()
         kafkaTemplate.send(orderCancelledTopic, orderId.toString(), cloudEvent).get()
 
-        // Then - cancel should be called at least twice
+        // Then - duplicate eventId must be processed only once
         await().atMost(Duration.ofSeconds(15)).untilAsserted {
-            verify(inventoryStockStore, atLeast(2)).cancel(any(), any())
+            verify(inventoryStockStore, times(1)).cancel(any(), any())
         }
     }
 

@@ -1,7 +1,7 @@
 package com.koosco.inventoryservice.common.config.kafka
 
-import com.koosco.inventoryservice.inventory.application.contract.InventoryIntegrationEvent
-import com.koosco.inventoryservice.inventory.infra.messaging.IntegrationTopicResolver
+import com.koosco.inventoryservice.application.contract.InventoryIntegrationEvent
+import com.koosco.inventoryservice.infra.messaging.IntegrationTopicResolver
 import org.springframework.stereotype.Component
 
 /**
