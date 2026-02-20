@@ -73,9 +73,9 @@ class KafkaPaymentCompletedConsumer(
 
             // Record idempotency after successful processing
             idempotencyChecker.recordProcessed(
-                eventId = event.id,
+                messageId = event.id,
                 action = Actions.MARK_PAID,
-                orderId = paymentCompleted.orderId,
+                aggregateId = paymentCompleted.orderId.toString(),
             )
 
             ack.acknowledge()

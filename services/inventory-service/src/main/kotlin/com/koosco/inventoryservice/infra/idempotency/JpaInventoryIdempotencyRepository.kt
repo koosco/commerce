@@ -11,5 +11,5 @@ import org.springframework.stereotype.Repository
 interface JpaInventoryIdempotencyRepository :
     JpaRepository<InventoryEventIdempotency, Long>,
     InventoryIdempotencyRepository {
-    override fun findByEventIdAndAction(eventId: String, action: String): InventoryEventIdempotency?
+    override fun findByMessageIdAndAction(messageId: String, action: String): InventoryEventIdempotency?
 }

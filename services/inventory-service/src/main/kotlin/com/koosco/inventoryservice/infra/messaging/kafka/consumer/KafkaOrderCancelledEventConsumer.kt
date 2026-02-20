@@ -79,9 +79,9 @@ class KafkaOrderCancelledEventConsumer(
 
             // Record idempotency after successful processing
             idempotencyChecker.recordProcessed(
-                eventId = event.id,
+                messageId = event.id,
                 action = Actions.RELEASE_STOCK,
-                referenceId = orderCancelled.orderId.toString(),
+                aggregateId = orderCancelled.orderId.toString(),
             )
 
             ack.acknowledge()

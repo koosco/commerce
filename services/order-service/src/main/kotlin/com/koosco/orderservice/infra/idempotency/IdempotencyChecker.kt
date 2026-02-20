@@ -5,70 +5,26 @@ import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Component
 
-/**
- * Helper for idempotency operations.
- *
- * Provides a consistent pattern for checking and recording processed events.
- */
 @Component
 class IdempotencyChecker(private val idempotencyRepository: OrderIdempotencyRepository) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    /**
-     * Check if an event has already been processed.
-     * Use this for fast-path rejection in consumers.
-     *
-     * @return true if already processed, false otherwise
-     */
-    fun isAlreadyProcessed(eventId: String, action: String): Boolean =
-        idempotencyRepository.existsByEventIdAndAction(eventId, action)
+    fun isAlreadyProcessed(messageId: String, action: String): Boolean =
+        idempotencyRepository.existsByMessageIdAndAction(messageId, action)
 
-    /**
-     * Record that an event has been processed.
-     * Should be called within the same transaction as the business logic.
-     *
-     * @return true if successfully recorded, false if already exists (duplicate)
-     */
-    fun recordProcessed(eventId: String, action: String, orderId: Long): Boolean = try {
+    fun recordProcessed(messageId: String, action: String, aggregateId: String): Boolean = try {
         idempotencyRepository.save(
             OrderEventIdempotency.create(
-                eventId = eventId,
+                messageId = messageId,
                 action = action,
-                orderId = orderId,
+                aggregateId = aggregateId,
             ),
         )
         true
     } catch (e: DataIntegrityViolationException) {
-        // Unique constraint violation - already processed by another thread
         logger.info(
-            "Event already processed (race condition resolved): eventId=$eventId, action=$action",
+            "Event already processed (race condition resolved): messageId=$messageId, action=$action",
         )
         false
-    }
-
-    /**
-     * Execute a block with idempotency guarantee.
-     *
-     * 1. Checks if already processed (fast-path)
-     * 2. Executes the block
-     * 3. Records the processing
-     *
-     * If a race condition occurs (duplicate event processed concurrently),
-     * the second execution will fail at the unique constraint and return false.
-     *
-     * @return true if block was executed, false if already processed
-     */
-    fun executeWithIdempotency(eventId: String, action: String, orderId: Long, block: () -> Unit): Boolean {
-        // Fast-path check
-        if (isAlreadyProcessed(eventId, action)) {
-            logger.debug("Event already processed (fast-path): eventId=$eventId, action=$action")
-            return false
-        }
-
-        // Execute business logic and record idempotency
-        // Note: This should be within a transaction
-        block()
-
-        return recordProcessed(eventId, action, orderId)
     }
 }

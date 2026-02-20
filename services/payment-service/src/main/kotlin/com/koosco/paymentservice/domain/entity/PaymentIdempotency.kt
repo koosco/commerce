@@ -1,25 +1,27 @@
 package com.koosco.paymentservice.domain.entity
 
-import com.koosco.paymentservice.domain.enums.PaymentAction
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
-import java.time.LocalDateTime
+import java.time.Instant
 
 @Entity
 @Table(
-    name = "payment_idempotency",
+    name = "payment_event_idempotency",
     uniqueConstraints = [
         UniqueConstraint(
             name = "uq_payment_idempotency",
-            columnNames = ["order_id", "action", "idempotency_key"],
+            columnNames = ["message_id", "action"],
         ),
+    ],
+    indexes = [
+        Index(name = "idx_payment_idempotency_aggregate", columnList = "aggregate_type, aggregate_id"),
+        Index(name = "idx_payment_idempotency_processed", columnList = "processed_at"),
     ],
 )
 class PaymentIdempotency(
@@ -27,16 +29,32 @@ class PaymentIdempotency(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 
-    @Column(name = "order_id", nullable = false)
-    val orderId: Long,
+    @Column(name = "message_id", nullable = false)
+    val messageId: String,
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "action", nullable = false)
-    val action: PaymentAction,
+    @Column(name = "action", nullable = false, length = 100)
+    val action: String,
 
-    @Column(name = "idempotency_key", nullable = false)
-    val idempotencyKey: String,
+    @Column(name = "aggregate_id", nullable = false)
+    val aggregateId: String,
 
-    @Column(name = "created_at", nullable = false)
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-)
+    @Column(name = "aggregate_type", nullable = false, length = 100)
+    val aggregateType: String = "Payment",
+
+    @Column(name = "processed_at", nullable = false, updatable = false)
+    val processedAt: Instant = Instant.now(),
+) {
+    companion object {
+        object Actions {
+            const val CREATE = "CREATE"
+            const val APPROVE = "APPROVE"
+            const val CANCEL = "CANCEL"
+        }
+
+        fun create(messageId: String, action: String, aggregateId: String): PaymentIdempotency = PaymentIdempotency(
+            messageId = messageId,
+            action = action,
+            aggregateId = aggregateId,
+        )
+    }
+}

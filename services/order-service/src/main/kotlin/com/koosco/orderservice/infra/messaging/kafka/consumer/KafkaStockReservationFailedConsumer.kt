@@ -75,9 +75,9 @@ class KafkaStockReservationFailedConsumer(
 
             // Record idempotency after successful processing
             idempotencyChecker.recordProcessed(
-                eventId = event.id,
+                messageId = event.id,
                 action = Actions.MARK_FAILED_BY_STOCK_RESERVATION,
-                orderId = stockReserveFailed.orderId,
+                aggregateId = stockReserveFailed.orderId.toString(),
             )
 
             ack.acknowledge()

@@ -68,9 +68,9 @@ class KafkaStockReservedConsumer(
 
             // Record idempotency after successful processing
             idempotencyChecker.recordProcessed(
-                eventId = event.id,
+                messageId = event.id,
                 action = Actions.MARK_PAYMENT_PENDING,
-                orderId = stockReserved.orderId,
+                aggregateId = stockReserved.orderId.toString(),
             )
 
             ack.acknowledge()

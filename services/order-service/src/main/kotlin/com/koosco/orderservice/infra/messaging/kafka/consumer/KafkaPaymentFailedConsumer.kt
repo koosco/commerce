@@ -74,9 +74,9 @@ class KafkaPaymentFailedConsumer(
 
             // Record idempotency after successful processing
             idempotencyChecker.recordProcessed(
-                eventId = event.id,
+                messageId = event.id,
                 action = Actions.CANCEL_BY_PAYMENT_FAILURE,
-                orderId = paymentFailed.orderId,
+                aggregateId = paymentFailed.orderId.toString(),
             )
 
             ack.acknowledge()

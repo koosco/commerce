@@ -9,7 +9,6 @@ import com.koosco.paymentservice.application.port.PaymentRepository
 import com.koosco.paymentservice.contract.inbound.order.OrderPlacedEvent
 import com.koosco.paymentservice.domain.entity.Payment
 import com.koosco.paymentservice.domain.entity.PaymentIdempotency
-import com.koosco.paymentservice.domain.enums.PaymentAction
 import com.koosco.paymentservice.infra.persist.jpa.JpaIdempotencyRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await
@@ -32,12 +31,6 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-/**
- * Integration tests for PaymentIdempotency handling.
- *
- * Verifies that duplicate events are properly handled using the
- * IdempotencyRepository to prevent duplicate payment creation.
- */
 @SpringBootTest
 @Testcontainers
 @ActiveProfiles("test")
@@ -106,10 +99,9 @@ class PaymentIdempotencyTest : KafkaContainerTestBase() {
             .untilAsserted {
                 val savedIdempotency = jpaIdempotencyRepository.findAll()
                 assertThat(savedIdempotency).hasSize(1)
-                assertThat(savedIdempotency.first().orderId).isEqualTo(orderId)
-                assertThat(savedIdempotency.first().action).isEqualTo(PaymentAction.CREATE)
-                // Idempotency key is the CloudEvent ID (which becomes causationId in context)
-                assertThat(savedIdempotency.first().idempotencyKey).isNotBlank()
+                assertThat(savedIdempotency.first().aggregateId).isEqualTo(orderId.toString())
+                assertThat(savedIdempotency.first().action).isEqualTo(PaymentIdempotency.Companion.Actions.CREATE)
+                assertThat(savedIdempotency.first().messageId).isNotBlank()
             }
     }
 
@@ -121,10 +113,10 @@ class PaymentIdempotencyTest : KafkaContainerTestBase() {
         val causationId = UUID.randomUUID().toString()
 
         // Pre-insert idempotency record to simulate already processed event
-        val existingIdempotency = PaymentIdempotency(
-            orderId = orderId,
-            action = PaymentAction.CREATE,
-            idempotencyKey = causationId,
+        val existingIdempotency = PaymentIdempotency.create(
+            messageId = causationId,
+            action = PaymentIdempotency.Companion.Actions.CREATE,
+            aggregateId = orderId.toString(),
         )
         jpaIdempotencyRepository.save(existingIdempotency)
 
@@ -139,7 +131,7 @@ class PaymentIdempotencyTest : KafkaContainerTestBase() {
 
         // Create CloudEvent with the same ID as causationId to trigger idempotency
         val cloudEvent = CloudEvent(
-            id = causationId, // Same as already-saved idempotency key
+            id = causationId, // Same as already-saved message ID
             source = "order-service",
             type = "order.placed",
             subject = "order/$orderId",
@@ -156,51 +148,45 @@ class PaymentIdempotencyTest : KafkaContainerTestBase() {
             .during(3, TimeUnit.SECONDS)
             .atMost(5, TimeUnit.SECONDS)
             .untilAsserted {
-                // Verify that payment repository save was never called
-                // because DataIntegrityViolationException was caught
                 verify(paymentRepository, never()).save(any())
             }
     }
 
     @Test
-    @DisplayName("should allow different orderId with same idempotency key")
-    fun `should allow different orderId with same idempotency key`() {
-        // Given - same idempotency key is allowed for different orderIds
-        val idempotencyKey = UUID.randomUUID().toString()
-        val orderId1 = 30001L
-        val orderId2 = 30002L
+    @DisplayName("should allow different messageIds for same aggregate")
+    fun `should allow different messageIds for same aggregate`() {
+        // Given - different message IDs are allowed for the same aggregate
+        val orderId = 30001L
 
         val event1 = OrderPlacedEvent(
-            orderId = orderId1,
+            orderId = orderId,
             userId = 300L,
             payableAmount = 10000L,
             items = emptyList(),
             correlationId = UUID.randomUUID().toString(),
-            causationId = idempotencyKey,
+            causationId = UUID.randomUUID().toString(),
         )
 
         val event2 = OrderPlacedEvent(
-            orderId = orderId2,
+            orderId = orderId,
             userId = 300L,
             payableAmount = 20000L,
             items = emptyList(),
             correlationId = UUID.randomUUID().toString(),
-            causationId = idempotencyKey,
+            causationId = UUID.randomUUID().toString(),
         )
 
-        val cloudEvent1 = CloudEvent(
-            id = idempotencyKey,
+        val cloudEvent1 = CloudEvent.of(
             source = "order-service",
             type = "order.placed",
-            subject = "order/$orderId1",
+            subject = "order/$orderId",
             data = event1,
         )
 
-        val cloudEvent2 = CloudEvent(
-            id = idempotencyKey,
+        val cloudEvent2 = CloudEvent.of(
             source = "order-service",
             type = "order.placed",
-            subject = "order/$orderId2",
+            subject = "order/$orderId",
             data = event2,
         )
 
@@ -210,10 +196,10 @@ class PaymentIdempotencyTest : KafkaContainerTestBase() {
         }
 
         // When
-        kafkaTemplate.send(orderPlacedTopic, orderId1.toString(), cloudEvent1)
-        kafkaTemplate.send(orderPlacedTopic, orderId2.toString(), cloudEvent2)
+        kafkaTemplate.send(orderPlacedTopic, orderId.toString(), cloudEvent1)
+        kafkaTemplate.send(orderPlacedTopic, orderId.toString(), cloudEvent2)
 
-        // Then - both should be saved because unique constraint includes orderId
+        // Then - both should be saved because message IDs are different
         await()
             .atMost(20, TimeUnit.SECONDS)
             .untilAsserted {
@@ -262,32 +248,28 @@ class PaymentIdempotencyTest : KafkaContainerTestBase() {
         await()
             .atMost(20, TimeUnit.SECONDS)
             .untilAsserted {
-                // Due to idempotency, save should only succeed once
-                // Other attempts should hit DataIntegrityViolationException and be silently ignored
                 val idempotencyRecords = jpaIdempotencyRepository.findAll()
                 assertThat(idempotencyRecords).hasSize(1)
             }
     }
 
     @Test
-    @DisplayName("should distinguish different actions for same orderId")
-    fun `should distinguish different actions for same orderId`() {
-        // Given - idempotency is per (orderId, action, idempotencyKey)
+    @DisplayName("should distinguish different actions for same aggregate")
+    fun `should distinguish different actions for same aggregate`() {
+        // Given - idempotency is per (messageId, action)
         val orderId = 50005L
-        val idempotencyKey1 = UUID.randomUUID().toString()
-        val idempotencyKey2 = UUID.randomUUID().toString()
+        val messageId1 = UUID.randomUUID().toString()
+        val messageId2 = UUID.randomUUID().toString()
 
-        // Simulate saving two different idempotency records for same orderId
-        // with different actions (CREATE vs APPROVE)
-        val createIdempotency = PaymentIdempotency(
-            orderId = orderId,
-            action = PaymentAction.CREATE,
-            idempotencyKey = idempotencyKey1,
+        val createIdempotency = PaymentIdempotency.create(
+            messageId = messageId1,
+            action = PaymentIdempotency.Companion.Actions.CREATE,
+            aggregateId = orderId.toString(),
         )
-        val approveIdempotency = PaymentIdempotency(
-            orderId = orderId,
-            action = PaymentAction.APPROVE,
-            idempotencyKey = idempotencyKey2,
+        val approveIdempotency = PaymentIdempotency.create(
+            messageId = messageId2,
+            action = PaymentIdempotency.Companion.Actions.APPROVE,
+            aggregateId = orderId.toString(),
         )
 
         // When
@@ -298,8 +280,8 @@ class PaymentIdempotencyTest : KafkaContainerTestBase() {
         val savedRecords = jpaIdempotencyRepository.findAll()
         assertThat(savedRecords).hasSize(2)
         assertThat(savedRecords.map { it.action }).containsExactlyInAnyOrder(
-            PaymentAction.CREATE,
-            PaymentAction.APPROVE,
+            PaymentIdempotency.Companion.Actions.CREATE,
+            PaymentIdempotency.Companion.Actions.APPROVE,
         )
     }
 
@@ -341,7 +323,7 @@ class PaymentIdempotencyTest : KafkaContainerTestBase() {
             .untilAsserted {
                 val savedIdempotency = jpaIdempotencyRepository.findAll()
                 assertThat(savedIdempotency).hasSize(1)
-                assertThat(savedIdempotency.first().createdAt).isNotNull()
+                assertThat(savedIdempotency.first().processedAt).isNotNull()
             }
     }
 

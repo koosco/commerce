@@ -72,9 +72,9 @@ class KafkaStockConfirmFailedConsumer(
 
             // Record idempotency after successful processing
             idempotencyChecker.recordProcessed(
-                eventId = event.id,
+                messageId = event.id,
                 action = Actions.CANCEL_BY_STOCK_CONFIRM_FAILURE,
-                orderId = stockConfirmFailed.orderId,
+                aggregateId = stockConfirmFailed.orderId.toString(),
             )
 
             ack.acknowledge()

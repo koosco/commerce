@@ -9,7 +9,6 @@ import com.koosco.paymentservice.application.port.PaymentRepository
 import com.koosco.paymentservice.contract.outbound.payment.PaymentCreatedEvent
 import com.koosco.paymentservice.domain.entity.Payment
 import com.koosco.paymentservice.domain.entity.PaymentIdempotency
-import com.koosco.paymentservice.domain.enums.PaymentAction
 import com.koosco.paymentservice.domain.vo.Money
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.transaction.annotation.Transactional
@@ -36,10 +35,10 @@ class CreatePaymentUseCase(
 
         try {
             idempotencyRepository.save(
-                PaymentIdempotency(
-                    orderId = command.orderId,
-                    action = PaymentAction.CREATE,
-                    idempotencyKey = idempotencyKey,
+                PaymentIdempotency.create(
+                    messageId = idempotencyKey,
+                    action = PaymentIdempotency.Companion.Actions.CREATE,
+                    aggregateId = command.orderId.toString(),
                 ),
             )
 

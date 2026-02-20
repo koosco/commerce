@@ -81,9 +81,9 @@ class KafkaOrderPlacedEventConsumer(
 
             // Record idempotency after successful processing
             idempotencyChecker.recordProcessed(
-                eventId = event.id,
+                messageId = event.id,
                 action = Actions.RESERVE_STOCK,
-                referenceId = orderPlaced.orderId.toString(),
+                aggregateId = orderPlaced.orderId.toString(),
             )
 
             ack.acknowledge()

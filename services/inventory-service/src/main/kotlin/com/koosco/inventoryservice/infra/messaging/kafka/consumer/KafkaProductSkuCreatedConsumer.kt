@@ -66,9 +66,9 @@ class KafkaProductSkuCreatedConsumer(
 
             // Record idempotency after successful processing
             idempotencyChecker.recordProcessed(
-                eventId = event.id,
+                messageId = event.id,
                 action = Actions.INITIALIZE_STOCK,
-                referenceId = skuCreated.skuId,
+                aggregateId = skuCreated.skuId,
             )
 
             ack.acknowledge()
