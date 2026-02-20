@@ -59,7 +59,7 @@ class CreateProductUseCase(
             categoryId = command.categoryId,
             categoryCode = categoryCode,
             thumbnailImageUrl = command.thumbnailImageUrl,
-            brand = command.brand,
+            brandId = command.brandId,
             optionGroupSpecs = optionSpec,
         )
 

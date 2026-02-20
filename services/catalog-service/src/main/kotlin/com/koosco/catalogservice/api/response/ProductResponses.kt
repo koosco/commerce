@@ -20,6 +20,8 @@ data class ProductListResponse(
     val status: ProductStatus,
     val categoryId: Long?,
     val thumbnailImageUrl: String?,
+    val brandId: Long?,
+    val brandName: String?,
 ) {
     companion object {
         fun from(productInfo: ProductInfo): ProductListResponse = ProductListResponse(
@@ -29,6 +31,8 @@ data class ProductListResponse(
             status = productInfo.status,
             categoryId = productInfo.categoryId,
             thumbnailImageUrl = productInfo.thumbnailImageUrl,
+            brandId = productInfo.brandId,
+            brandName = productInfo.brandName,
         )
     }
 }
@@ -41,7 +45,8 @@ data class ProductDetailResponse(
     val status: ProductStatus,
     val categoryId: Long?,
     val thumbnailImageUrl: String?,
-    val brand: String?,
+    val brandId: Long?,
+    val brandName: String?,
     val optionGroups: List<ProductOptionGroupResponse>,
 ) {
     companion object {
@@ -53,7 +58,8 @@ data class ProductDetailResponse(
             status = productInfo.status,
             categoryId = productInfo.categoryId,
             thumbnailImageUrl = productInfo.thumbnailImageUrl,
-            brand = productInfo.brand,
+            brandId = productInfo.brandId,
+            brandName = productInfo.brandName,
             optionGroups = productInfo.optionGroups.map { ProductOptionGroupResponse.from(it) },
         )
     }

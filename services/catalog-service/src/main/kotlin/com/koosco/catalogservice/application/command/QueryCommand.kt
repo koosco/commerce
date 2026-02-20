@@ -10,6 +10,20 @@ import org.springframework.data.domain.Pageable
  */
 data class FindSkuCommand(val productId: Long, val options: Map<String, String>)
 
-data class GetProductListCommand(val categoryId: Long?, val keyword: String?, val pageable: Pageable)
+data class GetProductListCommand(
+    val categoryId: Long?,
+    val keyword: String?,
+    val brandId: Long?,
+    val minPrice: Long?,
+    val maxPrice: Long?,
+    val sort: ProductSortType,
+    val pageable: Pageable,
+)
+
+enum class ProductSortType {
+    LATEST,
+    PRICE_ASC,
+    PRICE_DESC,
+}
 
 data class GetProductDetailCommand(val productId: Long)

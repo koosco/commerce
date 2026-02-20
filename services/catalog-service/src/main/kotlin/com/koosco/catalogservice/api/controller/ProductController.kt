@@ -9,6 +9,7 @@ import com.koosco.catalogservice.application.command.DeleteProductCommand
 import com.koosco.catalogservice.application.command.FindSkuCommand
 import com.koosco.catalogservice.application.command.GetProductDetailCommand
 import com.koosco.catalogservice.application.command.GetProductListCommand
+import com.koosco.catalogservice.application.command.ProductSortType
 import com.koosco.catalogservice.application.usecase.CreateProductUseCase
 import com.koosco.catalogservice.application.usecase.DeleteProductUseCase
 import com.koosco.catalogservice.application.usecase.FindSkuUseCase
@@ -52,17 +53,26 @@ class ProductController(
     fun getProducts(
         @Parameter(description = "카테고리 ID") @RequestParam(required = false) categoryId: Long?,
         @Parameter(description = "이름 또는 상품 설명") @RequestParam(required = false) keyword: String?,
-        @Parameter(description = "페이징 파라미터 (page, size, sort)") @PageableDefault(size = 20) pageable: Pageable,
+        @Parameter(description = "브랜드 ID") @RequestParam(required = false) brandId: Long?,
+        @Parameter(description = "최소 가격") @RequestParam(required = false) minPrice: Long?,
+        @Parameter(description = "최대 가격") @RequestParam(required = false) maxPrice: Long?,
+        @Parameter(description = "정렬 (LATEST, PRICE_ASC, PRICE_DESC)")
+        @RequestParam(required = false, defaultValue = "LATEST") sort: ProductSortType,
+        @Parameter(description = "페이징 파라미터 (page, size)") @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<Page<ProductListResponse>> {
         val command = GetProductListCommand(
             categoryId = categoryId,
             keyword = keyword,
+            brandId = brandId,
+            minPrice = minPrice,
+            maxPrice = maxPrice,
+            sort = sort,
             pageable = pageable,
         )
 
-        return ApiResponse.Companion.success(
+        return ApiResponse.success(
             getProductListUseCase.execute(command).map {
-                ProductListResponse.Companion.from(it)
+                ProductListResponse.from(it)
             },
         )
     }

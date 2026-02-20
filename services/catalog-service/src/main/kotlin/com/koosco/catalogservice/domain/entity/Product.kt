@@ -49,8 +49,8 @@ class Product(
     @Column(name = "thumbnail_image_url", length = 500)
     var thumbnailImageUrl: String? = null,
 
-    @Column(length = 100)
-    var brand: String? = null,
+    @Column(name = "brand_id")
+    var brandId: Long? = null,
 
     @OneToMany(mappedBy = "product", cascade = [CascadeType.ALL], orphanRemoval = true)
     val skus: MutableList<ProductSku> = mutableListOf(),
@@ -76,7 +76,7 @@ class Product(
         status: ProductStatus?,
         categoryId: Long?,
         thumbnailImageUrl: String?,
-        brand: String?,
+        brandId: Long?,
     ) {
         name?.let { this.name = it }
         description?.let { this.description = it }
@@ -84,7 +84,7 @@ class Product(
         status?.let { this.status = it }
         categoryId?.let { this.categoryId = it }
         thumbnailImageUrl?.let { this.thumbnailImageUrl = it }
-        brand?.let { this.brand = it }
+        brandId?.let { this.brandId = it }
     }
 
     fun delete() {
@@ -107,7 +107,7 @@ class Product(
             categoryId: Long?,
             categoryCode: String?,
             thumbnailImageUrl: String?,
-            brand: String?,
+            brandId: Long?,
             optionGroupSpecs: List<OptionGroupCreateSpec>,
         ): Product {
             val productCode = generate(categoryCode)
@@ -120,7 +120,7 @@ class Product(
                 status = status,
                 categoryId = categoryId,
                 thumbnailImageUrl = thumbnailImageUrl,
-                brand = brand,
+                brandId = brandId,
             )
 
             optionGroupSpecs.forEach { groupSpec ->

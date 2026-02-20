@@ -24,7 +24,7 @@ class UpdateProductUseCase(private val productRepository: ProductRepository) {
             status = command.status,
             categoryId = command.categoryId,
             thumbnailImageUrl = command.thumbnailImageUrl,
-            brand = command.brand,
+            brandId = command.brandId,
         )
     }
 }

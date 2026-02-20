@@ -9,7 +9,7 @@ data class CreateProductCommand(
     val status: ProductStatus,
     val categoryId: Long?,
     val thumbnailImageUrl: String?,
-    val brand: String?,
+    val brandId: Long?,
     val optionGroups: List<ProductOptionGroup>,
 ) {
     data class ProductOptionGroup(val name: String, val ordering: Int = 0, val options: List<ProductOption>)
@@ -25,7 +25,7 @@ data class UpdateProductCommand(
     val status: ProductStatus?,
     val categoryId: Long?,
     val thumbnailImageUrl: String?,
-    val brand: String?,
+    val brandId: Long?,
 )
 
 data class DeleteProductCommand(val productId: Long)

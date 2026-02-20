@@ -28,7 +28,7 @@ data class ProductCreateRequest(
 
     val thumbnailImageUrl: String?,
 
-    val brand: String?,
+    val brandId: Long?,
 
     @field:Valid
     val optionGroups: List<ProductOptionGroup> = emptyList(),
@@ -68,7 +68,7 @@ data class ProductCreateRequest(
         status = status,
         categoryId = categoryId,
         thumbnailImageUrl = thumbnailImageUrl,
-        brand = brand,
+        brandId = brandId,
         optionGroups = optionGroups.map { it.toCommand() },
     )
 }
@@ -84,7 +84,7 @@ data class ProductUpdateRequest(
     val status: ProductStatus?,
     val categoryId: Long?,
     val thumbnailImageUrl: String?,
-    val brand: String?,
+    val brandId: Long?,
 ) {
     fun toCommand(productId: Long): UpdateProductCommand = UpdateProductCommand(
         productId = productId,
@@ -94,6 +94,6 @@ data class ProductUpdateRequest(
         status = status,
         categoryId = categoryId,
         thumbnailImageUrl = thumbnailImageUrl,
-        brand = brand,
+        brandId = brandId,
     )
 }

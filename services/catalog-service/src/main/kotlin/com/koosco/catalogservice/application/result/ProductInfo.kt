@@ -13,7 +13,8 @@ data class ProductInfo(
     val status: ProductStatus,
     val categoryId: Long?,
     val thumbnailImageUrl: String?,
-    val brand: String?,
+    val brandId: Long?,
+    val brandName: String? = null,
     val optionGroups: List<ProductOptionGroupInfo> = emptyList(),
 ) {
     data class ProductOptionGroupInfo(
@@ -44,7 +45,7 @@ data class ProductInfo(
     }
 
     companion object {
-        fun from(product: Product): ProductInfo = ProductInfo(
+        fun from(product: Product, brandName: String? = null): ProductInfo = ProductInfo(
             id = product.id!!,
             name = product.name,
             description = product.description,
@@ -52,7 +53,8 @@ data class ProductInfo(
             status = product.status,
             categoryId = product.categoryId,
             thumbnailImageUrl = product.thumbnailImageUrl,
-            brand = product.brand,
+            brandId = product.brandId,
+            brandName = brandName,
             optionGroups = product.optionGroups.map { ProductOptionGroupInfo.from(it) },
         )
     }
