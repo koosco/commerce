@@ -91,17 +91,6 @@ class Product(
         this.status = ProductStatus.DELETED
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Product
-
-        return id == other.id
-    }
-
-    override fun hashCode(): Int = id?.hashCode() ?: 0
-
     fun addSkus(skus: List<ProductSku>) {
         this.skus.addAll(skus)
         skus.forEach { sku ->

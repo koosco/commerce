@@ -53,17 +53,6 @@ class ProductOptionGroup(
         option.optionGroup = this
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as ProductOptionGroup
-
-        return id == other.id
-    }
-
-    override fun hashCode(): Int = id?.hashCode() ?: 0
-
     companion object {
         fun create(name: String, ordering: Int, optionSpecs: List<CreateOptionSpec>): ProductOptionGroup {
             val optionGroup = ProductOptionGroup(

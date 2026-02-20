@@ -55,17 +55,6 @@ class Category(
         updatedAt = LocalDateTime.now()
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Category
-
-        return id == other.id
-    }
-
-    override fun hashCode(): Int = id?.hashCode() ?: 0
-
     fun hasNoDuplicateChild(name: String) {
         if (children.any { it.name == name }) {
             throw ConflictException(
