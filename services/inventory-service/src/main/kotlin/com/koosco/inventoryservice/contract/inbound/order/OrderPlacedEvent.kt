@@ -27,7 +27,7 @@ data class OrderPlacedEvent(
 ) {
     data class PlacedItem(
         @field:NotNull
-        val skuId: String,
+        val skuId: Long,
 
         @field:Positive
         val quantity: Int,

@@ -1,25 +1,29 @@
 package com.koosco.orderservice.domain.vo
 
-import kotlin.collections.map
-
-class OrderAmount private constructor(val total: Money, val discount: Money, val payable: Money) {
+class OrderAmount private constructor(
+    val subtotal: Money,
+    val discount: Money,
+    val shippingFee: Money,
+    val total: Money,
+) {
 
     companion object {
-        fun from(itemSpecs: List<OrderItemSpec>, discount: Money): OrderAmount {
-            val total = itemSpecs
+        fun from(itemSpecs: List<OrderItemSpec>, discount: Money, shippingFee: Money = Money.ZERO): OrderAmount {
+            val subtotal = itemSpecs
                 .map { it.totalPrice() }
                 .fold(Money.ZERO) { acc, price -> acc + price }
 
-            require(discount.amount <= total.amount) {
-                "할인 금액은 주문 금액을 초과할 수 없습니다. (total=${total.amount}, discount=${discount.amount})"
+            require(discount.amount <= subtotal.amount) {
+                "할인 금액은 주문 금액을 초과할 수 없습니다. (subtotal=${subtotal.amount}, discount=${discount.amount})"
             }
 
-            val payable = total - discount
+            val total = subtotal - discount + shippingFee
 
             return OrderAmount(
-                total = total,
+                subtotal = subtotal,
                 discount = discount,
-                payable = payable,
+                shippingFee = shippingFee,
+                total = total,
             )
         }
     }

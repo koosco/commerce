@@ -5,23 +5,19 @@ import com.koosco.common.core.exception.NotFoundException
 import com.koosco.common.core.messaging.MessageContext
 import com.koosco.orderservice.application.command.MarkOrderFailedCommand
 import com.koosco.orderservice.application.port.OrderRepository
+import com.koosco.orderservice.application.port.OrderStatusHistoryRepository
 import com.koosco.orderservice.common.error.OrderErrorCode
+import com.koosco.orderservice.domain.entity.OrderStatusHistory
 import com.koosco.orderservice.domain.enums.OrderCancelReason
 import com.koosco.orderservice.domain.enums.OrderStatus
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 
-/**
- * 재고 예약 실패로 인한 주문 실패 처리
- *
- * trigger: inventory-service 재고 예약 실패
- *
- * - order-service: 주문 상태를 FAILED로 변경
- *
- * Note: 재고가 예약되지 않았으므로 보상 트랜잭션(Integration Event 발행)이 필요하지 않음
- */
 @UseCase
-class CancelOrderByStockFailureUseCase(private val orderRepository: OrderRepository) {
+class CancelOrderByStockFailureUseCase(
+    private val orderRepository: OrderRepository,
+    private val orderStatusHistoryRepository: OrderStatusHistoryRepository,
+) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @Transactional
@@ -37,8 +33,19 @@ class CancelOrderByStockFailureUseCase(private val orderRepository: OrderReposit
             return
         }
 
+        val previousStatus = order.status
+
         order.markFailed(OrderCancelReason.STOCK_RESERVATION_FAILED)
         orderRepository.save(order)
+
+        orderStatusHistoryRepository.save(
+            OrderStatusHistory.create(
+                orderId = order.id!!,
+                fromStatus = previousStatus,
+                toStatus = OrderStatus.FAILED,
+                reason = command.reason,
+            ),
+        )
 
         logger.info(
             "주문 재고 예약 실패로 실패 처리 완료: orderId={}, reason={}",

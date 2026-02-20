@@ -22,7 +22,7 @@ data class OrderCancelledEvent(
 ) {
     data class CancelledItem(
         @field:NotNull
-        val skuId: String,
+        val skuId: Long,
 
         @field:Positive
         val quantity: Int,

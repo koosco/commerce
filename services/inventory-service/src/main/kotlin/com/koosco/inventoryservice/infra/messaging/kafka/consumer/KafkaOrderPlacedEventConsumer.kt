@@ -70,7 +70,7 @@ class KafkaOrderPlacedEventConsumer(
             orderId = orderPlaced.orderId,
             items = orderPlaced.items.map { item ->
                 ReserveStockCommand.ReservedSku(
-                    skuId = item.skuId,
+                    skuId = item.skuId.toString(),
                     quantity = item.quantity,
                 )
             },

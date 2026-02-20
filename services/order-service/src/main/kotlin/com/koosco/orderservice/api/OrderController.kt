@@ -5,7 +5,6 @@ import com.koosco.commonsecurity.resolver.AuthId
 import com.koosco.orderservice.application.usecase.CreateOrderUseCase
 import com.koosco.orderservice.application.usecase.GetOrderDetailUseCase
 import com.koosco.orderservice.application.usecase.GetOrdersUseCase
-import com.koosco.orderservice.application.usecase.RefundOrderItemsUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponses
@@ -30,7 +29,6 @@ class OrderController(
     private val createOrderUseCase: CreateOrderUseCase,
     private val getOrdersUseCase: GetOrdersUseCase,
     private val getOrderDetailUseCase: GetOrderDetailUseCase,
-    private val refundOrderItemsUseCase: RefundOrderItemsUseCase,
 ) {
 
     @Operation(
@@ -76,18 +74,5 @@ class OrderController(
     fun getOrderDetail(@PathVariable orderId: Long): ApiResponse<OrderDetailResponse> {
         val result = getOrderDetailUseCase.execute(orderId)
         return ApiResponse.Companion.success(OrderDetailResponse.Companion.from(result))
-    }
-
-    @Operation(
-        summary = "주문 아이템 환불",
-        description = "주문 아이템을 환불합니다. 부분 환불 및 전체 환불이 가능합니다.",
-    )
-    @PostMapping("/{orderId}/refund")
-    fun refundOrderItems(
-        @PathVariable orderId: Long,
-        @Valid @RequestBody request: RefundOrderItemsRequest,
-    ): ApiResponse<RefundResponse> {
-        val result = refundOrderItemsUseCase.execute(request.toCommand(orderId))
-        return ApiResponse.Companion.success(RefundResponse.Companion.from(result))
     }
 }

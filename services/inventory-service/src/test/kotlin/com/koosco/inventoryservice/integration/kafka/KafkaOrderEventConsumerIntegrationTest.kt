@@ -81,8 +81,8 @@ class KafkaOrderEventConsumerIntegrationTest : KafkaContainerTestBase() {
             userId = 100L,
             payableAmount = 50000L,
             items = listOf(
-                OrderPlacedEvent.PlacedItem(skuId = "SKU-001", quantity = 2, unitPrice = 10000L),
-                OrderPlacedEvent.PlacedItem(skuId = "SKU-002", quantity = 3, unitPrice = 10000L),
+                OrderPlacedEvent.PlacedItem(skuId = 1L, quantity = 2, unitPrice = 10000L),
+                OrderPlacedEvent.PlacedItem(skuId = 2L, quantity = 3, unitPrice = 10000L),
             ),
             correlationId = correlationId,
             causationId = causationId,
@@ -114,8 +114,8 @@ class KafkaOrderEventConsumerIntegrationTest : KafkaContainerTestBase() {
         val orderConfirmedEvent = OrderConfirmedEvent(
             orderId = orderId,
             items = listOf(
-                OrderConfirmedEvent.ConfirmedItem(skuId = "SKU-001", quantity = 2),
-                OrderConfirmedEvent.ConfirmedItem(skuId = "SKU-002", quantity = 3),
+                OrderConfirmedEvent.ConfirmedItem(skuId = 1L, quantity = 2),
+                OrderConfirmedEvent.ConfirmedItem(skuId = 2L, quantity = 3),
             ),
             correlationId = correlationId,
             causationId = causationId,
@@ -148,8 +148,8 @@ class KafkaOrderEventConsumerIntegrationTest : KafkaContainerTestBase() {
             orderId = orderId,
             reason = "USER_CANCELLED",
             items = listOf(
-                OrderCancelledEvent.CancelledItem(skuId = "SKU-001", quantity = 2),
-                OrderCancelledEvent.CancelledItem(skuId = "SKU-002", quantity = 3),
+                OrderCancelledEvent.CancelledItem(skuId = 1L, quantity = 2),
+                OrderCancelledEvent.CancelledItem(skuId = 2L, quantity = 3),
             ),
             correlationId = correlationId,
             causationId = causationId,
@@ -203,7 +203,7 @@ class KafkaOrderEventConsumerIntegrationTest : KafkaContainerTestBase() {
                 userId = 100L,
                 payableAmount = 10000L * index,
                 items = listOf(
-                    OrderPlacedEvent.PlacedItem(skuId = "SKU-00$index", quantity = index, unitPrice = 10000L),
+                    OrderPlacedEvent.PlacedItem(skuId = index.toLong(), quantity = index, unitPrice = 10000L),
                 ),
                 correlationId = UUID.randomUUID().toString(),
                 causationId = UUID.randomUUID().toString(),
@@ -238,7 +238,7 @@ class KafkaOrderEventConsumerIntegrationTest : KafkaContainerTestBase() {
             orderId = orderId,
             reason = "PAYMENT_FAILED",
             items = listOf(
-                OrderCancelledEvent.CancelledItem(skuId = "SKU-001", quantity = 1),
+                OrderCancelledEvent.CancelledItem(skuId = 1L, quantity = 1),
             ),
             correlationId = correlationId,
             causationId = causationId,
@@ -269,7 +269,7 @@ class KafkaOrderEventConsumerIntegrationTest : KafkaContainerTestBase() {
             userId = 100L,
             payableAmount = 50000L,
             items = listOf(
-                OrderPlacedEvent.PlacedItem(skuId = "SKU-001", quantity = 1, unitPrice = 50000L),
+                OrderPlacedEvent.PlacedItem(skuId = 1L, quantity = 1, unitPrice = 50000L),
             ),
             correlationId = UUID.randomUUID().toString(),
             causationId = UUID.randomUUID().toString(),

@@ -5,19 +5,18 @@ import com.koosco.common.core.exception.NotFoundException
 import com.koosco.common.core.messaging.MessageContext
 import com.koosco.orderservice.application.command.MarkOrderPaymentCreatedCommand
 import com.koosco.orderservice.application.port.OrderRepository
+import com.koosco.orderservice.application.port.OrderStatusHistoryRepository
 import com.koosco.orderservice.common.error.OrderErrorCode
+import com.koosco.orderservice.domain.entity.OrderStatusHistory
 import com.koosco.orderservice.domain.enums.OrderStatus
 import com.koosco.orderservice.domain.exception.InvalidOrderStatus
 import org.springframework.transaction.annotation.Transactional
 
-/**
- * fileName       : MarkOrderPaymentCreatedUseCase
- * author         : koo
- * date           : 2025. 12. 24. 오후 9:27
- * description    :
- */
 @UseCase
-class MarkOrderPaymentCreatedUseCase(private val orderRepository: OrderRepository) {
+class MarkOrderPaymentCreatedUseCase(
+    private val orderRepository: OrderRepository,
+    private val orderStatusHistoryRepository: OrderStatusHistoryRepository,
+) {
 
     @Transactional
     fun execute(command: MarkOrderPaymentCreatedCommand, message: MessageContext) {
@@ -26,25 +25,36 @@ class MarkOrderPaymentCreatedUseCase(private val orderRepository: OrderRepositor
                 OrderErrorCode.ORDER_NOT_FOUND,
             )
 
+        val previousStatus = order.status
+
         when (order.status) {
-            OrderStatus.PAYMENT_PENDING -> return // 이미 처리된 이벤트
-            OrderStatus.RESERVED -> {
-                // pending으로 상태 변경
-            }
-
+            OrderStatus.PAYMENT_PENDING -> return
+            OrderStatus.RESERVED -> {}
             OrderStatus.CREATED -> {
-                // 정상 경로: CREATED -> RESERVED -> PAYMENT_PENDING
                 order.markReserved()
+                orderStatusHistoryRepository.save(
+                    OrderStatusHistory.create(
+                        orderId = order.id!!,
+                        fromStatus = OrderStatus.CREATED,
+                        toStatus = OrderStatus.RESERVED,
+                    ),
+                )
             }
-
             else -> {
-                // INIT/PAID/CANCELLED 등은 비정상
-                throw InvalidOrderStatus("cannot mark payment pending. status=${order.status}")
+                throw InvalidOrderStatus("cannot mark payment created. status=${order.status}")
             }
         }
 
         order.markPaymentCreated()
 
         orderRepository.save(order)
+
+        orderStatusHistoryRepository.save(
+            OrderStatusHistory.create(
+                orderId = order.id!!,
+                fromStatus = previousStatus,
+                toStatus = OrderStatus.PAYMENT_CREATED,
+            ),
+        )
     }
 }

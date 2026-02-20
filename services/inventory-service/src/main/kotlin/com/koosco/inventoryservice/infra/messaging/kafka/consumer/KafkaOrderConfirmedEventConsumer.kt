@@ -67,7 +67,7 @@ class KafkaOrderConfirmedEventConsumer(
             orderId = orderConfirmed.orderId,
             items = orderConfirmed.items.map { item ->
                 ConfirmStockCommand.ConfirmedSku(
-                    skuId = item.skuId,
+                    skuId = item.skuId.toString(),
                     quantity = item.quantity,
                 )
             },

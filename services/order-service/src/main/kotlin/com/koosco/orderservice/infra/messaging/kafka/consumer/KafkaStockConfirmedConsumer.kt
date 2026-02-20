@@ -65,7 +65,7 @@ class KafkaStockConfirmedConsumer(
                     orderId = stockConfirmedEvent.orderId,
                     reservationId = stockConfirmedEvent.reservationId,
                     items = stockConfirmedEvent.items.map {
-                        MarkOrderConfirmedCommand.MarkedConfirmedItem(it.skuId, it.quantity)
+                        MarkOrderConfirmedCommand.MarkedConfirmedItem(it.skuId.toLong(), it.quantity)
                     },
                 ),
             )

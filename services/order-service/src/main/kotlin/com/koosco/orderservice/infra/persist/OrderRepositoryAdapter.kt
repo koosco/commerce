@@ -14,6 +14,8 @@ class OrderRepositoryAdapter(private val jpaOrderRepository: JpaOrderRepository)
 
     override fun findById(orderId: Long): Order? = jpaOrderRepository.findByIdOrNull(orderId)
 
+    override fun findByOrderNo(orderNo: String): Order? = jpaOrderRepository.findByOrderNo(orderNo)
+
     override fun findByUserId(userId: Long): List<Order> = jpaOrderRepository.findByUserId(userId)
 
     override fun findByUserId(userId: Long, pageable: Pageable): Page<Order> =

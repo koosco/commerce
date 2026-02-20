@@ -26,8 +26,8 @@ class OrderSeeder(
             userId = 10011,
             payableAmount = 10000,
             items = listOf(
-                OrderPlacedEvent.PlacedItem("sku-1", 1, 5000),
-                OrderPlacedEvent.PlacedItem("sku-2", 1, 5000),
+                OrderPlacedEvent.PlacedItem(1L, 1, 5000),
+                OrderPlacedEvent.PlacedItem(2L, 1, 5000),
             ),
             correlationId = "test-correlation-${System.currentTimeMillis()}",
             causationId = "test-causation-${System.currentTimeMillis()}",

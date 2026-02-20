@@ -5,28 +5,19 @@ import com.koosco.common.core.exception.NotFoundException
 import com.koosco.common.core.messaging.MessageContext
 import com.koosco.orderservice.application.port.IntegrationEventProducer
 import com.koosco.orderservice.application.port.OrderRepository
+import com.koosco.orderservice.application.port.OrderStatusHistoryRepository
 import com.koosco.orderservice.common.error.OrderErrorCode
 import com.koosco.orderservice.contract.outbound.order.OrderCancelledEvent
+import com.koosco.orderservice.domain.entity.OrderStatusHistory
 import com.koosco.orderservice.domain.enums.OrderCancelReason
 import com.koosco.orderservice.domain.enums.OrderStatus
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 
-/**
- * 재고 확정 실패로 인한 주문 취소 UseCase
- *
- * trigger: inventory-service 재고 확정 실패
- *
- * 1) order-service
- * - 주문 상태를 CANCELLED로 변경 (PAID 상태에서만 가능)
- * 2) inventory-service
- * - OrderCancelledEvent를 통해 예약했던 재고를 예약 해제
- * 3) payment-service
- * - OrderCancelledEvent를 통해 환불 처리 (STOCK_CONFIRM_FAILED 사유)
- */
 @UseCase
 class CancelOrderByStockConfirmFailureUseCase(
     private val orderRepository: OrderRepository,
+    private val orderStatusHistoryRepository: OrderStatusHistoryRepository,
     private val integrationEventProducer: IntegrationEventProducer,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -44,10 +35,20 @@ class CancelOrderByStockConfirmFailureUseCase(
             return
         }
 
+        val previousStatus = order.status
+
         order.cancelByStockConfirmFailure()
         orderRepository.save(order)
 
-        // Integration event 발행 - inventory-service에서 예약 해제, payment-service에서 환불
+        orderStatusHistoryRepository.save(
+            OrderStatusHistory.create(
+                orderId = order.id!!,
+                fromStatus = previousStatus,
+                toStatus = OrderStatus.CANCELLED,
+                reason = OrderCancelReason.STOCK_CONFIRM_FAILED.name,
+            ),
+        )
+
         integrationEventProducer.publish(
             OrderCancelledEvent(
                 orderId = order.id!!,
@@ -55,7 +56,7 @@ class CancelOrderByStockConfirmFailureUseCase(
                 items = order.items.map {
                     OrderCancelledEvent.CancelledItem(
                         it.skuId,
-                        it.quantity,
+                        it.qty,
                     )
                 },
                 correlationId = context.correlationId,

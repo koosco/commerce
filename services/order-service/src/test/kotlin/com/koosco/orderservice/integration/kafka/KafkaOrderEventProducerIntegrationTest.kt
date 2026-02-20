@@ -56,7 +56,7 @@ class KafkaOrderEventProducerIntegrationTest : KafkaIntegrationTestBase() {
                 userId = userId,
                 payableAmount = 50000L,
                 items = listOf(
-                    OrderPlacedEvent.PlacedItem(skuId = "SKU-001", quantity = 2, unitPrice = 25000L),
+                    OrderPlacedEvent.PlacedItem(skuId = 1L, quantity = 2, unitPrice = 25000L),
                 ),
                 correlationId = orderId.toString(),
                 causationId = UUID.randomUUID().toString(),
@@ -91,8 +91,8 @@ class KafkaOrderEventProducerIntegrationTest : KafkaIntegrationTestBase() {
                 userId = userId,
                 payableAmount = 100000L,
                 items = listOf(
-                    OrderPlacedEvent.PlacedItem(skuId = "SKU-001", quantity = 1, unitPrice = 50000L),
-                    OrderPlacedEvent.PlacedItem(skuId = "SKU-002", quantity = 2, unitPrice = 25000L),
+                    OrderPlacedEvent.PlacedItem(skuId = 1L, quantity = 1, unitPrice = 50000L),
+                    OrderPlacedEvent.PlacedItem(skuId = 2L, quantity = 2, unitPrice = 25000L),
                 ),
                 correlationId = orderId.toString(),
                 causationId = UUID.randomUUID().toString(),
@@ -131,7 +131,7 @@ class KafkaOrderEventProducerIntegrationTest : KafkaIntegrationTestBase() {
             val event = OrderConfirmedEvent(
                 orderId = orderId,
                 items = listOf(
-                    OrderConfirmedEvent.ConfirmedItem(skuId = "SKU-001", quantity = 3),
+                    OrderConfirmedEvent.ConfirmedItem(skuId = 1L, quantity = 3),
                 ),
                 correlationId = orderId.toString(),
                 causationId = UUID.randomUUID().toString(),
@@ -163,8 +163,8 @@ class KafkaOrderEventProducerIntegrationTest : KafkaIntegrationTestBase() {
             val event = OrderConfirmedEvent(
                 orderId = orderId,
                 items = listOf(
-                    OrderConfirmedEvent.ConfirmedItem(skuId = "SKU-A", quantity = 1),
-                    OrderConfirmedEvent.ConfirmedItem(skuId = "SKU-B", quantity = 2),
+                    OrderConfirmedEvent.ConfirmedItem(skuId = 1L, quantity = 1),
+                    OrderConfirmedEvent.ConfirmedItem(skuId = 2L, quantity = 2),
                 ),
                 correlationId = orderId.toString(),
                 causationId = UUID.randomUUID().toString(),
@@ -205,7 +205,7 @@ class KafkaOrderEventProducerIntegrationTest : KafkaIntegrationTestBase() {
                 orderId = orderId,
                 reason = OrderCancelReason.USER_REQUEST,
                 items = listOf(
-                    OrderCancelledEvent.CancelledItem(skuId = "SKU-001", quantity = 1),
+                    OrderCancelledEvent.CancelledItem(skuId = 1L, quantity = 1),
                 ),
                 correlationId = orderId.toString(),
                 causationId = UUID.randomUUID().toString(),
@@ -238,7 +238,7 @@ class KafkaOrderEventProducerIntegrationTest : KafkaIntegrationTestBase() {
                 orderId = orderId,
                 reason = OrderCancelReason.PAYMENT_FAILED,
                 items = listOf(
-                    OrderCancelledEvent.CancelledItem(skuId = "SKU-X", quantity = 5),
+                    OrderCancelledEvent.CancelledItem(skuId = 1L, quantity = 5),
                 ),
                 correlationId = orderId.toString(),
                 causationId = UUID.randomUUID().toString(),

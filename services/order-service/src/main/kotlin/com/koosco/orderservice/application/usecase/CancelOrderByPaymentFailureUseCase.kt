@@ -6,30 +6,19 @@ import com.koosco.common.core.messaging.MessageContext
 import com.koosco.orderservice.application.command.CancelOrderCommand
 import com.koosco.orderservice.application.port.IntegrationEventProducer
 import com.koosco.orderservice.application.port.OrderRepository
+import com.koosco.orderservice.application.port.OrderStatusHistoryRepository
 import com.koosco.orderservice.common.error.OrderErrorCode
 import com.koosco.orderservice.contract.outbound.order.OrderCancelledEvent
+import com.koosco.orderservice.domain.entity.OrderStatusHistory
 import com.koosco.orderservice.domain.enums.OrderCancelReason
 import com.koosco.orderservice.domain.enums.OrderStatus
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 
-/**
- * fileName       : CancelOrderByPaymentFailureUseCase
- * author         : koo
- * date           : 2025. 12. 22. 오전 5:47
- * description    : 결제 실패로 인한 주문 취소 flow
- */
-/**
- * trigger : payment service 결제 실패
- *
- * 1) order-service
- * - 상품 상태를 실패로 변경
- * 2) inventory-service
- * - 예약했던 재고를 예약 해제
- */
 @UseCase
 class CancelOrderByPaymentFailureUseCase(
     private val orderRepository: OrderRepository,
+    private val orderStatusHistoryRepository: OrderStatusHistoryRepository,
     private val integrationEventProducer: IntegrationEventProducer,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -43,15 +32,25 @@ class CancelOrderByPaymentFailureUseCase(
             )
 
         if (order.status == OrderStatus.CANCELLED) {
-            logger.info("이미 취소된 주문입니다. orderId={}", command.orderId)
+            logger.info("이미 취소된 주문입니다. orderId=$command.orderId}")
             return
         }
+
+        val previousStatus = order.status
 
         order.cancel(OrderCancelReason.PAYMENT_FAILED)
 
         orderRepository.save(order)
 
-        // Integration event 직접 생성 및 발행
+        orderStatusHistoryRepository.save(
+            OrderStatusHistory.create(
+                orderId = order.id!!,
+                fromStatus = previousStatus,
+                toStatus = OrderStatus.CANCELLED,
+                reason = OrderCancelReason.PAYMENT_FAILED.name,
+            ),
+        )
+
         integrationEventProducer.publish(
             OrderCancelledEvent(
                 orderId = order.id!!,
@@ -59,7 +58,7 @@ class CancelOrderByPaymentFailureUseCase(
                 items = order.items.map {
                     OrderCancelledEvent.CancelledItem(
                         it.skuId,
-                        it.quantity,
+                        it.qty,
                     )
                 },
                 correlationId = context.correlationId,
@@ -67,6 +66,6 @@ class CancelOrderByPaymentFailureUseCase(
             ),
         )
 
-        logger.info("주문 결제 실패로 취소 처리 완료: orderId={}", command.orderId)
+        logger.info("주문 결제 실패로 취소 처리 완료: orderId=${command.orderId}")
     }
 }

@@ -1,7 +1,6 @@
 package com.koosco.orderservice.api
 
 import com.koosco.orderservice.application.command.CreateOrderCommand
-import com.koosco.orderservice.application.command.RefundOrderItemsCommand
 import com.koosco.orderservice.domain.vo.Money
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Min
@@ -10,6 +9,8 @@ import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 
 data class CreateOrderRequest(
+
+    val idempotencyKey: String? = null,
 
     @field:NotEmpty
     @field:Valid
@@ -20,13 +21,19 @@ data class CreateOrderRequest(
     val discountAmount: Long = 0L,
 
     @field:NotNull
+    @field:Min(0)
+    val shippingFee: Long = 0L,
+
+    @field:NotNull
     @field:Valid
     val shippingAddress: ShippingAddressRequest,
 ) {
     fun toCommand(userId: Long): CreateOrderCommand = CreateOrderCommand(
         userId = userId,
+        idempotencyKey = idempotencyKey,
         items = items.map { it.toCommand() },
         discountAmount = Money(discountAmount),
+        shippingFee = Money(shippingFee),
         shippingAddress = shippingAddress.toCommand(),
     )
 }
@@ -58,7 +65,20 @@ data class ShippingAddressRequest(
 
 data class OrderItemRequest(
     @field:NotNull
-    val skuId: String,
+    val skuId: Long,
+
+    @field:NotNull
+    @field:Positive
+    val productId: Long,
+
+    @field:NotNull
+    @field:Positive
+    val brandId: Long,
+
+    @field:NotNull
+    val titleSnapshot: String,
+
+    val optionSnapshot: String? = null,
 
     @field:NotNull
     @field:Positive
@@ -70,17 +90,11 @@ data class OrderItemRequest(
 ) {
     fun toCommand(): CreateOrderCommand.OrderItemCommand = CreateOrderCommand.OrderItemCommand(
         skuId = skuId,
+        productId = productId,
+        brandId = brandId,
+        titleSnapshot = titleSnapshot,
+        optionSnapshot = optionSnapshot,
         quantity = quantity,
         unitPrice = Money(unitPrice),
-    )
-}
-
-data class RefundOrderItemsRequest(
-    @field:NotEmpty
-    val itemIds: List<Long>,
-) {
-    fun toCommand(orderId: Long): RefundOrderItemsCommand = RefundOrderItemsCommand(
-        orderId = orderId,
-        refundItemIds = itemIds,
     )
 }

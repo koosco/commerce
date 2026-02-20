@@ -6,26 +6,18 @@ import com.koosco.common.core.messaging.MessageContext
 import com.koosco.orderservice.application.command.MarkOrderPaidCommand
 import com.koosco.orderservice.application.port.IntegrationEventProducer
 import com.koosco.orderservice.application.port.OrderRepository
+import com.koosco.orderservice.application.port.OrderStatusHistoryRepository
 import com.koosco.orderservice.common.error.OrderErrorCode
 import com.koosco.orderservice.contract.outbound.order.OrderConfirmedEvent
+import com.koosco.orderservice.domain.entity.OrderStatusHistory
+import com.koosco.orderservice.domain.enums.OrderStatus
 import com.koosco.orderservice.domain.vo.Money
 import org.springframework.transaction.annotation.Transactional
 
-/**
- * fileName       : ConfirmOrderPaymentUseCase
- * author         : koo
- * date           : 2025. 12. 22. 오전 5:47
- * description    : 결제 완료 상태 변경 flow
- */
-/**
- * trigger = payment service 결제 성공
- *
- * 1) inventory service
- * - success =
- */
 @UseCase
 class MarkOrderPaidUseCase(
     private val orderRepository: OrderRepository,
+    private val orderStatusHistoryRepository: OrderStatusHistoryRepository,
     private val integrationEventProducer: IntegrationEventProducer,
 ) {
     @Transactional
@@ -36,16 +28,24 @@ class MarkOrderPaidUseCase(
                 "주문을 찾을 수 없습니다. orderId: ${command.orderId}",
             )
 
-        // 결제 금액이 동일하다면 paid 처리
+        val previousStatus = order.status
+
         order.markPaid(Money(command.paidAmount))
 
         orderRepository.save(order)
 
-        // Integration event 직접 생성 및 발행
+        orderStatusHistoryRepository.save(
+            OrderStatusHistory.create(
+                orderId = order.id!!,
+                fromStatus = previousStatus,
+                toStatus = OrderStatus.PAID,
+            ),
+        )
+
         integrationEventProducer.publish(
             OrderConfirmedEvent(
                 orderId = order.id!!,
-                items = order.items.map { OrderConfirmedEvent.ConfirmedItem(it.skuId, it.quantity) },
+                items = order.items.map { OrderConfirmedEvent.ConfirmedItem(it.skuId, it.qty) },
                 correlationId = context.correlationId,
                 causationId = context.causationId,
             ),

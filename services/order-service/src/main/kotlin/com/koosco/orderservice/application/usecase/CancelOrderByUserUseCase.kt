@@ -6,22 +6,19 @@ import com.koosco.common.core.messaging.MessageContext
 import com.koosco.orderservice.application.command.CancelOrderCommand
 import com.koosco.orderservice.application.port.IntegrationEventProducer
 import com.koosco.orderservice.application.port.OrderRepository
+import com.koosco.orderservice.application.port.OrderStatusHistoryRepository
 import com.koosco.orderservice.common.error.OrderErrorCode
 import com.koosco.orderservice.contract.outbound.order.OrderCancelledEvent
+import com.koosco.orderservice.domain.entity.OrderStatusHistory
 import com.koosco.orderservice.domain.enums.OrderCancelReason
 import com.koosco.orderservice.domain.enums.OrderStatus
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 
-/**
- * fileName       : CancelOrderByUserUseCase
- * author         : koo
- * date           : 2025. 12. 22. 오전 5:47
- * description    :
- */
 @UseCase
 class CancelOrderByUserUseCase(
     private val orderRepository: OrderRepository,
+    private val orderStatusHistoryRepository: OrderStatusHistoryRepository,
     private val integrationEventProducer: IntegrationEventProducer,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -39,21 +36,31 @@ class CancelOrderByUserUseCase(
             return
         }
 
+        val previousStatus = order.status
+
         order.cancel(OrderCancelReason.USER_REQUEST)
 
         orderRepository.save(order)
 
-        // Integration event 직접 생성 및 발행
+        orderStatusHistoryRepository.save(
+            OrderStatusHistory.create(
+                orderId = order.id!!,
+                fromStatus = previousStatus,
+                toStatus = OrderStatus.CANCELLED,
+                reason = OrderCancelReason.USER_REQUEST.name,
+            ),
+        )
+
         integrationEventProducer.publish(
             OrderCancelledEvent(
                 orderId = order.id!!,
                 reason = OrderCancelReason.USER_REQUEST,
-                items = order.items.map { OrderCancelledEvent.CancelledItem(it.skuId, it.quantity) },
+                items = order.items.map { OrderCancelledEvent.CancelledItem(it.skuId, it.qty) },
                 correlationId = context.correlationId,
                 causationId = context.causationId,
             ),
         )
 
-        logger.info("주문 결제 실패: ${command.orderId}")
+        logger.info("사용자 요청으로 주문 취소 처리 완료: orderId={}", command.orderId)
     }
 }

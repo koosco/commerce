@@ -8,11 +8,21 @@ import com.koosco.orderservice.domain.vo.Money
  */
 data class CreateOrderCommand(
     val userId: Long,
+    val idempotencyKey: String?,
     val items: List<OrderItemCommand>,
     val discountAmount: Money = Money(0L),
+    val shippingFee: Money = Money(0L),
     val shippingAddress: ShippingAddressCommand,
 ) {
-    data class OrderItemCommand(val skuId: String, val quantity: Int, val unitPrice: Money)
+    data class OrderItemCommand(
+        val skuId: Long,
+        val productId: Long,
+        val brandId: Long,
+        val titleSnapshot: String,
+        val optionSnapshot: String?,
+        val quantity: Int,
+        val unitPrice: Money,
+    )
 
     data class ShippingAddressCommand(
         val recipient: String,
@@ -24,11 +34,6 @@ data class CreateOrderCommand(
 }
 
 /**
- * 주문 환불 command
- */
-data class RefundOrderItemsCommand(val orderId: Long, val refundItemIds: List<Long>)
-
-/**
  * 주문 확정 command
  */
 data class MarkOrderPaidCommand(val orderId: Long, val paidAmount: Long)
@@ -36,10 +41,7 @@ data class MarkOrderPaidCommand(val orderId: Long, val paidAmount: Long)
 /**
  * 주문 취소 command
  */
-data class CancelOrderCommand(
-    val orderId: Long,
-    val reason: OrderCancelReason, // PAYMENT_FAILED, USER_CANCELLED, ...
-)
+data class CancelOrderCommand(val orderId: Long, val reason: OrderCancelReason)
 
 /**
  * 주문 실패 처리 command (재고 예약 실패 등 초기 단계 실패)

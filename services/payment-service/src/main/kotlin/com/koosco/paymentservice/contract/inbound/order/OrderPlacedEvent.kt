@@ -15,5 +15,5 @@ data class OrderPlacedEvent(
     val correlationId: String,
     val causationId: String? = null,
 ) {
-    data class PlacedItem(val skuId: String, val quantity: Int, val unitPrice: Long)
+    data class PlacedItem(val skuId: Long, val quantity: Int, val unitPrice: Long)
 }

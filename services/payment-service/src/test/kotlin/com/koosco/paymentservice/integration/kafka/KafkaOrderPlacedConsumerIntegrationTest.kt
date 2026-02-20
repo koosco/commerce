@@ -70,7 +70,7 @@ class KafkaOrderPlacedConsumerIntegrationTest : KafkaContainerTestBase() {
             userId = userId,
             payableAmount = payableAmount,
             items = listOf(
-                OrderPlacedEvent.PlacedItem(skuId = "SKU001", quantity = 2, unitPrice = 25000L),
+                OrderPlacedEvent.PlacedItem(skuId = 1L, quantity = 2, unitPrice = 25000L),
             ),
             correlationId = correlationId,
             causationId = UUID.randomUUID().toString(),
@@ -114,7 +114,7 @@ class KafkaOrderPlacedConsumerIntegrationTest : KafkaContainerTestBase() {
             userId = userId,
             payableAmount = payableAmount,
             items = listOf(
-                OrderPlacedEvent.PlacedItem(skuId = "SKU002", quantity = 1, unitPrice = 30000L),
+                OrderPlacedEvent.PlacedItem(skuId = 2L, quantity = 1, unitPrice = 30000L),
             ),
             correlationId = correlationId,
             causationId = UUID.randomUUID().toString(),
@@ -283,7 +283,7 @@ class KafkaOrderPlacedConsumerIntegrationTest : KafkaContainerTestBase() {
             userId = userId,
             payableAmount = 100000L,
             items = listOf(
-                OrderPlacedEvent.PlacedItem(skuId = "SKU007", quantity = 1, unitPrice = 100000L),
+                OrderPlacedEvent.PlacedItem(skuId = 7L, quantity = 1, unitPrice = 100000L),
             ),
             correlationId = UUID.randomUUID().toString(),
             causationId = UUID.randomUUID().toString(),

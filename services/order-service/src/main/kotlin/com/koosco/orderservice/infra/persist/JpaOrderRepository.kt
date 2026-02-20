@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface JpaOrderRepository : JpaRepository<Order, Long> {
 
+    fun findByOrderNo(orderNo: String): Order?
+
     fun findByUserId(userId: Long): List<Order>
 
     fun findByUserId(userId: Long, pageable: Pageable): Page<Order>

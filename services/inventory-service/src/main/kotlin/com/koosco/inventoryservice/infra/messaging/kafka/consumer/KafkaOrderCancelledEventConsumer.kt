@@ -67,7 +67,7 @@ class KafkaOrderCancelledEventConsumer(
             orderId = orderCancelled.orderId,
             items = orderCancelled.items.map { item ->
                 CancelStockCommand.CancelledSku(
-                    skuId = item.skuId,
+                    skuId = item.skuId.toString(),
                     quantity = item.quantity,
                 )
             },

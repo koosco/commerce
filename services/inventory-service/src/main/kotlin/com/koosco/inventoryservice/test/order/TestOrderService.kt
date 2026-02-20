@@ -32,8 +32,8 @@ class TestOrderService(
     companion object {
         const val ORDER_ID = 11111111111
         const val USER_ID = 11111111111
-        const val FIRST_SKU_ID = "00001f4c-a36c-4a70-9347-413ce52d5d61"
-        const val SECOND_SKU_ID = "0000298f-0c73-4df1-8576-ac232687c290"
+        const val FIRST_SKU_ID = 1L
+        const val SECOND_SKU_ID = 2L
         const val INITIAL_STOCK = 10000
     }
 

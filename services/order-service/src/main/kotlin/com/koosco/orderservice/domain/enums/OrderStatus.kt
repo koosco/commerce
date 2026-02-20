@@ -1,11 +1,6 @@
 package com.koosco.orderservice.domain.enums
 
 enum class OrderStatus {
-    /**
-     * 주문 객체가 생성됨 (초기화 전)
-     */
-    INIT,
-
     /** 주문 생성됨 */
     CREATED,
 
@@ -23,12 +18,6 @@ enum class OrderStatus {
 
     /** 재고 확정 차감 완료 */
     CONFIRMED,
-
-    /** 부분 환불 */
-    PARTIALLY_REFUNDED,
-
-    /** 전체 환불 */
-    REFUNDED,
 
     /** 결제 취소 */
     CANCELLED,

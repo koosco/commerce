@@ -16,5 +16,5 @@ data class OrderConfirmedEvent(
     val correlationId: String,
     val causationId: String?,
 ) {
-    data class ConfirmedItem(val skuId: String, val quantity: Int)
+    data class ConfirmedItem(val skuId: Long, val quantity: Int)
 }

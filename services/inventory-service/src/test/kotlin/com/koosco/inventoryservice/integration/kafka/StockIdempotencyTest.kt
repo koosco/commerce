@@ -85,7 +85,7 @@ class StockIdempotencyTest : KafkaContainerTestBase() {
             userId = 100L,
             payableAmount = 50000L,
             items = listOf(
-                OrderPlacedEvent.PlacedItem(skuId = "SKU-001", quantity = 2, unitPrice = 25000L),
+                OrderPlacedEvent.PlacedItem(skuId = 1L, quantity = 2, unitPrice = 25000L),
             ),
             correlationId = correlationId,
             causationId = causationId,
@@ -120,7 +120,7 @@ class StockIdempotencyTest : KafkaContainerTestBase() {
         val orderConfirmedEvent = OrderConfirmedEvent(
             orderId = orderId,
             items = listOf(
-                OrderConfirmedEvent.ConfirmedItem(skuId = "SKU-001", quantity = 2),
+                OrderConfirmedEvent.ConfirmedItem(skuId = 1L, quantity = 2),
             ),
             correlationId = correlationId,
             causationId = causationId,
@@ -156,7 +156,7 @@ class StockIdempotencyTest : KafkaContainerTestBase() {
             orderId = orderId,
             reason = "USER_CANCELLED",
             items = listOf(
-                OrderCancelledEvent.CancelledItem(skuId = "SKU-001", quantity = 2),
+                OrderCancelledEvent.CancelledItem(skuId = 1L, quantity = 2),
             ),
             correlationId = correlationId,
             causationId = causationId,
@@ -211,7 +211,7 @@ class StockIdempotencyTest : KafkaContainerTestBase() {
             userId = 100L,
             payableAmount = 30000L,
             items = listOf(
-                OrderPlacedEvent.PlacedItem(skuId = "SKU-001", quantity = 1, unitPrice = 30000L),
+                OrderPlacedEvent.PlacedItem(skuId = 1L, quantity = 1, unitPrice = 30000L),
             ),
             correlationId = correlationId,
             causationId = originalEventId, // Original event that caused this event
@@ -289,7 +289,7 @@ class StockIdempotencyTest : KafkaContainerTestBase() {
             userId = 100L,
             payableAmount = 50000L,
             items = listOf(
-                OrderPlacedEvent.PlacedItem(skuId = "SKU-001", quantity = 1, unitPrice = 50000L),
+                OrderPlacedEvent.PlacedItem(skuId = 1L, quantity = 1, unitPrice = 50000L),
             ),
             correlationId = correlationId,
             causationId = causationId,

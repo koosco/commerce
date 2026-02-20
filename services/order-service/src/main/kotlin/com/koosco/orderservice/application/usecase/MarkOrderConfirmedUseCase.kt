@@ -4,17 +4,17 @@ import com.koosco.common.core.annotation.UseCase
 import com.koosco.common.core.exception.NotFoundException
 import com.koosco.orderservice.application.command.MarkOrderConfirmedCommand
 import com.koosco.orderservice.application.port.OrderRepository
+import com.koosco.orderservice.application.port.OrderStatusHistoryRepository
 import com.koosco.orderservice.common.error.OrderErrorCode
+import com.koosco.orderservice.domain.entity.OrderStatusHistory
+import com.koosco.orderservice.domain.enums.OrderStatus
 import org.springframework.transaction.annotation.Transactional
 
-/**
- * fileName       : MarkOrderConfirmedUseCase
- * author         : koo
- * date           : 2025. 12. 23. 오전 12:49
- * description    : 재고 확정 완료 flow (주문 마지막)
- */
 @UseCase
-class MarkOrderConfirmedUseCase(private val orderRepository: OrderRepository) {
+class MarkOrderConfirmedUseCase(
+    private val orderRepository: OrderRepository,
+    private val orderStatusHistoryRepository: OrderStatusHistoryRepository,
+) {
 
     @Transactional
     fun execute(command: MarkOrderConfirmedCommand) {
@@ -24,8 +24,18 @@ class MarkOrderConfirmedUseCase(private val orderRepository: OrderRepository) {
                 "주문을 찾을 수 없습니다. orderId: ${command.orderId}",
             )
 
+        val previousStatus = order.status
+
         order.confirmStock()
 
         orderRepository.save(order)
+
+        orderStatusHistoryRepository.save(
+            OrderStatusHistory.create(
+                orderId = order.id!!,
+                fromStatus = previousStatus,
+                toStatus = OrderStatus.CONFIRMED,
+            ),
+        )
     }
 }

@@ -10,6 +10,8 @@ interface OrderRepository {
 
     fun findById(orderId: Long): Order?
 
+    fun findByOrderNo(orderNo: String): Order?
+
     fun findByUserId(userId: Long): List<Order>
 
     fun findByUserId(userId: Long, pageable: Pageable): Page<Order>

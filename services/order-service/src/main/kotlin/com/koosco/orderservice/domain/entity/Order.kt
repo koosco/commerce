@@ -1,34 +1,35 @@
 package com.koosco.orderservice.domain.entity
 
 import com.koosco.orderservice.domain.enums.OrderCancelReason
-import com.koosco.orderservice.domain.enums.OrderItemStatus
 import com.koosco.orderservice.domain.enums.OrderStatus
 import com.koosco.orderservice.domain.exception.InvalidOrderStatus
 import com.koosco.orderservice.domain.exception.PaymentMisMatch
 import com.koosco.orderservice.domain.vo.Money
 import com.koosco.orderservice.domain.vo.OrderAmount
 import com.koosco.orderservice.domain.vo.OrderItemSpec
-import com.koosco.orderservice.domain.vo.ShippingAddress
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
-import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Lob
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "orders")
+@Table(name = "order_order")
 class Order(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
+
+    @Column(nullable = false, length = 40, unique = true)
+    val orderNo: String,
 
     @Column(nullable = false)
     val userId: Long,
@@ -37,30 +38,46 @@ class Order(
     @Column(nullable = false)
     var status: OrderStatus,
 
-    /** 주문 원금 (아이템 합계) */
-    @Column(nullable = false)
-    val totalAmount: Money,
+    @Column(nullable = false, length = 3)
+    val currency: String = "KRW",
 
-    /** 쿠폰으로 할인된 총 금액 */
+    /** 아이템 합계 (할인/배송비 미포함) */
+    @Column(nullable = false)
+    val subtotalAmount: Money,
+
+    /** 쿠폰 등 할인 금액 */
     @Column(nullable = false)
     val discountAmount: Money,
 
-    /** 실제 결제 요청 금액 */
+    /** 배송비 */
     @Column(nullable = false)
-    val payableAmount: Money,
+    val shippingFee: Money,
 
-    /** 누적 환불 금액 */
+    /** 최종 결제 금액 = subtotal - discount + shippingFee */
     @Column(nullable = false)
-    var refundedAmount: Money = Money(0L),
+    val totalAmount: Money,
 
-    @Embedded
-    val shippingAddress: ShippingAddress,
+    /** 배송지 JSON 스냅샷 */
+    @Lob
+    @Column(nullable = false, columnDefinition = "TEXT")
+    val shippingAddressSnapshot: String,
+
+    /** 주문 시점 가격 JSON 스냅샷 */
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    val pricingSnapshot: String? = null,
 
     @Column(nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
     @Column(nullable = false)
     var updatedAt: LocalDateTime = LocalDateTime.now(),
+
+    var placedAt: LocalDateTime? = null,
+
+    var paidAt: LocalDateTime? = null,
+
+    var canceledAt: LocalDateTime? = null,
 
     @OneToMany(
         mappedBy = "order",
@@ -72,45 +89,34 @@ class Order(
 
     companion object {
         fun create(
+            orderNo: String,
             userId: Long,
             itemSpecs: List<OrderItemSpec>,
             amount: OrderAmount,
-            shippingAddress: ShippingAddress,
+            shippingAddressSnapshot: String,
+            pricingSnapshot: String? = null,
         ): Order {
             val order = Order(
+                orderNo = orderNo,
                 userId = userId,
-                status = OrderStatus.INIT,
-                totalAmount = amount.total,
+                status = OrderStatus.CREATED,
+                subtotalAmount = amount.subtotal,
                 discountAmount = amount.discount,
-                payableAmount = amount.payable,
-                shippingAddress = shippingAddress,
-                items = mutableListOf(),
+                shippingFee = amount.shippingFee,
+                totalAmount = amount.total,
+                shippingAddressSnapshot = shippingAddressSnapshot,
+                pricingSnapshot = pricingSnapshot,
+                placedAt = LocalDateTime.now(),
             )
 
             itemSpecs.forEach { spec ->
-                OrderItem.create(order, spec, amount).also {
+                OrderItem.create(order, spec).also {
                     order.items.add(it)
                 }
             }
 
             return order
         }
-    }
-
-    /**
-     * ==== ORDER FLOW ====
-     */
-    fun place() {
-        if (status != OrderStatus.INIT) {
-            throw InvalidOrderStatus()
-        }
-
-        requireNotNull(id) {
-            "Order must be persisted before placing"
-        }
-
-        status = OrderStatus.CREATED
-        updatedAt = LocalDateTime.now()
     }
 
     fun markReserved() {
@@ -136,19 +142,20 @@ class Order(
             throw InvalidOrderStatus()
         }
         status = OrderStatus.PAYMENT_PENDING
+        updatedAt = LocalDateTime.now()
     }
 
     fun markPaid(paidAmount: Money) {
         if (status != OrderStatus.PAYMENT_PENDING) {
-            // 결제 대기 상태에서만 상태 변경 가능
             throw InvalidOrderStatus()
         }
 
-        if (paidAmount != payableAmount) {
+        if (paidAmount != totalAmount) {
             throw PaymentMisMatch()
         }
 
         status = OrderStatus.PAID
+        paidAt = LocalDateTime.now()
         updatedAt = LocalDateTime.now()
     }
 
@@ -167,6 +174,7 @@ class Order(
         }
 
         status = OrderStatus.CANCELLED
+        canceledAt = LocalDateTime.now()
         updatedAt = LocalDateTime.now()
     }
 
@@ -179,52 +187,13 @@ class Order(
         updatedAt = LocalDateTime.now()
     }
 
-    /**
-     * 재고 확정 실패로 인한 주문 취소 처리
-     * PAID 상태에서만 CANCELLED로 전이 가능 (환불 필요)
-     */
     fun cancelByStockConfirmFailure() {
         if (status != OrderStatus.PAID) {
             throw InvalidOrderStatus("재고 확정 실패 처리는 PAID 상태에서만 가능합니다. 현재 상태: $status")
         }
 
         status = OrderStatus.CANCELLED
+        canceledAt = LocalDateTime.now()
         updatedAt = LocalDateTime.now()
-    }
-
-    /**
-     * ==== REFUND ====
-     */
-    fun refundAll(itemIds: List<Long>): Money {
-        val totalRefundAmount = itemIds.fold(Money.ZERO) { acc, itemId ->
-            val item = items.first { it.id == itemId }
-            acc + item.refund()
-        }
-
-        itemIds.forEach { itemId ->
-            refundItem(itemId)
-        }
-
-        return totalRefundAmount
-    }
-
-    fun refundItem(itemId: Long): Money {
-        if (status == OrderStatus.PAID || status == OrderStatus.CONFIRMED || status == OrderStatus.PARTIALLY_REFUNDED) {
-            throw InvalidOrderStatus("환불 가능한 상태가 아닙니다. 현재 상태: $status")
-        }
-
-        val item = items.first { it.id == itemId }
-        val refundAmount = item.refund()
-
-        refundedAmount = refundedAmount + refundAmount
-        updatedAt = LocalDateTime.now()
-
-        status = if (items.all { it.status == OrderItemStatus.REFUNDED }) {
-            OrderStatus.REFUNDED
-        } else {
-            OrderStatus.PARTIALLY_REFUNDED
-        }
-
-        return refundAmount
     }
 }
