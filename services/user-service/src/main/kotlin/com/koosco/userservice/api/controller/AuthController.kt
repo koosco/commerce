@@ -30,14 +30,7 @@ class AuthController(
 
         response.addHeader("Authorization", tokens.accessToken)
 
-        val cookie = ResponseCookie.from("refreshToken", tokens.refreshToken)
-            .httpOnly(true)
-            .secure(true)
-            .path("/")
-            .maxAge(tokens.refreshTokenExpiresIn)
-            .sameSite("Strict")
-            .build()
-        response.addHeader("Set-Cookie", cookie.toString())
+        putRefreshTokenInCookie(response, tokens.refreshToken, tokens.refreshTokenExpiresIn)
 
         return ApiResponse.success()
     }
@@ -51,14 +44,7 @@ class AuthController(
 
         response.addHeader("Authorization", tokens.accessToken)
 
-        val cookie = ResponseCookie.from("refreshToken", tokens.refreshToken)
-            .httpOnly(true)
-            .secure(true)
-            .path("/")
-            .maxAge(tokens.refreshTokenExpiresIn)
-            .sameSite("Strict")
-            .build()
-        response.addHeader("Set-Cookie", cookie.toString())
+        putRefreshTokenInCookie(response, tokens.refreshToken, tokens.refreshTokenExpiresIn)
 
         return ApiResponse.success()
     }
@@ -86,4 +72,15 @@ class AuthController(
         ?: throw com.koosco.common.core.exception.BaseException(
             com.koosco.userservice.common.MemberErrorCode.INVALID_REFRESH_TOKEN,
         )
+
+    private fun putRefreshTokenInCookie(response: HttpServletResponse, refreshToken: String, expiresIn: Long) {
+        val cookie = ResponseCookie.from("refreshToken", refreshToken)
+            .httpOnly(true)
+            .secure(true)
+            .path("/")
+            .maxAge(expiresIn)
+            .sameSite("Strict")
+            .build()
+        response.addHeader("Set-Cookie", cookie.toString())
+    }
 }
