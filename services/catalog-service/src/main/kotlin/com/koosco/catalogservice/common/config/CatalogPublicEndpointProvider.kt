@@ -13,6 +13,10 @@ class CatalogPublicEndpointProvider : PublicEndpointProvider {
             "/api/products/{id}/skus",
             "/api/categories",
             "/api/categories/tree",
+            "/api/products/{id}/reviews",
+            "/api/reviews/{id}",
+            "/api/snaps",
+            "/api/snaps/{id}",
         ),
     )
 

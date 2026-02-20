@@ -1,10 +1,10 @@
 package com.koosco.catalogservice.product.domain.service
 
+import com.koosco.catalogservice.domain.entity.Product
+import com.koosco.catalogservice.domain.entity.ProductOption
 import com.koosco.catalogservice.domain.entity.ProductOptionGroup
 import com.koosco.catalogservice.domain.enums.ProductStatus
 import com.koosco.catalogservice.domain.service.SkuGenerator
-import com.koosco.catalogservice.product.domain.entity.Product
-import com.koosco.catalogservice.product.domain.entity.ProductOption
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested

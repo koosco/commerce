@@ -28,6 +28,10 @@ enum class CatalogErrorCode(override val code: String, override val message: Str
     PRODUCT_IMAGE_NOT_FOUND("CATALOG-404-003", "상품 이미지를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     OPTION_NOT_FOUND("CATALOG-404-004", "상품 옵션을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
+    // 404 Not Found (Content)
+    REVIEW_NOT_FOUND("CATALOG-404-005", "리뷰를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    SNAP_NOT_FOUND("CATALOG-404-006", "스냅을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
     // 409 Conflict
     PRODUCT_NAME_CONFLICT("CATALOG-409-001", "이미 존재하는 상품명입니다.", HttpStatus.CONFLICT),
     CATEGORY_NAME_CONFLICT("CATALOG-409-002", "이미 존재하는 카테고리명입니다.", HttpStatus.CONFLICT),

@@ -3,9 +3,9 @@ package com.koosco.catalogservice.product.domain
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.koosco.catalogservice.domain.entity.Product
 import com.koosco.catalogservice.domain.entity.ProductSku
 import com.koosco.catalogservice.domain.enums.ProductStatus
-import com.koosco.catalogservice.product.domain.entity.Product
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
