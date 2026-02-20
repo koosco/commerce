@@ -1,7 +1,7 @@
 package com.koosco.inventoryservice.api.controller
 
 import com.koosco.common.core.response.ApiResponse
-import com.koosco.inventoryservice.application.command.ReduceStockCommand
+import com.koosco.inventoryservice.application.command.BulkReduceStockCommand
 import com.koosco.inventoryservice.application.usecase.InventorySeedUseCase
 import com.koosco.inventoryservice.application.usecase.ReduceStockUseCase
 import org.springframework.context.annotation.Profile
@@ -37,7 +37,11 @@ class TestInventoryStockController(
 
     @PostMapping("/decrease/{skuId}")
     fun decreaseStock(@PathVariable("skuId") skuId: String, @RequestBody request: StockDto): ApiResponse<Any> {
-        reduceStockUseCase.execute(ReduceStockCommand(skuId, request.quantity))
+        reduceStockUseCase.execute(
+            BulkReduceStockCommand(
+                listOf(BulkReduceStockCommand.ReducingStockInfo(skuId, request.quantity)),
+            ),
+        )
 
         return ApiResponse.success()
     }

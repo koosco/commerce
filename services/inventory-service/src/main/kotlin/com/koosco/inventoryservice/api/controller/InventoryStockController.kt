@@ -1,14 +1,10 @@
 package com.koosco.inventoryservice.api.controller
 
 import com.koosco.common.core.response.ApiResponse
-import com.koosco.inventoryservice.api.request.AddStockRequest
 import com.koosco.inventoryservice.api.request.BulkAddStockRequest
 import com.koosco.inventoryservice.api.request.BulkReduceStockRequest
-import com.koosco.inventoryservice.api.request.ReduceStockRequest
-import com.koosco.inventoryservice.application.command.AddStockCommand
 import com.koosco.inventoryservice.application.command.BulkAddStockCommand
 import com.koosco.inventoryservice.application.command.BulkReduceStockCommand
-import com.koosco.inventoryservice.application.command.ReduceStockCommand
 import com.koosco.inventoryservice.application.usecase.AddStockUseCase
 import com.koosco.inventoryservice.application.usecase.ReduceStockUseCase
 import io.swagger.v3.oas.annotations.Operation
@@ -24,22 +20,6 @@ class InventoryStockController(
 ) {
 
     @Operation(
-        summary = "재고 추가",
-        description = "SKU ID로 재고를 추가합니다.",
-    )
-    @PostMapping("/{skuId}/increase")
-    fun addInventory(@PathVariable skuId: String, @RequestBody body: AddStockRequest): ApiResponse<Any> {
-        addStockUseCase.execute(
-            AddStockCommand(
-                skuId = skuId,
-                addingQuantity = body.quantity,
-            ),
-        )
-
-        return ApiResponse.success()
-    }
-
-    @Operation(
         summary = "대량 재고 추가",
         description = "여러 SKU ID로 재고를 대량 추가합니다.",
     )
@@ -53,22 +33,6 @@ class InventoryStockController(
                         it.quantity,
                     )
                 },
-            ),
-        )
-
-        return ApiResponse.success()
-    }
-
-    @Operation(
-        summary = "재고 감소",
-        description = "SKU ID로 재고를 감소합니다.",
-    )
-    @PostMapping("/{skuId}/decrease")
-    fun reduceInventory(@PathVariable skuId: String, @RequestBody body: ReduceStockRequest): ApiResponse<Any> {
-        reduceStockUseCase.execute(
-            ReduceStockCommand(
-                skuId = skuId,
-                reducingQuantity = body.quantity,
             ),
         )
 

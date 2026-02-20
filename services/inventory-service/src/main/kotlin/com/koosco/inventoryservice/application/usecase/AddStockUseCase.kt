@@ -1,7 +1,6 @@
 package com.koosco.inventoryservice.application.usecase
 
 import com.koosco.common.core.annotation.UseCase
-import com.koosco.inventoryservice.application.command.AddStockCommand
 import com.koosco.inventoryservice.application.command.BulkAddStockCommand
 import com.koosco.inventoryservice.application.port.InventoryLogPort
 import com.koosco.inventoryservice.application.port.InventoryStockStorePort
@@ -12,24 +11,6 @@ class AddStockUseCase(
     private val inventoryStockStore: InventoryStockStorePort,
     private val inventoryLogPort: InventoryLogPort,
 ) {
-
-    fun execute(command: AddStockCommand) {
-        inventoryStockStore.add(
-            listOf(
-                InventoryStockStorePort.AddItem(
-                    skuId = command.skuId,
-                    quantity = command.addingQuantity,
-                ),
-            ),
-        )
-
-        inventoryLogPort.log(
-            skuId = command.skuId,
-            orderId = null,
-            action = InventoryAction.ADD,
-            quantity = command.addingQuantity,
-        )
-    }
 
     fun execute(command: BulkAddStockCommand) {
         inventoryStockStore.add(

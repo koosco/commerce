@@ -63,9 +63,9 @@ export default function (data) {
 
   const token = getTokenForVu(data.tokens, __VU);
   const skuId = getSkuForVu(data.skuIds, __VU);
-  const url = `${BASE_URL}${API_PATH}/${skuId}/increase`;
+  const url = `${BASE_URL}${API_PATH}/increase`;
   const payload = JSON.stringify({
-    quantity: 10,
+    items: [{ skuId, quantity: 10 }],
   });
 
   const res = http.post(url, payload, {

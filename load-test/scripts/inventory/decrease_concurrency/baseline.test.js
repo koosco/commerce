@@ -56,10 +56,10 @@ export default function (data) {
 
   const token = getTokenForVu(data.tokens, __VU);
   const skuId = getSkuForVu(data.skuIds, __VU);
-  const url = `${BASE_URL}${API_PATH}/${skuId}/decrease`;
+  const url = `${BASE_URL}${API_PATH}/decrease`;
 
   const payload = JSON.stringify({
-    quantity: 2,
+    items: [{ skuId, quantity: 2 }],
   });
 
   const params = {

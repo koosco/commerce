@@ -50,10 +50,10 @@ export default function (data) {
     return;
   }
 
-  const url = `${BASE_URL}${API_PATH}/${data.skuId}/decrease`;
+  const url = `${BASE_URL}${API_PATH}/decrease`;
 
   const payload = JSON.stringify({
-    quantity: 2,
+    items: [{ skuId: data.skuId, quantity: 2 }],
   });
 
   const params = {

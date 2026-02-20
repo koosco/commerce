@@ -39,9 +39,9 @@ export default function (data) {
     return;
   }
 
-  const url = `${BASE_URL}${API_PATH}/${data.skuId}/increase`;
+  const url = `${BASE_URL}${API_PATH}/increase`;
   const payload = JSON.stringify({
-    quantity: 10,
+    items: [{ skuId: data.skuId, quantity: 10 }],
   });
 
   const res = http.post(url, payload, {
