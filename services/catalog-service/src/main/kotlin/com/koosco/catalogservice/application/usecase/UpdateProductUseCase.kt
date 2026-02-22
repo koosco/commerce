@@ -21,7 +21,6 @@ class UpdateProductUseCase(private val productRepository: ProductRepository) {
             name = command.name,
             description = command.description,
             price = command.price,
-            status = command.status,
             categoryId = command.categoryId,
             thumbnailImageUrl = command.thumbnailImageUrl,
             brandId = command.brandId,

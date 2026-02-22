@@ -15,6 +15,8 @@ enum class CatalogErrorCode(override val code: String, override val message: Str
     INVALID_SORT_OPTION("CATALOG-400-003", "지원하지 않는 정렬 옵션입니다.", HttpStatus.BAD_REQUEST),
     INVALID_PRICE_RANGE("CATALOG-400-004", "가격 범위가 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
     INVALID_SEARCH_QUERY("CATALOG-400-005", "검색어 형식이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
+    INVALID_STATUS_TRANSITION("CATALOG-400-006", "허용되지 않는 상태 전이입니다.", HttpStatus.BAD_REQUEST),
+    PRODUCT_NOT_READY_FOR_ACTIVATION("CATALOG-400-007", "상품이 활성화 조건을 충족하지 않습니다.", HttpStatus.BAD_REQUEST),
 
     // 401 Unauthorized
     UNAUTHORIZED("CATALOG-401-001", "상품 정보를 조회하려면 인증이 필요합니다.", HttpStatus.UNAUTHORIZED),

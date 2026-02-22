@@ -22,10 +22,11 @@ data class UpdateProductCommand(
     val name: String?,
     val description: String?,
     val price: Long?,
-    val status: ProductStatus?,
     val categoryId: Long?,
     val thumbnailImageUrl: String?,
     val brandId: Long?,
 )
 
 data class DeleteProductCommand(val productId: Long)
+
+data class ChangeProductStatusCommand(val productId: Long, val status: ProductStatus)

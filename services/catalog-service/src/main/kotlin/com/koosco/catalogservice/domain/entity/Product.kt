@@ -73,7 +73,6 @@ class Product(
         name: String?,
         description: String?,
         price: Long?,
-        status: ProductStatus?,
         categoryId: Long?,
         thumbnailImageUrl: String?,
         brandId: Long?,
@@ -81,14 +80,35 @@ class Product(
         name?.let { this.name = it }
         description?.let { this.description = it }
         price?.let { this.price = it }
-        status?.let { this.status = it }
         categoryId?.let { this.categoryId = it }
         thumbnailImageUrl?.let { this.thumbnailImageUrl = it }
         brandId?.let { this.brandId = it }
     }
 
+    fun changeStatus(newStatus: ProductStatus) {
+        require(status.canTransitionTo(newStatus)) {
+            "상품 상태를 ${status.name}에서 ${newStatus.name}(으)로 변경할 수 없습니다."
+        }
+
+        if (newStatus == ProductStatus.ACTIVE) {
+            validateForActivation()
+        }
+
+        this.status = newStatus
+    }
+
     fun delete() {
-        this.status = ProductStatus.DELETED
+        if (status == ProductStatus.DRAFT) {
+            this.status = ProductStatus.DELETED
+            return
+        }
+        changeStatus(ProductStatus.DELETED)
+    }
+
+    private fun validateForActivation() {
+        require(name.isNotBlank()) { "상품명이 비어있습니다." }
+        require(price > 0) { "가격은 0보다 커야 합니다." }
+        require(skus.isNotEmpty()) { "SKU가 1개 이상 있어야 활성화할 수 있습니다." }
     }
 
     fun addSkus(skus: List<ProductSku>) {

@@ -63,6 +63,7 @@ catalog:
     default: koosco.commerce.catalog.default
     mappings:
       "product.sku.created": koosco.commerce.product.default
+      "product.status.changed": koosco.commerce.product.default
 
 common:
   openapi:

@@ -1,5 +1,6 @@
 package com.koosco.catalogservice.api.request
 
+import com.koosco.catalogservice.application.command.ChangeProductStatusCommand
 import com.koosco.catalogservice.application.command.CreateProductCommand
 import com.koosco.catalogservice.application.command.UpdateProductCommand
 import com.koosco.catalogservice.domain.enums.ProductStatus
@@ -81,7 +82,6 @@ data class ProductUpdateRequest(
     val description: String?,
     @field:Min(value = 0, message = "Price must be non-negative")
     val price: Long?,
-    val status: ProductStatus?,
     val categoryId: Long?,
     val thumbnailImageUrl: String?,
     val brandId: Long?,
@@ -91,9 +91,21 @@ data class ProductUpdateRequest(
         name = name,
         description = description,
         price = price,
-        status = status,
         categoryId = categoryId,
         thumbnailImageUrl = thumbnailImageUrl,
         brandId = brandId,
+    )
+}
+
+/**
+ * Change Status Request
+ */
+data class ChangeStatusRequest(
+    @field:NotNull(message = "Status is required")
+    val status: ProductStatus,
+) {
+    fun toCommand(productId: Long): ChangeProductStatusCommand = ChangeProductStatusCommand(
+        productId = productId,
+        status = status,
     )
 }
