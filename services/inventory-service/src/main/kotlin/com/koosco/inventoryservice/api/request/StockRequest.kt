@@ -8,7 +8,7 @@ data class GetInventoriesRequest(val skuIds: List<String>)
 /**
  * 대량 재고 추가 요청 DTO
  */
-data class BulkAddStockRequest(val items: List<AddingStockInfo>) {
+data class BulkAddStockRequest(val items: List<AddingStockInfo>, val idempotencyKey: String? = null) {
 
     data class AddingStockInfo(val skuId: String, val quantity: Int)
 }
@@ -16,7 +16,7 @@ data class BulkAddStockRequest(val items: List<AddingStockInfo>) {
 /**
  * 대량 재고 감소 요청 DTO
  */
-data class BulkReduceStockRequest(val items: List<ReducingStockInfo>) {
+data class BulkReduceStockRequest(val items: List<ReducingStockInfo>, val idempotencyKey: String? = null) {
 
     data class ReducingStockInfo(val skuId: String, val quantity: Int)
 }

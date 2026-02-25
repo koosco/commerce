@@ -11,10 +11,10 @@ package com.koosco.inventoryservice.application.command
 
 data class InitStockCommand(val skuId: String, val initialQuantity: Int)
 
-data class BulkAddStockCommand(val items: List<AddingStockInfo>) {
+data class BulkAddStockCommand(val items: List<AddingStockInfo>, val idempotencyKey: String? = null) {
     data class AddingStockInfo(val skuId: String, val addingQuantity: Int)
 }
 
-data class BulkReduceStockCommand(val items: List<ReducingStockInfo>) {
+data class BulkReduceStockCommand(val items: List<ReducingStockInfo>, val idempotencyKey: String? = null) {
     data class ReducingStockInfo(val skuId: String, val reducingQuantity: Int)
 }
