@@ -13,11 +13,14 @@ data class AddCartItemRequest(
     @field:NotNull
     @field:Positive
     val qty: Int,
+
+    val idempotencyKey: String? = null,
 ) {
     fun toCommand(userId: Long): AddCartItemCommand = AddCartItemCommand(
         userId = userId,
         skuId = skuId,
         qty = qty,
+        idempotencyKey = idempotencyKey,
     )
 }
 
