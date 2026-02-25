@@ -31,6 +31,8 @@ spec:
       - "Content-Type"
       - "Range"
       - "Authorization"
+    accessControlExposeHeaders:
+      - "Authorization"
     accessControlMaxAge: 100
 
 ---
@@ -192,5 +194,49 @@ spec:
             backend:
               service:
                 name: notification-service
+                port:
+                  number: 80
+
+          # ==========================================
+          # Catalog Service - 브랜드
+          # ==========================================
+          - path: /api/brands
+            pathType: Prefix
+            backend:
+              service:
+                name: catalog-service
+                port:
+                  number: 80
+
+          # ==========================================
+          # Catalog Service - 리뷰
+          # ==========================================
+          - path: /api/reviews
+            pathType: Prefix
+            backend:
+              service:
+                name: catalog-service
+                port:
+                  number: 80
+
+          # ==========================================
+          # Catalog Service - 스냅
+          # ==========================================
+          - path: /api/snaps
+            pathType: Prefix
+            backend:
+              service:
+                name: catalog-service
+                port:
+                  number: 80
+
+          # ==========================================
+          # Order Service - 장바구니
+          # ==========================================
+          - path: /api/carts
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service
                 port:
                   number: 80
