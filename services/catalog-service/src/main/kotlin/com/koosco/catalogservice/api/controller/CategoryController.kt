@@ -7,6 +7,7 @@ import com.koosco.catalogservice.api.response.CategoryTreeResponse
 import com.koosco.catalogservice.application.command.GetCategoryListCommand
 import com.koosco.catalogservice.application.usecase.CreateCategoryTreeUseCase
 import com.koosco.catalogservice.application.usecase.CreateCategoryUseCase
+import com.koosco.catalogservice.application.usecase.GetCategoryByIdUseCase
 import com.koosco.catalogservice.application.usecase.GetCategoryListUseCase
 import com.koosco.catalogservice.application.usecase.GetCategoryTreeUseCase
 import com.koosco.common.core.response.ApiResponse
@@ -17,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/categories")
 class CategoryController(
+    private val getCategoryByIdUseCase: GetCategoryByIdUseCase,
     private val getCategoryListUseCase: GetCategoryListUseCase,
     private val getCategoryTreeUseCase: GetCategoryTreeUseCase,
     private val createCategoryUseCase: CreateCategoryUseCase,
@@ -48,6 +51,13 @@ class CategoryController(
         val response = getCategoryListUseCase.execute(command).map { CategoryResponse.Companion.from(it) }
 
         return ApiResponse.Companion.success(response)
+    }
+
+    @Operation(summary = "카테고리 단건 조회", description = "카테고리 ID로 단건 조회합니다.")
+    @GetMapping("/{categoryId}")
+    fun getCategory(@PathVariable categoryId: Long): ApiResponse<CategoryResponse> {
+        val categoryInfo = getCategoryByIdUseCase.execute(categoryId)
+        return ApiResponse.Companion.success(CategoryResponse.Companion.from(categoryInfo))
     }
 
     @Operation(summary = "카테고리 트리 조회", description = "카테고리를 계층 트리 형태로 조회합니다.")
