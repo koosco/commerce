@@ -74,17 +74,21 @@ class Payment(
     }
 
     fun cancel(transaction: PaymentTransaction) {
-        require(status == PaymentStatus.APPROVED) {
-            "APPROVED 상태에서만 결제 취소 가능"
+        require(status == PaymentStatus.APPROVED || status == PaymentStatus.PARTIALLY_CANCELED) {
+            "취소 가능한 상태가 아닙니다. 현재 상태: $status"
         }
 
-        val canceled = totalCanceledAmount() + transaction.amount
-        require(canceled <= amount) {
-            "취소 금액 초과"
+        val totalCanceled = totalCanceledAmount() + transaction.amount
+        require(totalCanceled <= amount) {
+            "취소 금액이 결제 금액을 초과합니다."
         }
 
         transactions.add(transaction)
-        status = PaymentStatus.CANCELED
+        status = if (totalCanceled == amount) {
+            PaymentStatus.CANCELED
+        } else {
+            PaymentStatus.PARTIALLY_CANCELED
+        }
     }
 
     fun totalCanceledAmount(): Money = transactions
