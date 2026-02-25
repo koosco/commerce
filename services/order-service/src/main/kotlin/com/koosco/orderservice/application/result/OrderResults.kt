@@ -88,6 +88,16 @@ data class OrderDetailResult(
     }
 }
 
+/**
+ * 환불 요청
+ */
+data class RefundOrderItemsResult(
+    val orderId: Long,
+    val refundAmount: Long,
+    val refundedItemIds: List<Long>,
+    val orderStatus: OrderStatus,
+)
+
 data class OrderItemDetailResult(
     val itemId: Long,
     val skuId: Long,
