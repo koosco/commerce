@@ -57,7 +57,8 @@ class KafkaConsumerConfig(
         val backOff = ExponentialBackOff().apply {
             initialInterval = 1_000L
             multiplier = 2.0
-            maxAttempts = 3
+            maxInterval = 10_000L
+            maxElapsedTime = 30_000L
         }
         return DefaultErrorHandler(recoverer, backOff).also {
             it.addNotRetryableExceptions(BaseException::class.java)
