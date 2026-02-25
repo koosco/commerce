@@ -1,9 +1,12 @@
 package com.koosco.orderservice.domain.entity
 
+import com.koosco.orderservice.domain.enums.OrderItemStatus
 import com.koosco.orderservice.domain.vo.Money
 import com.koosco.orderservice.domain.vo.OrderItemSpec
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -51,6 +54,14 @@ class OrderItem(
     @Column(nullable = false)
     val lineAmount: Money,
 
+    /** 환불 가능 금액 (주문 시점에 고정) */
+    @Column(nullable = false)
+    val refundableAmount: Money,
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    var status: OrderItemStatus = OrderItemStatus.ORDERED,
+
     @Column(nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 ) {
@@ -65,6 +76,13 @@ class OrderItem(
             qty = spec.quantity,
             unitPrice = spec.unitPrice,
             lineAmount = spec.totalPrice(),
+            refundableAmount = spec.totalPrice(),
         )
+    }
+
+    fun refund(): Money {
+        check(status == OrderItemStatus.ORDERED) { "이미 환불된 아이템입니다. itemId=$id" }
+        status = OrderItemStatus.REFUNDED
+        return refundableAmount
     }
 }
