@@ -59,6 +59,9 @@ jwt:
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800} # 7 days in seconds
 
 payment:
+  client:
+    connect-timeout: 5s
+    read-timeout: 5s
   topic:
     default: koosco.commerce.integration.order
     mappings:
