@@ -6,8 +6,8 @@ import com.koosco.common.core.util.JsonUtils.objectMapper
 import com.koosco.paymentservice.application.command.CreatePaymentCommand
 import com.koosco.paymentservice.application.usecase.CreatePaymentUseCase
 import com.koosco.paymentservice.contract.inbound.order.OrderPlacedEvent
-import com.koosco.paymentservice.domain.exception.DuplicatePaymentException
-import com.koosco.paymentservice.domain.exception.PaymentBusinessException
+import com.koosco.paymentservice.domain.entity.PaymentIdempotency
+import com.koosco.paymentservice.infra.idempotency.IdempotencyChecker
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -15,15 +15,12 @@ import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
 import org.springframework.validation.annotation.Validated
 
-/**
- * fileName       : KafkaOrderCreateEventConsumer
- * author         : koo
- * date           : 2025. 12. 22. 오전 3:55
- * description    :
- */
 @Component
 @Validated
-class KafkaOrderPlacedEventConsumer(private val createPaymentUseCase: CreatePaymentUseCase) {
+class KafkaOrderPlacedEventConsumer(
+    private val createPaymentUseCase: CreatePaymentUseCase,
+    private val idempotencyChecker: IdempotencyChecker,
+) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @KafkaListener(
@@ -42,7 +39,7 @@ class KafkaOrderPlacedEventConsumer(private val createPaymentUseCase: CreatePaym
             objectMapper.convertValue(rawData, OrderPlacedEvent::class.java)
         } catch (e: Exception) {
             logger.error("Failed to deserialize OrderPlacedEvent: eventId=${event.id}", e)
-            ack.acknowledge() // poison message → skip
+            ack.acknowledge() // poison message -> skip
             return
         }
 
@@ -50,6 +47,12 @@ class KafkaOrderPlacedEventConsumer(private val createPaymentUseCase: CreatePaym
             "Received OrderPlacedEvent: eventId=${event.id}, " +
                 "orderId=${orderPlacedEvent.orderId}",
         )
+
+        if (idempotencyChecker.isAlreadyProcessed(event.id, PaymentIdempotency.Companion.Actions.CREATE)) {
+            logger.info("Event already processed: eventId=${event.id}")
+            ack.acknowledge()
+            return
+        }
 
         val command = CreatePaymentCommand(
             orderId = orderPlacedEvent.orderId,
@@ -62,18 +65,12 @@ class KafkaOrderPlacedEventConsumer(private val createPaymentUseCase: CreatePaym
             causationId = event.id,
         )
 
-        try {
-            createPaymentUseCase.execute(command, context)
-            ack.acknowledge()
-        } catch (e: DuplicatePaymentException) {
-            logger.info("Payment already exists: orderId=${command.orderId}")
-            ack.acknowledge()
-        } catch (e: PaymentBusinessException) {
-            // 비즈니스 실패 → 보상 이벤트 발행 가능
-            ack.acknowledge()
-        } catch (e: Exception) {
-            logger.error("Transient failure, will retry", e)
-            throw e // ❗ ack 안 함 → 재시도
-        }
+        createPaymentUseCase.execute(command, context)
+        idempotencyChecker.recordProcessed(
+            event.id,
+            PaymentIdempotency.Companion.Actions.CREATE,
+            command.orderId.toString(),
+        )
+        ack.acknowledge()
     }
 }

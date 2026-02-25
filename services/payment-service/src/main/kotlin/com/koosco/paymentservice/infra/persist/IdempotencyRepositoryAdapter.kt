@@ -10,4 +10,7 @@ class IdempotencyRepositoryAdapter(private val jpaRepository: JpaIdempotencyRepo
     override fun save(paymentIdempotency: PaymentIdempotency) {
         jpaRepository.save(paymentIdempotency)
     }
+
+    override fun existsByMessageIdAndAction(messageId: String, action: String): Boolean =
+        jpaRepository.existsByMessageIdAndAction(messageId, action)
 }
