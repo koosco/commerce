@@ -18,12 +18,15 @@ data class RegisterRequest(
 
     @field:NotBlankIfPresent(message = "전화번호는 공백일 수 없습니다.")
     val phone: String? = null,
+
+    val idempotencyKey: String? = null,
 ) {
     fun toCommand(): CreateUserCommand = CreateUserCommand(
         email = this.email,
         password = this.password,
         name = this.name,
         phone = this.phone,
+        idempotencyKey = this.idempotencyKey,
     )
 }
 

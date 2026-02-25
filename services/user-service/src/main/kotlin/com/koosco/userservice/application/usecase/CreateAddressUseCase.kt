@@ -6,15 +6,18 @@ import com.koosco.common.core.exception.NotFoundException
 import com.koosco.userservice.application.command.CreateAddressCommand
 import com.koosco.userservice.application.dto.AddressDto
 import com.koosco.userservice.application.port.AddressRepository
+import com.koosco.userservice.application.port.UserIdempotencyRepository
 import com.koosco.userservice.application.port.UserRepository
 import com.koosco.userservice.common.MemberErrorCode
 import com.koosco.userservice.domain.entity.Address
+import com.koosco.userservice.domain.entity.UserIdempotency
 import org.springframework.transaction.annotation.Transactional
 
 @UseCase
 class CreateAddressUseCase(
     private val userRepository: UserRepository,
     private val addressRepository: AddressRepository,
+    private val userIdempotencyRepository: UserIdempotencyRepository,
 ) {
 
     companion object {
@@ -23,6 +26,17 @@ class CreateAddressUseCase(
 
     @Transactional
     fun execute(command: CreateAddressCommand): AddressDto {
+        if (command.idempotencyKey != null) {
+            val existing = userIdempotencyRepository.findByIdempotencyKeyAndResourceType(
+                command.idempotencyKey,
+                UserIdempotency.ADDRESS,
+            )
+            if (existing != null) {
+                val address = addressRepository.findByIdAndMemberId(existing.resourceId, command.userId)
+                if (address != null) return AddressDto.from(address)
+            }
+        }
+
         val member = userRepository.findActiveUserById(command.userId)
             ?: throw NotFoundException(MemberErrorCode.MEMBER_NOT_FOUND)
 
@@ -49,6 +63,13 @@ class CreateAddressUseCase(
         )
 
         val saved = addressRepository.save(address)
+
+        if (command.idempotencyKey != null) {
+            userIdempotencyRepository.save(
+                UserIdempotency.create(command.idempotencyKey, UserIdempotency.ADDRESS, saved.id!!),
+            )
+        }
+
         return AddressDto.from(saved)
     }
 }
