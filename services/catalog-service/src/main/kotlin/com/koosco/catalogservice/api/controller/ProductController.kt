@@ -1,5 +1,6 @@
 package com.koosco.catalogservice.api.controller
 
+import com.koosco.catalogservice.api.request.ChangeStatusRequest
 import com.koosco.catalogservice.api.request.ProductCreateRequest
 import com.koosco.catalogservice.api.request.ProductUpdateRequest
 import com.koosco.catalogservice.api.response.ProductDetailResponse
@@ -10,6 +11,7 @@ import com.koosco.catalogservice.application.command.FindSkuCommand
 import com.koosco.catalogservice.application.command.GetProductDetailCommand
 import com.koosco.catalogservice.application.command.GetProductListCommand
 import com.koosco.catalogservice.application.command.ProductSortType
+import com.koosco.catalogservice.application.usecase.ChangeProductStatusUseCase
 import com.koosco.catalogservice.application.usecase.CreateProductUseCase
 import com.koosco.catalogservice.application.usecase.DeleteProductUseCase
 import com.koosco.catalogservice.application.usecase.FindSkuUseCase
@@ -28,6 +30,7 @@ import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -47,6 +50,7 @@ class ProductController(
     private val updateProductUseCase: UpdateProductUseCase,
     private val deleteProductUseCase: DeleteProductUseCase,
     private val findSkuUseCase: FindSkuUseCase,
+    private val changeProductStatusUseCase: ChangeProductStatusUseCase,
 ) {
     @Operation(summary = "상품 리스트를 조회합니다.", description = "필터링 조건에 따라 상품을 페이징처리하여 조회합니다.")
     @GetMapping
@@ -137,6 +141,21 @@ class ProductController(
         @Valid @RequestBody request: ProductUpdateRequest,
     ): ApiResponse<Any> {
         updateProductUseCase.execute(request.toCommand(productId))
+
+        return ApiResponse.Companion.success()
+    }
+
+    @Operation(
+        summary = "상품 상태를 변경합니다.",
+        description = "상품의 상태를 변경합니다. 허용된 상태 전이만 가능합니다. (DRAFT→ACTIVE, ACTIVE→SUSPENDED 등)",
+        security = [SecurityRequirement(name = "bearerAuth")],
+    )
+    @PatchMapping("/{productId}/status")
+    fun changeProductStatus(
+        @Parameter(description = "Product ID") @PathVariable productId: Long,
+        @Valid @RequestBody request: ChangeStatusRequest,
+    ): ApiResponse<Any> {
+        changeProductStatusUseCase.execute(request.toCommand(productId))
 
         return ApiResponse.Companion.success()
     }

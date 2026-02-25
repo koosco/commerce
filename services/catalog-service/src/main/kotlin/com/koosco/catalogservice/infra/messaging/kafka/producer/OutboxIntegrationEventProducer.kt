@@ -3,7 +3,7 @@ package com.koosco.catalogservice.infra.messaging.kafka.producer
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.koosco.catalogservice.application.port.IntegrationEventProducer
 import com.koosco.catalogservice.common.config.KafkaTopicResolver
-import com.koosco.catalogservice.contract.ProductIntegrationEvent
+import com.koosco.catalogservice.contract.CatalogIntegrationEvent
 import com.koosco.catalogservice.domain.entity.CatalogOutboxEntry
 import com.koosco.catalogservice.infra.outbox.CatalogOutboxRepository
 import org.slf4j.LoggerFactory
@@ -31,7 +31,7 @@ class OutboxIntegrationEventProducer(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun publish(event: ProductIntegrationEvent) {
+    override fun publish(event: CatalogIntegrationEvent) {
         val cloudEvent = event.toCloudEvent(source)
         val topic = topicResolver.resolve(event)
         val partitionKey = event.getPartitionKey()
@@ -41,14 +41,14 @@ class OutboxIntegrationEventProducer(
             objectMapper.writeValueAsString(cloudEvent)
         } catch (e: Exception) {
             logger.error(
-                "Failed to serialize CloudEvent: type=$eventType, skuId=${event.skuId}",
+                "Failed to serialize CloudEvent: type=$eventType, aggregateId=${event.getAggregateId()}",
                 e,
             )
             throw e
         }
 
         val outboxEntry = CatalogOutboxEntry.create(
-            aggregateId = event.skuId,
+            aggregateId = event.getAggregateId(),
             eventType = eventType,
             payload = payload,
             topic = topic,
@@ -58,7 +58,7 @@ class OutboxIntegrationEventProducer(
         outboxRepository.save(outboxEntry)
 
         logger.info(
-            "Outbox entry saved: type=$eventType, skuId=${event.skuId}, topic=$topic",
+            "Outbox entry saved: type=$eventType, aggregateId=${event.getAggregateId()}, topic=$topic",
         )
     }
 }
