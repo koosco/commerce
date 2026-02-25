@@ -54,6 +54,7 @@ class OrderEventIdempotency(
             const val CANCEL_BY_PAYMENT_FAILURE = "CANCEL_BY_PAYMENT_FAILURE"
             const val MARK_FAILED_BY_STOCK_RESERVATION = "MARK_FAILED_BY_STOCK_RESERVATION"
             const val CANCEL_BY_STOCK_CONFIRM_FAILURE = "CANCEL_BY_STOCK_CONFIRM_FAILURE"
+            const val MARK_REFUND_COMPLETED = "MARK_REFUND_COMPLETED"
         }
 
         fun create(messageId: String, action: String, aggregateId: String): OrderEventIdempotency =

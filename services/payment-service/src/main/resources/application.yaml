@@ -68,9 +68,11 @@ payment:
       order.placed: koosco.commerce.order.placed
       order.confirmed: koosco.commerce.order.confirmed
       order.cancelled: koosco.commerce.order.cancelled
+      order.refund.requested: koosco.commerce.order.refund.requested
       payment.created: koosco.commerce.payment.created
       payment.completed: koosco.commerce.payment.completed
       payment.failed: koosco.commerce.payment.failed
+      payment.canceled: koosco.commerce.payment.canceled
 
 common:
   openapi:

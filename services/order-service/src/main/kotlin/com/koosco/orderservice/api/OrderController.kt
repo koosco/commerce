@@ -8,6 +8,7 @@ import com.koosco.orderservice.application.usecase.CancelOrderByUserUseCase
 import com.koosco.orderservice.application.usecase.CreateOrderUseCase
 import com.koosco.orderservice.application.usecase.GetOrderDetailUseCase
 import com.koosco.orderservice.application.usecase.GetOrdersUseCase
+import com.koosco.orderservice.application.usecase.RefundOrderItemsUseCase
 import com.koosco.orderservice.domain.enums.OrderCancelReason
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -35,6 +36,7 @@ class OrderController(
     private val getOrdersUseCase: GetOrdersUseCase,
     private val getOrderDetailUseCase: GetOrderDetailUseCase,
     private val cancelOrderByUserUseCase: CancelOrderByUserUseCase,
+    private val refundOrderItemsUseCase: RefundOrderItemsUseCase,
 ) {
 
     @Operation(
@@ -99,5 +101,20 @@ class OrderController(
         )
         cancelOrderByUserUseCase.execute(command, context)
         return ApiResponse.success()
+    }
+
+    @Operation(
+        summary = "환불 요청",
+        description = "확정된 주문의 아이템을 환불 요청합니다. payment-service로 결제 취소 이벤트가 발행됩니다.",
+        security = [SecurityRequirement(name = "bearerAuth")],
+    )
+    @PostMapping("/{orderId}/refund")
+    fun refundOrderItems(
+        @Parameter(hidden = true) @AuthId userId: Long,
+        @PathVariable orderId: Long,
+        @Valid @RequestBody request: RefundOrderItemsRequest,
+    ): ApiResponse<RefundOrderItemsResponse> {
+        val result = refundOrderItemsUseCase.execute(request.toCommand(orderId, userId))
+        return ApiResponse.Companion.success(RefundOrderItemsResponse.from(result))
     }
 }
