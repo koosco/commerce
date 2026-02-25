@@ -11,12 +11,15 @@ data class CreateSnapRequest(
     val caption: String? = null,
 
     val imageUrls: List<String> = emptyList(),
+
+    val idempotencyKey: String? = null,
 ) {
     fun toCommand(userId: Long): CreateSnapCommand = CreateSnapCommand(
         productId = productId,
         userId = userId,
         caption = caption,
         imageUrls = imageUrls,
+        idempotencyKey = idempotencyKey,
     )
 }
 

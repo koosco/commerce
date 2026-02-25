@@ -32,6 +32,8 @@ data class ProductCreateRequest(
 
     @field:Valid
     val optionGroups: List<ProductOptionGroup> = emptyList(),
+
+    val idempotencyKey: String? = null,
 ) {
     data class ProductOptionGroup(
         @field:NotBlank(message = "Option group name is required")
@@ -70,6 +72,7 @@ data class ProductCreateRequest(
         thumbnailImageUrl = thumbnailImageUrl,
         brandId = brandId,
         optionGroups = optionGroups.map { it.toCommand() },
+        idempotencyKey = idempotencyKey,
     )
 }
 

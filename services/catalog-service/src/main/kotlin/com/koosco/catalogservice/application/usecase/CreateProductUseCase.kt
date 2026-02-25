@@ -1,17 +1,21 @@
 package com.koosco.catalogservice.application.usecase
 
 import com.koosco.catalogservice.application.command.CreateProductCommand
+import com.koosco.catalogservice.application.port.CatalogIdempotencyRepository
 import com.koosco.catalogservice.application.port.CategoryRepository
 import com.koosco.catalogservice.application.port.IntegrationEventProducer
 import com.koosco.catalogservice.application.port.ProductRepository
 import com.koosco.catalogservice.application.result.ProductInfo
+import com.koosco.catalogservice.common.error.CatalogErrorCode
 import com.koosco.catalogservice.contract.outbound.ProductSkuCreatedEvent
+import com.koosco.catalogservice.domain.entity.CatalogIdempotency
 import com.koosco.catalogservice.domain.entity.Product
 import com.koosco.catalogservice.domain.service.ProductValidator
 import com.koosco.catalogservice.domain.service.SkuGenerator
 import com.koosco.catalogservice.domain.vo.CreateOptionSpec
 import com.koosco.catalogservice.domain.vo.OptionGroupCreateSpec
 import com.koosco.common.core.annotation.UseCase
+import com.koosco.common.core.exception.NotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -23,11 +27,24 @@ class CreateProductUseCase(
     private val skuGenerator: SkuGenerator,
     private val productValidator: ProductValidator,
     private val integrationEventProducer: IntegrationEventProducer,
+    private val catalogIdempotencyRepository: CatalogIdempotencyRepository,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @Transactional
     fun execute(command: CreateProductCommand): ProductInfo {
+        if (command.idempotencyKey != null) {
+            val existing = catalogIdempotencyRepository.findByIdempotencyKeyAndResourceType(
+                command.idempotencyKey,
+                "PRODUCT",
+            )
+            if (existing != null) {
+                val product = productRepository.findOrNull(existing.resourceId)
+                    ?: throw NotFoundException(CatalogErrorCode.PRODUCT_NOT_FOUND)
+                return ProductInfo.from(product)
+            }
+        }
+
         // Category 조회 및 code 추출
         val categoryCode = command.categoryId?.let { categoryId ->
             categoryRepository.findByIdOrNull(categoryId)?.code
@@ -86,6 +103,12 @@ class CreateProductUseCase(
                     initialQuantity = 0,
                     createdAt = LocalDateTime.now(),
                 ),
+            )
+        }
+
+        if (command.idempotencyKey != null) {
+            catalogIdempotencyRepository.save(
+                CatalogIdempotency.create(command.idempotencyKey, "PRODUCT", savedProduct.id!!),
             )
         }
 
