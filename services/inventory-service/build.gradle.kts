@@ -54,6 +54,7 @@ dependencies {
 
     // redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.apache.commons:commons-pool2")
 
     // kafka
     implementation("org.springframework.kafka:spring-kafka")
