@@ -1,17 +1,36 @@
 package com.koosco.catalogservice.application.usecase
 
 import com.koosco.catalogservice.application.command.CreateReviewCommand
+import com.koosco.catalogservice.application.port.CatalogIdempotencyRepository
 import com.koosco.catalogservice.application.port.ReviewRepository
 import com.koosco.catalogservice.application.result.ReviewResult
+import com.koosco.catalogservice.common.error.CatalogErrorCode
+import com.koosco.catalogservice.domain.entity.CatalogIdempotency
 import com.koosco.catalogservice.domain.entity.Review
 import com.koosco.common.core.annotation.UseCase
+import com.koosco.common.core.exception.NotFoundException
 import org.springframework.transaction.annotation.Transactional
 
 @UseCase
-class CreateReviewUseCase(private val reviewRepository: ReviewRepository) {
+class CreateReviewUseCase(
+    private val reviewRepository: ReviewRepository,
+    private val catalogIdempotencyRepository: CatalogIdempotencyRepository,
+) {
 
     @Transactional
     fun execute(command: CreateReviewCommand): ReviewResult {
+        if (command.idempotencyKey != null) {
+            val existing = catalogIdempotencyRepository.findByIdempotencyKeyAndResourceType(
+                command.idempotencyKey,
+                "REVIEW",
+            )
+            if (existing != null) {
+                val review = reviewRepository.findByIdOrNull(existing.resourceId)
+                    ?: throw NotFoundException(CatalogErrorCode.REVIEW_NOT_FOUND)
+                return ReviewResult.from(review)
+            }
+        }
+
         val review = Review.create(
             productId = command.productId,
             userId = command.userId,
@@ -26,6 +45,13 @@ class CreateReviewUseCase(private val reviewRepository: ReviewRepository) {
         }
 
         val saved = reviewRepository.save(review)
+
+        if (command.idempotencyKey != null) {
+            catalogIdempotencyRepository.save(
+                CatalogIdempotency.create(command.idempotencyKey, "REVIEW", saved.id!!),
+            )
+        }
+
         return ReviewResult.from(saved)
     }
 }

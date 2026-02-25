@@ -8,10 +8,12 @@ data class BrandCreateRequest(
     @field:NotBlank(message = "Brand name is required")
     val name: String,
     val logoImageUrl: String?,
+    val idempotencyKey: String? = null,
 ) {
     fun toCommand(): CreateBrandCommand = CreateBrandCommand(
         name = name,
         logoImageUrl = logoImageUrl,
+        idempotencyKey = idempotencyKey,
     )
 }
 

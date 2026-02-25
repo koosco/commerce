@@ -2,8 +2,10 @@ package com.koosco.catalogservice.application.usecase
 
 import com.koosco.catalogservice.application.command.CreateCategoryCommand
 import com.koosco.catalogservice.application.dto.CategoryInfo
+import com.koosco.catalogservice.application.port.CatalogIdempotencyRepository
 import com.koosco.catalogservice.application.port.CategoryRepository
 import com.koosco.catalogservice.common.error.CatalogErrorCode
+import com.koosco.catalogservice.domain.entity.CatalogIdempotency
 import com.koosco.catalogservice.domain.entity.Category
 import com.koosco.common.core.annotation.UseCase
 import com.koosco.common.core.exception.ConflictException
@@ -12,11 +14,26 @@ import org.springframework.cache.annotation.CacheEvict
 import org.springframework.transaction.annotation.Transactional
 
 @UseCase
-class CreateCategoryUseCase(private val categoryRepository: CategoryRepository) {
+class CreateCategoryUseCase(
+    private val categoryRepository: CategoryRepository,
+    private val catalogIdempotencyRepository: CatalogIdempotencyRepository,
+) {
 
     @CacheEvict(cacheNames = ["categoryTree"], allEntries = true)
     @Transactional
     fun execute(command: CreateCategoryCommand): CategoryInfo {
+        if (command.idempotencyKey != null) {
+            val existing = catalogIdempotencyRepository.findByIdempotencyKeyAndResourceType(
+                command.idempotencyKey,
+                "CATEGORY",
+            )
+            if (existing != null) {
+                val category = categoryRepository.findByIdOrNull(existing.resourceId)
+                    ?: throw NotFoundException(CatalogErrorCode.CATEGORY_NOT_FOUND)
+                return CategoryInfo.from(category)
+            }
+        }
+
         val parent = if (command.parentId != null) {
             categoryRepository.findByIdOrNull(command.parentId)
                 ?: throw NotFoundException(CatalogErrorCode.CATEGORY_NOT_FOUND)
@@ -35,6 +52,12 @@ class CreateCategoryUseCase(private val categoryRepository: CategoryRepository) 
             ordering = command.ordering,
         )
         val savedCategory = categoryRepository.save(category)
+
+        if (command.idempotencyKey != null) {
+            catalogIdempotencyRepository.save(
+                CatalogIdempotency.create(command.idempotencyKey, "CATEGORY", savedCategory.id!!),
+            )
+        }
 
         return CategoryInfo.from(savedCategory)
     }

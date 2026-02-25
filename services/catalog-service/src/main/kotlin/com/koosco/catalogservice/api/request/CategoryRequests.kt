@@ -12,11 +12,13 @@ data class CategoryCreateRequest(
     val parentId: Long?,
     @field:Min(value = 0, message = "카테고리 순서는 0 이상이어야 합니다.")
     val ordering: Int = 0,
+    val idempotencyKey: String? = null,
 ) {
     fun toCommand(): CreateCategoryCommand = CreateCategoryCommand(
         name = name,
         parentId = parentId,
         ordering = ordering,
+        idempotencyKey = idempotencyKey,
     )
 }
 
@@ -27,10 +29,12 @@ data class CategoryTreeCreateRequest(
     val ordering: Int = 0,
     @field:Valid
     val children: List<CategoryTreeCreateRequest> = emptyList(),
+    val idempotencyKey: String? = null,
 ) {
     fun toCommand(): CreateCategoryTreeCommand = CreateCategoryTreeCommand(
         name = name,
         ordering = ordering,
         children = children.map { it.toCommand() },
+        idempotencyKey = idempotencyKey,
     )
 }
