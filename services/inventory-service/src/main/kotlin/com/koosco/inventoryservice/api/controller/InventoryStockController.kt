@@ -33,6 +33,7 @@ class InventoryStockController(
                         it.quantity,
                     )
                 },
+                idempotencyKey = body.idempotencyKey,
             ),
         )
 
@@ -47,12 +48,13 @@ class InventoryStockController(
     fun reduceBulkInventories(@RequestBody body: BulkReduceStockRequest): ApiResponse<Any> {
         reduceStockUseCase.execute(
             BulkReduceStockCommand(
-                body.items.map {
+                items = body.items.map {
                     BulkReduceStockCommand.ReducingStockInfo(
                         it.skuId,
                         it.quantity,
                     )
                 },
+                idempotencyKey = body.idempotencyKey,
             ),
         )
 

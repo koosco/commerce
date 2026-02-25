@@ -2,17 +2,30 @@ package com.koosco.inventoryservice.application.usecase
 
 import com.koosco.common.core.annotation.UseCase
 import com.koosco.inventoryservice.application.command.BulkAddStockCommand
+import com.koosco.inventoryservice.application.port.InventoryApiIdempotencyRepository
 import com.koosco.inventoryservice.application.port.InventoryLogPort
 import com.koosco.inventoryservice.application.port.InventoryStockStorePort
+import com.koosco.inventoryservice.domain.entity.InventoryApiIdempotency
 import com.koosco.inventoryservice.domain.enums.InventoryAction
 
 @UseCase
 class AddStockUseCase(
     private val inventoryStockStore: InventoryStockStorePort,
     private val inventoryLogPort: InventoryLogPort,
+    private val apiIdempotencyRepository: InventoryApiIdempotencyRepository,
 ) {
 
     fun execute(command: BulkAddStockCommand) {
+        if (command.idempotencyKey != null) {
+            if (apiIdempotencyRepository.existsByIdempotencyKeyAndOperationType(
+                    command.idempotencyKey,
+                    InventoryApiIdempotency.ADD_STOCK,
+                )
+            ) {
+                return
+            }
+        }
+
         inventoryStockStore.add(
             command.items.map {
                 InventoryStockStorePort.AddItem(
@@ -32,5 +45,11 @@ class AddStockUseCase(
                 )
             },
         )
+
+        if (command.idempotencyKey != null) {
+            apiIdempotencyRepository.save(
+                InventoryApiIdempotency.create(command.idempotencyKey, InventoryApiIdempotency.ADD_STOCK),
+            )
+        }
     }
 }
