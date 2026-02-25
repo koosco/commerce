@@ -1,6 +1,6 @@
 package com.koosco.orderservice.application.command
 
-data class AddCartItemCommand(val userId: Long, val skuId: Long, val qty: Int)
+data class AddCartItemCommand(val userId: Long, val skuId: Long, val qty: Int, val idempotencyKey: String? = null)
 
 data class UpdateCartItemCommand(val userId: Long, val cartItemId: Long, val qty: Int)
 
