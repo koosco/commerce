@@ -9,6 +9,7 @@ data class CreateAddressCommand(
     val address: String,
     val addressDetail: String,
     val isDefault: Boolean,
+    val idempotencyKey: String? = null,
 )
 
 data class GetAddressesCommand(val userId: Long)

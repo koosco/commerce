@@ -23,6 +23,8 @@ data class CreateAddressRequest(
     val addressDetail: String,
 
     val isDefault: Boolean = false,
+
+    val idempotencyKey: String? = null,
 ) {
     fun toCommand(userId: Long): CreateAddressCommand = CreateAddressCommand(
         userId = userId,
@@ -33,5 +35,6 @@ data class CreateAddressRequest(
         address = address,
         addressDetail = addressDetail,
         isDefault = isDefault,
+        idempotencyKey = idempotencyKey,
     )
 }
