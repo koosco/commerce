@@ -15,7 +15,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import java.util.UUID
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
@@ -25,6 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
 
 @Tag(name = "Orders", description = "Order management API - Create, view, and manage orders")
@@ -88,10 +88,7 @@ class OrderController(
         security = [SecurityRequirement(name = "bearerAuth")],
     )
     @PostMapping("/{orderId}/cancel")
-    fun cancelOrder(
-        @Parameter(hidden = true) @AuthId userId: Long,
-        @PathVariable orderId: Long,
-    ): ApiResponse<Any> {
+    fun cancelOrder(@Parameter(hidden = true) @AuthId userId: Long, @PathVariable orderId: Long): ApiResponse<Any> {
         val command = CancelOrderCommand(
             orderId = orderId,
             reason = OrderCancelReason.USER_REQUEST,
