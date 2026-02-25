@@ -1,6 +1,7 @@
 package com.koosco.orderservice.domain.entity
 
 import com.koosco.orderservice.domain.enums.OrderCancelReason
+import com.koosco.orderservice.domain.enums.OrderItemStatus
 import com.koosco.orderservice.domain.enums.OrderStatus
 import com.koosco.orderservice.domain.exception.InvalidOrderStatus
 import com.koosco.orderservice.domain.exception.PaymentMisMatch
@@ -78,6 +79,10 @@ class Order(
     var paidAt: LocalDateTime? = null,
 
     var canceledAt: LocalDateTime? = null,
+
+    /** 누적 환불 금액 */
+    @Column(nullable = false)
+    var refundedAmount: Money = Money.ZERO,
 
     @OneToMany(
         mappedBy = "order",
@@ -195,5 +200,30 @@ class Order(
         status = OrderStatus.CANCELLED
         canceledAt = LocalDateTime.now()
         updatedAt = LocalDateTime.now()
+    }
+
+    fun refundItem(itemId: Long): Money {
+        if (status != OrderStatus.PAID && status != OrderStatus.CONFIRMED && status != OrderStatus.PARTIALLY_REFUNDED) {
+            throw InvalidOrderStatus("환불 가능한 상태가 아닙니다. 현재 상태: $status")
+        }
+
+        val item = items.find { it.id == itemId }
+            ?: throw IllegalArgumentException("주문 아이템을 찾을 수 없습니다. itemId=$itemId")
+
+        val refundAmount = item.refund()
+        refundedAmount += refundAmount
+
+        val allRefunded = items.all { it.status == OrderItemStatus.REFUNDED }
+        status = if (allRefunded) OrderStatus.REFUNDED else OrderStatus.PARTIALLY_REFUNDED
+        updatedAt = LocalDateTime.now()
+
+        return refundAmount
+    }
+
+    fun refundAll(itemIds: List<Long>): Money {
+        val totalRefundAmount = itemIds.fold(Money.ZERO) { acc, itemId ->
+            acc + refundItem(itemId)
+        }
+        return totalRefundAmount
     }
 }
