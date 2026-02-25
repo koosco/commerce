@@ -1,10 +1,12 @@
 package com.koosco.userservice.domain.entity
 
 import jakarta.persistence.*
+import org.hibernate.annotations.SQLRestriction
 import java.time.LocalDateTime
 
 @Entity
 @Table(name = "member_address")
+@SQLRestriction("deleted_at IS NULL")
 class Address(
 
     @Id
@@ -40,6 +42,9 @@ class Address(
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
     var updatedAt: LocalDateTime = LocalDateTime.now(),
+
+    @Column(name = "deleted_at")
+    var deletedAt: LocalDateTime? = null,
 ) {
     companion object {
         fun create(
@@ -61,6 +66,10 @@ class Address(
             addressDetail = addressDetail,
             isDefault = isDefault,
         )
+    }
+
+    fun softDelete() {
+        deletedAt = LocalDateTime.now()
     }
 
     fun clearDefault() {

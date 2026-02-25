@@ -15,6 +15,7 @@ class DeleteBrandUseCase(private val brandRepository: BrandRepository) {
         val brand = brandRepository.findOrNull(command.brandId)
             ?: throw NotFoundException(CatalogErrorCode.BRAND_NOT_FOUND)
 
-        brandRepository.delete(brand)
+        brand.softDelete()
+        brandRepository.save(brand)
     }
 }

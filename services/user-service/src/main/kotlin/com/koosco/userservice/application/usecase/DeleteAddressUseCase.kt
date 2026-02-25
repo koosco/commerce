@@ -16,6 +16,7 @@ class DeleteAddressUseCase(private val addressRepository: AddressRepository) {
                 com.koosco.userservice.common.MemberErrorCode.ADDRESS_NOT_FOUND,
             )
 
-        addressRepository.delete(address)
+        address.softDelete()
+        addressRepository.save(address)
     }
 }

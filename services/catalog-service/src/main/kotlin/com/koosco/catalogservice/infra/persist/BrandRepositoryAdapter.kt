@@ -15,6 +15,4 @@ class BrandRepositoryAdapter(private val jpaBrandRepository: JpaBrandRepository)
     override fun findAll(): List<Brand> = jpaBrandRepository.findAll()
 
     override fun findAllByIdIn(ids: List<Long>): List<Brand> = jpaBrandRepository.findAllById(ids)
-
-    override fun delete(brand: Brand) = jpaBrandRepository.delete(brand)
 }

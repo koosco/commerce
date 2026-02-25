@@ -7,10 +7,12 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.PreUpdate
 import jakarta.persistence.Table
+import org.hibernate.annotations.SQLRestriction
 import java.time.LocalDateTime
 
 @Entity
 @Table(name = "brands")
+@SQLRestriction("deleted_at IS NULL")
 class Brand(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,10 +29,17 @@ class Brand(
 
     @Column(name = "updated_at", nullable = false)
     var updatedAt: LocalDateTime = LocalDateTime.now(),
+
+    @Column(name = "deleted_at")
+    var deletedAt: LocalDateTime? = null,
 ) {
     @PreUpdate
     fun preUpdate() {
         updatedAt = LocalDateTime.now()
+    }
+
+    fun softDelete() {
+        deletedAt = LocalDateTime.now()
     }
 
     fun update(name: String?, logoImageUrl: String?) {

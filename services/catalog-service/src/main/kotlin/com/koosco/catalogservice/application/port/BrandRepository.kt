@@ -11,6 +11,4 @@ interface BrandRepository {
     fun findAll(): List<Brand>
 
     fun findAllByIdIn(ids: List<Long>): List<Brand>
-
-    fun delete(brand: Brand)
 }

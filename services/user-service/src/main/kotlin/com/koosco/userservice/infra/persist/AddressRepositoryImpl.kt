@@ -15,6 +15,4 @@ class AddressRepositoryImpl(private val jpaAddressRepository: JpaAddressReposito
     override fun findByMemberId(memberId: Long): List<Address> = jpaAddressRepository.findByMemberId(memberId)
 
     override fun countByMemberId(memberId: Long): Int = jpaAddressRepository.countByMemberId(memberId)
-
-    override fun delete(address: Address) = jpaAddressRepository.delete(address)
 }

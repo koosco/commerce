@@ -11,6 +11,4 @@ interface AddressRepository {
     fun findByMemberId(memberId: Long): List<Address>
 
     fun countByMemberId(memberId: Long): Int
-
-    fun delete(address: Address)
 }
