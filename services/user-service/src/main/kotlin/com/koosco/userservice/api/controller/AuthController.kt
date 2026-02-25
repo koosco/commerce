@@ -3,6 +3,7 @@ package com.koosco.userservice.api.controller
 import com.koosco.common.core.response.ApiResponse
 import com.koosco.commonsecurity.resolver.AuthId
 import com.koosco.userservice.api.LoginRequest
+import com.koosco.userservice.api.LoginResponse
 import com.koosco.userservice.application.usecase.LoginUseCase
 import com.koosco.userservice.application.usecase.LogoutUseCase
 import com.koosco.userservice.application.usecase.RefreshTokenUseCase
@@ -25,19 +26,19 @@ class AuthController(
 
     @Operation(summary = "로그인", description = "이메일/비밀번호로 로그인하여 토큰을 발급합니다.")
     @PostMapping("/login")
-    fun login(@Valid @RequestBody request: LoginRequest, response: HttpServletResponse): ApiResponse<Any> {
+    fun login(@Valid @RequestBody request: LoginRequest, response: HttpServletResponse): ApiResponse<LoginResponse> {
         val tokens = loginUseCase.execute(request.toCommand())
 
         response.addHeader("Authorization", tokens.accessToken)
 
         putRefreshTokenInCookie(response, tokens.refreshToken, tokens.refreshTokenExpiresIn)
 
-        return ApiResponse.success()
+        return ApiResponse.success(LoginResponse(tokens.accessToken))
     }
 
     @Operation(summary = "토큰 갱신", description = "Refresh Token으로 새 토큰을 발급합니다.")
     @PostMapping("/refresh")
-    fun refresh(request: HttpServletRequest, response: HttpServletResponse): ApiResponse<Any> {
+    fun refresh(request: HttpServletRequest, response: HttpServletResponse): ApiResponse<LoginResponse> {
         val refreshToken = extractRefreshToken(request)
 
         val tokens = refreshTokenUseCase.execute(refreshToken)
@@ -46,7 +47,7 @@ class AuthController(
 
         putRefreshTokenInCookie(response, tokens.refreshToken, tokens.refreshTokenExpiresIn)
 
-        return ApiResponse.success()
+        return ApiResponse.success(LoginResponse(tokens.accessToken))
     }
 
     @Operation(summary = "로그아웃", description = "Refresh Token을 삭제합니다.")
