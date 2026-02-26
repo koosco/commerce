@@ -71,6 +71,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:kafka")
+    testImplementation("org.testcontainers:mariadb")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
 
     // common-core test fixtures (KafkaContainerTestBase)

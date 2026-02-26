@@ -44,15 +44,17 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    // testcontainers (for KafkaContainerTestBase in testFixtures)
+    // testcontainers (for KafkaContainerTestBase, MariaDBContainerTestBase, etc. in testFixtures)
     testFixturesImplementation(platform("org.testcontainers:testcontainers-bom:1.19.7"))
     testFixturesImplementation("org.testcontainers:testcontainers")
     testFixturesImplementation("org.testcontainers:junit-jupiter")
     testFixturesImplementation("org.testcontainers:kafka")
+    testFixturesImplementation("org.testcontainers:mariadb")
     testFixturesImplementation("org.springframework.boot:spring-boot-testcontainers")
     testFixturesImplementation("org.springframework.kafka:spring-kafka")
     testFixturesImplementation("org.springframework.kafka:spring-kafka-test")
     testFixturesImplementation("org.springframework.boot:spring-boot-starter-test")
+    testFixturesImplementation("org.springframework.boot:spring-boot-starter-data-redis")
     testFixturesImplementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 }
 
