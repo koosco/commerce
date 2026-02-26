@@ -1,0 +1,48 @@
+# Prometheus Exporter Containers
+# 사용: docker compose -f docker-compose.exporters.yml up -d
+#
+# 주의: Kafka는 노드 레벨에서 실행되므로 host.docker.internal로 접근합니다.
+#       MariaDB, Redis도 별도 docker-compose로 실행되므로 네트워크를 공유합니다.
+
+services:
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    container_name: commerce-kafka-exporter
+    command: ["--kafka.server=host.docker.internal:9092"]
+    ports:
+      - "9308:9308"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    networks:
+      - commerce-net
+
+  mysqld-exporter:
+    image: prom/mysqld-exporter:latest
+    container_name: commerce-mysqld-exporter
+    command:
+      - "--mysqld.address=commerce-mariadb:3306"
+      - "--mysqld.username=root"
+    environment:
+      MYSQLD_EXPORTER_PASSWORD: "root"
+    ports:
+      - "9104:9104"
+    restart: unless-stopped
+    networks:
+      - commerce-net
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: commerce-redis-exporter
+    environment:
+      REDIS_ADDR: "redis://commerce-redis:6379"
+    ports:
+      - "9121:9121"
+    restart: unless-stopped
+    networks:
+      - commerce-net
+
+networks:
+  commerce-net:
+    external: true
+    name: commerce-net
