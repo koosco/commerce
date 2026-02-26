@@ -109,3 +109,35 @@ data class ChangeStatusRequest(
         status = status,
     )
 }
+
+/**
+ * Add Option Request
+ */
+data class AddOptionRequest(
+    @field:NotNull(message = "Option group ID is required")
+    val optionGroupId: Long,
+
+    @field:Valid
+    val options: List<OptionValueRequest>,
+) {
+    data class OptionValueRequest(
+        @field:NotBlank(message = "Option name is required")
+        val name: String,
+        @field:Min(value = 0, message = "Additional price must be non-negative")
+        val additionalPrice: Long = 0,
+        val ordering: Int = 0,
+    )
+
+    fun toCommand(productId: Long): com.koosco.catalogservice.application.command.AddProductOptionCommand =
+        com.koosco.catalogservice.application.command.AddProductOptionCommand(
+            productId = productId,
+            optionGroupId = optionGroupId,
+            options = options.map { option ->
+                com.koosco.catalogservice.application.command.AddProductOptionCommand.OptionValueSpec(
+                    name = option.name,
+                    additionalPrice = option.additionalPrice,
+                    ordering = option.ordering,
+                )
+            },
+        )
+}

@@ -2,8 +2,11 @@ package com.koosco.catalogservice.domain.entity
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.koosco.catalogservice.domain.enums.SkuStatus
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -39,9 +42,19 @@ class ProductSku(
     @Column(name = "option_values", columnDefinition = "JSON")
     val optionValues: String,
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    var status: SkuStatus = SkuStatus.ACTIVE,
+
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 ) {
+
+    fun deactivate() {
+        this.status = SkuStatus.DEACTIVATED
+    }
+
+    fun isActive(): Boolean = status == SkuStatus.ACTIVE
 
     companion object {
         private val objectMapper: ObjectMapper = jacksonObjectMapper()
