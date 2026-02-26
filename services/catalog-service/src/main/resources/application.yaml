@@ -69,6 +69,7 @@ catalog:
     mappings:
       "product.sku.created": koosco.commerce.product.default
       "product.status.changed": koosco.commerce.product.default
+      "promotion.activated": koosco.commerce.product.default
     consumer:
       inventory:
         stock: koosco.commerce.inventory.stock

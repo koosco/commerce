@@ -35,6 +35,7 @@ enum class CatalogErrorCode(override val code: String, override val message: Str
     // 404 Not Found (Content)
     REVIEW_NOT_FOUND("CATALOG-404-006", "리뷰를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     SNAP_NOT_FOUND("CATALOG-404-007", "스냅을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    PROMOTION_NOT_FOUND("CATALOG-404-008", "프로모션을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
     // 409 Conflict
     PRODUCT_NAME_CONFLICT("CATALOG-409-001", "이미 존재하는 상품명입니다.", HttpStatus.CONFLICT),
