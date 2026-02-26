@@ -4,6 +4,7 @@ import com.koosco.common.core.annotation.NotBlankIfPresent
 import com.koosco.userservice.application.command.CreateUserCommand
 import com.koosco.userservice.application.command.LoginCommand
 import com.koosco.userservice.application.command.UpdateUserCommand
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.constraints.NotBlank
 
 data class RegisterRequest(
@@ -47,5 +48,15 @@ data class LoginRequest(
     @field:NotBlank(message = "비밀번호는 공백일 수 없습니다.")
     val password: String,
 ) {
-    fun toCommand(): LoginCommand = LoginCommand(email = email, password = password)
+    fun toCommand(request: HttpServletRequest): LoginCommand = LoginCommand(
+        email = email,
+        password = password,
+        ip = extractClientIp(request),
+        userAgent = request.getHeader("User-Agent"),
+    )
+
+    private fun extractClientIp(request: HttpServletRequest): String =
+        request.getHeader("X-Forwarded-For")?.split(",")?.firstOrNull()?.trim()
+            ?: request.getHeader("X-Real-IP")
+            ?: request.remoteAddr
 }
