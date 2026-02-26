@@ -26,8 +26,12 @@ class AuthController(
 
     @Operation(summary = "로그인", description = "이메일/비밀번호로 로그인하여 토큰을 발급합니다.")
     @PostMapping("/login")
-    fun login(@Valid @RequestBody request: LoginRequest, response: HttpServletResponse): ApiResponse<LoginResponse> {
-        val tokens = loginUseCase.execute(request.toCommand())
+    fun login(
+        @Valid @RequestBody request: LoginRequest,
+        httpRequest: HttpServletRequest,
+        response: HttpServletResponse,
+    ): ApiResponse<LoginResponse> {
+        val tokens = loginUseCase.execute(request.toCommand(httpRequest))
 
         response.addHeader("Authorization", tokens.accessToken)
 
