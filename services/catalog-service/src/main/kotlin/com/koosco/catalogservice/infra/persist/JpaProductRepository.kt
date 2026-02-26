@@ -9,4 +9,7 @@ interface JpaProductRepository : JpaRepository<Product, Long> {
 
     @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.optionGroups WHERE p.id = :id")
     fun findByIdWithOptions(@Param("id") id: Long): Product?
+
+    @Query("SELECT p FROM Product p JOIN p.skus s WHERE s.skuId = :skuId")
+    fun findBySkuId(@Param("skuId") skuId: String): Product?
 }

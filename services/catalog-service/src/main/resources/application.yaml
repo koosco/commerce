@@ -10,6 +10,11 @@ spring:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
       bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+      group-id: catalog-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
   jpa:
     open-in-view: false
     hibernate:
@@ -64,6 +69,9 @@ catalog:
     mappings:
       "product.sku.created": koosco.commerce.product.default
       "product.status.changed": koosco.commerce.product.default
+    consumer:
+      inventory:
+        stock: koosco.commerce.inventory.stock
 
 common:
   openapi:
