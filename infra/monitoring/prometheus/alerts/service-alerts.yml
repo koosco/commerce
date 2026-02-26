@@ -1,0 +1,42 @@
+groups:
+  - name: service-health
+    rules:
+      # 서비스 인스턴스가 다운된 경우
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.instance }} is down"
+          description: "{{ $labels.job }} has been down for more than 1 minute."
+
+      # 5xx 에러 비율이 높은 경우
+      - alert: HighErrorRate
+        expr: rate(http_server_requests_seconds_count{status=~"5.."}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High 5xx error rate on {{ $labels.application }}"
+          description: "5xx error rate is {{ $value | printf \"%.2f\" }} req/s on {{ $labels.application }}."
+
+      # p99 레이턴시가 높은 경우
+      - alert: HighLatency
+        expr: histogram_quantile(0.99, rate(http_server_requests_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High p99 latency on {{ $labels.application }}"
+          description: "p99 latency is {{ $value | printf \"%.2f\" }}s on {{ $labels.application }}."
+
+      # JVM 힙 메모리 사용률이 90% 이상인 경우
+      - alert: HighJvmMemoryUsage
+        expr: jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High JVM heap usage on {{ $labels.application }}"
+          description: "JVM heap usage is above 90% on {{ $labels.application }}."

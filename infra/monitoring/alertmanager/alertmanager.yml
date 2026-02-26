@@ -1,0 +1,38 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: "default"
+  group_by: ["alertname", "severity"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+  routes:
+    # Critical 알림은 즉시 전송
+    - match:
+        severity: critical
+      receiver: "critical"
+      group_wait: 10s
+      repeat_interval: 1h
+
+receivers:
+  - name: "default"
+    webhook_configs:
+      # Discord 또는 Slack webhook URL을 설정하세요
+      - url: "http://localhost:9999/webhook/default"
+        send_resolved: true
+
+  - name: "critical"
+    webhook_configs:
+      # Critical 알림용 webhook URL을 설정하세요
+      - url: "http://localhost:9999/webhook/critical"
+        send_resolved: true
+
+# 동일 알림 중복 방지
+inhibit_rules:
+  - source_match:
+      severity: "critical"
+    target_match:
+      severity: "warning"
+    equal: ["alertname"]
