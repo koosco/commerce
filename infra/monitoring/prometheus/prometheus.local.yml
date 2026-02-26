@@ -6,6 +6,17 @@ global:
     monitor: "commerce-monitoring"
     environment: "local"
 
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "alerts/*.yml"
+
 scrape_configs:
   # Prometheus 자체 모니터링
   - job_name: "prometheus"
@@ -103,3 +114,31 @@ scrape_configs:
           environment: "local"
           team: "payment"
           tier: "critical"
+
+  # ====================
+  # 인프라 Exporter
+  # ====================
+
+  # Kafka Exporter (로컬)
+  - job_name: 'kafka-exporter'
+    static_configs:
+      - targets: ['host.docker.internal:9308']
+        labels:
+          instance: 'kafka'
+          environment: 'local'
+
+  # MariaDB Exporter (로컬)
+  - job_name: 'mysqld-exporter'
+    static_configs:
+      - targets: ['host.docker.internal:9104']
+        labels:
+          instance: 'mariadb'
+          environment: 'local'
+
+  # Redis Exporter (로컬)
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['host.docker.internal:9121']
+        labels:
+          instance: 'redis'
+          environment: 'local'

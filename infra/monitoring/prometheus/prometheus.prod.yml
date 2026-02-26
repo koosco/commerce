@@ -10,7 +10,7 @@ alerting:
   alertmanagers:
     - static_configs:
         - targets:
-          # - alertmanager:9093
+            - alertmanager:9093
 
 # Load rules once and periodically evaluate them
 rule_files:
@@ -136,29 +136,29 @@ scrape_configs:
           tier: "critical"
 
   # ====================
-  # 추가 모니터링 (Optional)
+  # 인프라 Exporter
   # ====================
 
-  # Kafka Exporter (Kafka 메트릭을 수집하는 경우)
-  # - job_name: 'kafka-exporter'
-  #   static_configs:
-  #     - targets: ['172.31.32.89:9308']
-  #       labels:
-  #         instance: 'kafka'
-  #         environment: 'production'
+  # Kafka Exporter
+  - job_name: 'kafka-exporter'
+    static_configs:
+      - targets: ['172.31.32.89:9308']
+        labels:
+          instance: 'kafka'
+          environment: 'production'
 
-  # MySQL Exporter (DB 메트릭)
-  # - job_name: 'mysql-exporter'
-  #   static_configs:
-  #     - targets: ['172.31.43.230:9104']
-  #       labels:
-  #         instance: 'mysql-primary'
-  #         environment: 'production'
+  # MariaDB Exporter
+  - job_name: 'mysqld-exporter'
+    static_configs:
+      - targets: ['172.31.43.230:9104']
+        labels:
+          instance: 'mariadb-primary'
+          environment: 'production'
 
   # Redis Exporter
-  # - job_name: 'redis-exporter'
-  #   static_configs:
-  #     - targets: ['172.31.43.230:9121']
-  #       labels:
-  #         instance: 'redis-cache'
-  #         environment: 'production'
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['172.31.43.230:9121']
+        labels:
+          instance: 'redis-cache'
+          environment: 'production'

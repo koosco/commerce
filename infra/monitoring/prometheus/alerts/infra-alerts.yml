@@ -1,0 +1,52 @@
+groups:
+  - name: infrastructure
+    rules:
+      # Kafka 컨슈머 랙이 높은 경우
+      - alert: KafkaConsumerLag
+        expr: kafka_consumergroup_lag > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Kafka consumer lag high for {{ $labels.consumergroup }}"
+          description: "Consumer group {{ $labels.consumergroup }} has a lag of {{ $value }} on topic {{ $labels.topic }}."
+
+      # Redis가 다운된 경우
+      - alert: RedisConnectionFailure
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis instance {{ $labels.instance }} has been unreachable for more than 1 minute."
+
+      # 노드 CPU 사용률이 85% 이상인 경우
+      - alert: HighNodeCpuUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 85% on {{ $labels.instance }}."
+
+      # 노드 메모리 사용률이 90% 이상인 경우
+      - alert: HighNodeMemoryUsage
+        expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 90% on {{ $labels.instance }}."
+
+      # 노드 디스크 사용률이 85% 이상인 경우
+      - alert: HighDiskUsage
+        expr: (1 - node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"}) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High disk usage on {{ $labels.instance }}"
+          description: "Disk usage is above 85% on {{ $labels.instance }} ({{ $labels.mountpoint }})."
