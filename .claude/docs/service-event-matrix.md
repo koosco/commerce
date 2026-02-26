@@ -30,7 +30,7 @@ Each service has its own CLAUDE.md with specific guidance:
 | order-service | PaymentCreated/Completed/Failed, StockReserved/ReservationFailed/Confirmed/ConfirmFailed | 상태 전이 + DB 멱등성 | 7개 Consumer |
 | inventory-service | OrderPlaced/Confirmed/Cancelled, ProductSkuCreated | 상태 전이 | 4개 Consumer |
 | payment-service | OrderPlaced | **DB 멱등성** | IdempotencyRepository 사용 |
-| catalog-service | - | - | Consumer 없음 (Producer only) |
+| catalog-service | StockDepleted/StockRestored | 상태 전이 (멱등) | 1개 Consumer (2 event types) |
 
 ## Event Flow Summary
 
@@ -44,7 +44,9 @@ inventory-service (Producer)
     ├── StockReserved → order-service
     ├── StockReservationFailed → order-service
     ├── StockConfirmed → order-service
-    └── StockConfirmFailed → order-service
+    ├── StockConfirmFailed → order-service
+    ├── StockDepleted → catalog-service
+    └── StockRestored → catalog-service
 
 payment-service (Producer)
     ├── PaymentCreated → order-service

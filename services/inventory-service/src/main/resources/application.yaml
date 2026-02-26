@@ -98,6 +98,8 @@ inventory:
         confirmed: koosco.commerce.stock.confirmed
         "confirm.failed": koosco.commerce.stock.confirm.failed
         cancelled: koosco.commerce.stock.cancelled
+        depleted: koosco.commerce.inventory.stock
+        restored: koosco.commerce.inventory.stock
 
 jwt:
   secret: ${JWT_SECRET:mySecretKeyForJWTWhichShouldBeAtLeast256BitsLongToEnsureSecurityAndCompliance}
