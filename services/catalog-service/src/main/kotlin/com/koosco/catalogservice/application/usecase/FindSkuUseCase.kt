@@ -19,10 +19,10 @@ class FindSkuUseCase(private val productRepository: ProductRepository) {
         // 입력받은 옵션을 VO로 변환
         val requestedOptions = ProductOptions.from(command.options)
 
-        // 일치하는 SKU 찾기 - 객체 비교
+        // 일치하는 활성 SKU 찾기 - 객체 비교
         val sku = product.skus.find { sku ->
-            val skuOptions = ProductOptions.fromJson(sku.optionValues)
-            skuOptions == requestedOptions
+            sku.isActive() &&
+                ProductOptions.fromJson(sku.optionValues) == requestedOptions
         } ?: throw IllegalArgumentException(
             "No SKU found for options: ${command.options}. " +
                 "Available SKUs: ${product.skus.map { productSku ->

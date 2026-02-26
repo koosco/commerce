@@ -1,5 +1,6 @@
 package com.koosco.catalogservice.api.controller
 
+import com.koosco.catalogservice.api.request.AddOptionRequest
 import com.koosco.catalogservice.api.request.ChangeStatusRequest
 import com.koosco.catalogservice.api.request.ProductCreateRequest
 import com.koosco.catalogservice.api.request.ProductUpdateRequest
@@ -11,12 +12,15 @@ import com.koosco.catalogservice.application.command.FindSkuCommand
 import com.koosco.catalogservice.application.command.GetProductDetailCommand
 import com.koosco.catalogservice.application.command.GetProductListCommand
 import com.koosco.catalogservice.application.command.ProductSortType
+import com.koosco.catalogservice.application.command.RemoveProductOptionCommand
+import com.koosco.catalogservice.application.usecase.AddProductOptionUseCase
 import com.koosco.catalogservice.application.usecase.ChangeProductStatusUseCase
 import com.koosco.catalogservice.application.usecase.CreateProductUseCase
 import com.koosco.catalogservice.application.usecase.DeleteProductUseCase
 import com.koosco.catalogservice.application.usecase.FindSkuUseCase
 import com.koosco.catalogservice.application.usecase.GetProductDetailUseCase
 import com.koosco.catalogservice.application.usecase.GetProductListUseCase
+import com.koosco.catalogservice.application.usecase.RemoveProductOptionUseCase
 import com.koosco.catalogservice.application.usecase.UpdateProductUseCase
 import com.koosco.common.core.response.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
@@ -52,6 +56,8 @@ class ProductController(
     private val deleteProductUseCase: DeleteProductUseCase,
     private val findSkuUseCase: FindSkuUseCase,
     private val changeProductStatusUseCase: ChangeProductStatusUseCase,
+    private val addProductOptionUseCase: AddProductOptionUseCase,
+    private val removeProductOptionUseCase: RemoveProductOptionUseCase,
 ) {
     @Operation(summary = "상품 리스트를 조회합니다.", description = "필터링 조건에 따라 상품을 페이징처리하여 조회합니다.")
     @GetMapping
@@ -162,6 +168,38 @@ class ProductController(
         changeProductStatusUseCase.execute(request.toCommand(productId))
 
         return ApiResponse.Companion.success()
+    }
+
+    @Operation(
+        summary = "상품 옵션을 추가합니다.",
+        description = "기존 옵션 그룹에 새로운 옵션 값을 추가하고 누락된 SKU 조합을 자동 생성합니다.",
+        security = [SecurityRequirement(name = "bearerAuth")],
+    )
+    @PostMapping("/{productId}/options")
+    fun addProductOption(
+        @Parameter(description = "Product ID") @PathVariable productId: Long,
+        @Valid @RequestBody request: AddOptionRequest,
+    ): ApiResponse<ProductDetailResponse> {
+        val productInfo = addProductOptionUseCase.execute(request.toCommand(productId))
+
+        return ApiResponse.Companion.success(ProductDetailResponse.Companion.from(productInfo))
+    }
+
+    @Operation(
+        summary = "상품 옵션을 제거합니다.",
+        description = "옵션을 제거하고 해당 옵션이 포함된 SKU를 비활성화합니다.",
+        security = [SecurityRequirement(name = "bearerAuth")],
+    )
+    @DeleteMapping("/{productId}/options/{optionId}")
+    fun removeProductOption(
+        @Parameter(description = "Product ID") @PathVariable productId: Long,
+        @Parameter(description = "Option ID") @PathVariable optionId: Long,
+    ): ApiResponse<ProductDetailResponse> {
+        val productInfo = removeProductOptionUseCase.execute(
+            RemoveProductOptionCommand(productId = productId, optionId = optionId),
+        )
+
+        return ApiResponse.Companion.success(ProductDetailResponse.Companion.from(productInfo))
     }
 
     @Operation(

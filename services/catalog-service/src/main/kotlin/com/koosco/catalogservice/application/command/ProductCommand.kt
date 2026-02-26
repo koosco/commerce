@@ -30,3 +30,9 @@ data class UpdateProductCommand(
 data class DeleteProductCommand(val productId: Long)
 
 data class ChangeProductStatusCommand(val productId: Long, val status: ProductStatus)
+
+data class AddProductOptionCommand(val productId: Long, val optionGroupId: Long, val options: List<OptionValueSpec>) {
+    data class OptionValueSpec(val name: String, val additionalPrice: Long = 0, val ordering: Int = 0)
+}
+
+data class RemoveProductOptionCommand(val productId: Long, val optionId: Long)
