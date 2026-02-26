@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -124,8 +125,11 @@ class ProductController(
     )
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun createProduct(@Valid @RequestBody request: ProductCreateRequest): ApiResponse<ProductDetailResponse> {
-        val productInfo = createProductUseCase.execute(request.toCommand())
+    fun createProduct(
+        @Valid @RequestBody request: ProductCreateRequest,
+        @RequestHeader("Idempotency-Key", required = false) idempotencyKey: String?,
+    ): ApiResponse<ProductDetailResponse> {
+        val productInfo = createProductUseCase.execute(request.toCommand(), idempotencyKey)
 
         return ApiResponse.Companion.success(ProductDetailResponse.Companion.from(productInfo))
     }

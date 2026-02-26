@@ -18,10 +18,10 @@ class CreateReviewUseCase(
 ) {
 
     @Transactional
-    fun execute(command: CreateReviewCommand): ReviewResult {
-        if (command.idempotencyKey != null) {
+    fun execute(command: CreateReviewCommand, idempotencyKey: String? = null): ReviewResult {
+        if (idempotencyKey != null) {
             val existing = catalogIdempotencyRepository.findByIdempotencyKeyAndResourceType(
-                command.idempotencyKey,
+                idempotencyKey,
                 "REVIEW",
             )
             if (existing != null) {
@@ -46,9 +46,9 @@ class CreateReviewUseCase(
 
         val saved = reviewRepository.save(review)
 
-        if (command.idempotencyKey != null) {
+        if (idempotencyKey != null) {
             catalogIdempotencyRepository.save(
-                CatalogIdempotency.create(command.idempotencyKey, "REVIEW", saved.id!!),
+                CatalogIdempotency.create(idempotencyKey, "REVIEW", saved.id!!),
             )
         }
 

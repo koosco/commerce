@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -77,10 +78,13 @@ class CategoryController(
     )
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun createCategory(@Valid @RequestBody request: CategoryCreateRequest): ApiResponse<CategoryResponse> {
+    fun createCategory(
+        @Valid @RequestBody request: CategoryCreateRequest,
+        @RequestHeader("Idempotency-Key", required = false) idempotencyKey: String?,
+    ): ApiResponse<CategoryResponse> {
         val command = request.toCommand()
 
-        val categoryInfo = createCategoryUseCase.execute(command)
+        val categoryInfo = createCategoryUseCase.execute(command, idempotencyKey)
 
         return ApiResponse.Companion.success(CategoryResponse.Companion.from(categoryInfo))
     }
@@ -92,10 +96,13 @@ class CategoryController(
     )
     @PostMapping("/tree")
     @ResponseStatus(HttpStatus.CREATED)
-    fun createCategoryTree(@Valid @RequestBody request: CategoryTreeCreateRequest): ApiResponse<CategoryTreeResponse> {
+    fun createCategoryTree(
+        @Valid @RequestBody request: CategoryTreeCreateRequest,
+        @RequestHeader("Idempotency-Key", required = false) idempotencyKey: String?,
+    ): ApiResponse<CategoryTreeResponse> {
         val command = request.toCommand()
 
-        val categoryTreeInfo = createCategoryTreeUseCase.execute(command)
+        val categoryTreeInfo = createCategoryTreeUseCase.execute(command, idempotencyKey)
 
         return ApiResponse.Companion.success(CategoryTreeResponse.Companion.from(categoryTreeInfo))
     }

@@ -5,7 +5,6 @@ data class CreateSnapCommand(
     val userId: Long,
     val caption: String?,
     val imageUrls: List<String> = emptyList(),
-    val idempotencyKey: String? = null,
 )
 
 data class UpdateSnapCommand(val snapId: Long, val userId: Long, val caption: String?)

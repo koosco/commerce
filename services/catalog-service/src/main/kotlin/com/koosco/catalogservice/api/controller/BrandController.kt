@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
@@ -54,8 +55,11 @@ class BrandController(
     )
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun createBrand(@Valid @RequestBody request: BrandCreateRequest): ApiResponse<BrandResponse> {
-        val result = createBrandUseCase.execute(request.toCommand())
+    fun createBrand(
+        @Valid @RequestBody request: BrandCreateRequest,
+        @RequestHeader("Idempotency-Key", required = false) idempotencyKey: String?,
+    ): ApiResponse<BrandResponse> {
+        val result = createBrandUseCase.execute(request.toCommand(), idempotencyKey)
         return ApiResponse.success(BrandResponse.from(result))
     }
 

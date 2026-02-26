@@ -32,10 +32,10 @@ class CreateProductUseCase(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @Transactional
-    fun execute(command: CreateProductCommand): ProductInfo {
-        if (command.idempotencyKey != null) {
+    fun execute(command: CreateProductCommand, idempotencyKey: String? = null): ProductInfo {
+        if (idempotencyKey != null) {
             val existing = catalogIdempotencyRepository.findByIdempotencyKeyAndResourceType(
-                command.idempotencyKey,
+                idempotencyKey,
                 "PRODUCT",
             )
             if (existing != null) {
@@ -106,9 +106,9 @@ class CreateProductUseCase(
             )
         }
 
-        if (command.idempotencyKey != null) {
+        if (idempotencyKey != null) {
             catalogIdempotencyRepository.save(
-                CatalogIdempotency.create(command.idempotencyKey, "PRODUCT", savedProduct.id!!),
+                CatalogIdempotency.create(idempotencyKey, "PRODUCT", savedProduct.id!!),
             )
         }
 

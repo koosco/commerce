@@ -25,8 +25,6 @@ data class CreateReviewRequest(
     val rating: Int,
 
     val imageUrls: List<String> = emptyList(),
-
-    val idempotencyKey: String? = null,
 ) {
     fun toCommand(userId: Long): CreateReviewCommand = CreateReviewCommand(
         productId = productId,
@@ -36,7 +34,6 @@ data class CreateReviewRequest(
         content = content,
         rating = rating,
         imageUrls = imageUrls,
-        idempotencyKey = idempotencyKey,
     )
 }
 
