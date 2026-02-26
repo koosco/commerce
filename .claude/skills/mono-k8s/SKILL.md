@@ -118,88 +118,221 @@ make k8s-port-forward PORT=3000
 # http://localhost:8080/api/payments
 ```
 
+---
+
+## 서비스 배포 패턴
+
+### Deployment 사양
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: <서비스-이름>
+  namespace: commerce
+  labels:
+    app: <서비스-이름>
+    app.kubernetes.io/part-of: commerce
+spec:
+  replicas: 2                    # 기본 HA
+  selector:
+    matchLabels:
+      app: <서비스-이름>
+  template:
+    metadata:
+      labels:
+        app: <서비스-이름>
+    spec:
+      containers:
+        - name: <서비스-이름>
+          image: <서비스-이름>:latest
+          imagePullPolicy: Never   # k3d 이미지 임포트
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: commerce-common-config
+            - secretRef:
+                name: commerce-common-secret
+          env:
+            - name: DB_NAME
+              value: commerce-<서비스>
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+```
+
+### 데이터베이스 스키마 매핑
+
+| 서비스 | DB_NAME | 포트 |
+|--------|---------|------|
+| auth-service | commerce-auth | 8089 |
+| user-service | commerce-user | 8081 |
+| catalog-service | commerce-catalog | 8084 |
+| inventory-service | commerce-inventory | 8083 |
+| order-service | commerce-order | 8085 |
+| payment-service | commerce-payment | 8087 |
+
+### Service 사양
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: <서비스-이름>
+  namespace: commerce
+  labels:
+    app: <서비스-이름>
+    app.kubernetes.io/part-of: commerce
+spec:
+  selector:
+    app: <서비스-이름>
+  ports:
+    - port: 80           # 외부 포트
+      targetPort: 8080   # 컨테이너 포트
+      protocol: TCP
+```
+
+---
+
+## Ingress 설정
+
+### 개발 환경 (ingress-dev.yaml)
+
+- HTTP만 사용 (TLS 없음), 모든 호스트 허용 (localhost 지원)
+- 허용적 CORS (`*`), 높은 rate limit (1000 평균, 2000 버스트)
+
+**라우팅**:
+```
+/api/auth → auth-service:80
+/api/users → user-service:80
+/api/categories → catalog-service:80
+/api/products → catalog-service:80
+/api/inventories → inventory-service:80
+/api/orders → order-service:80
+/api/payments → payment-service:80
+```
+
+### 운영 환경 (ingress.yaml)
+
+- TLS가 포함된 HTTPS, 특정 도메인만 허용
+- 제한적 CORS, 엄격한 rate limit
+
+### Ingress 수정 시기
+
+- 새 서비스 경로 추가 시
+- 경로 접두사 변경 시
+- CORS 정책 업데이트 시
+- rate limit 조정 시
+
+---
+
+## ConfigMap & Secret
+
+### ConfigMap (k8s/common/configmap.yaml)
+
+| 변수 | 값 | 용도 |
+|------|-----|------|
+| DB_HOST | `host.k3d.internal` | 외부 MariaDB |
+| DB_PORT | `3306` | DB 포트 |
+| SPRING_KAFKA_BOOTSTRAP_SERVERS | `host.k3d.internal:9092` | Kafka |
+| REDIS_HOST / REDIS_PORT | `host.k3d.internal` / `6379` | Redis |
+| JWT_EXPIRATION | `86400` (24시간) | JWT 만료 |
+| JWT_REFRESH_EXPIRATION | `604800` (7일) | Refresh 만료 |
+| SPRING_PROFILES_ACTIVE | `dev` | Spring 프로파일 |
+| LOGGING_LEVEL_ROOT / COM_KOOSCO | `INFO` / `DEBUG` | 로그 레벨 |
+
+### Secret (k8s/common/secret.yaml)
+
+| 변수 | 설명 |
+|------|------|
+| DB_USERNAME | DB 사용자명 |
+| DB_PASSWORD | DB 비밀번호 |
+| JWT_SECRET | JWT 서명 키 |
+
+```bash
+# 인코딩/디코딩
+echo -n "new-password" | base64
+echo "YWRtaW4xMjM0" | base64 -d
+```
+
+---
+
+## 새 서비스 추가 체크리스트
+
+1. **Deployment + Service YAML 생성**: `cp k8s/services/auth-service.yaml k8s/services/new-service.yaml`
+2. **YAML 파일 수정**: `metadata.name`, `selector`, `labels`, `containers[0].name/image`, `env.DB_NAME`
+3. **Ingress 경로 추가**: `k8s/ingress-dev.yaml`, `k8s/ingress.yaml`
+4. **Makefile 업데이트**: `SERVICES` 변수에 새 서비스 추가
+5. **배포**: `make k8s-services-apply && make k8s-ingress-apply ENV=dev`
+
+---
+
 ## kubectl 직접 사용
 
 ### Pod 관리
 
 ```bash
-# Pod 목록
 kubectl get pods -n commerce
-
-# Pod 상세 정보
 kubectl describe pod <pod-name> -n commerce
-
-# Pod 로그
 kubectl logs <pod-name> -n commerce
-
-# 실시간 로그
-kubectl logs -f <pod-name> -n commerce
-
-# 이전 컨테이너 로그
-kubectl logs <pod-name> -n commerce --previous
-
-# Pod 접속
+kubectl logs -f <pod-name> -n commerce          # 실시간 로그
+kubectl logs <pod-name> -n commerce --previous   # 이전 컨테이너
 kubectl exec -it <pod-name> -n commerce -- /bin/sh
 ```
 
 ### Deployment 관리
 
 ```bash
-# Deployment 목록
 kubectl get deployments -n commerce
-
-# Deployment 상세
 kubectl describe deployment auth-service -n commerce
-
-# 이미지 업데이트
 kubectl set image deployment/auth-service auth-service=auth-service:v2 -n commerce
-
-# Rollout 상태
 kubectl rollout status deployment/auth-service -n commerce
-
-# Rollback
 kubectl rollout undo deployment/auth-service -n commerce
 ```
 
 ### Service 관리
 
 ```bash
-# Service 목록
 kubectl get svc -n commerce
-
-# Service 상세
 kubectl describe svc auth-service -n commerce
-
-# 특정 서비스 포트 포워딩
 kubectl port-forward svc/auth-service 8089:80 -n commerce
 ```
 
 ### ConfigMap & Secret
 
 ```bash
-# ConfigMap 목록
 kubectl get configmap -n commerce
-
-# Secret 목록
 kubectl get secret -n commerce
-
-# Secret 값 확인 (base64 디코딩)
 kubectl get secret <secret-name> -n commerce -o jsonpath='{.data.password}' | base64 -d
 ```
 
 ## k3d 클러스터 관리
 
 ```bash
-# 클러스터 목록
 k3d cluster list
-
-# 클러스터 시작
 k3d cluster start commerce
-
-# 클러스터 중지
 k3d cluster stop commerce
-
-# 클러스터 삭제
 k3d cluster delete commerce
 ```
 
@@ -208,33 +341,22 @@ k3d cluster delete commerce
 ### Pod이 시작되지 않을 때
 
 ```bash
-# 이벤트 확인
 kubectl get events -n commerce --sort-by='.lastTimestamp'
-
-# Pod 상태 확인
 kubectl describe pod <pod-name> -n commerce
-
-# 로그 확인
 kubectl logs <pod-name> -n commerce
 ```
 
 ### OOMKilled (메모리 부족)
 
 ```bash
-# 리소스 사용량 확인
 kubectl top pods -n commerce
-
-# 리소스 제한 확인
 kubectl describe pod <pod-name> -n commerce | grep -A5 "Limits\|Requests"
 ```
 
 ### ImagePullBackOff
 
 ```bash
-# 이미지 확인
 kubectl describe pod <pod-name> -n commerce | grep -A5 "Image"
-
-# Docker 레지스트리 인증 확인
 kubectl get secret -n commerce
 ```
 
@@ -251,8 +373,6 @@ kubectl get secret -n commerce
 | `/api/payments` | payment-service | 80 |
 
 ## Kafka for k3d
-
-k3d 클러스터에서 Kafka 사용:
 
 ```bash
 # k3d용 Kafka 시작

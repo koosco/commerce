@@ -1,4 +1,7 @@
-# Observability Guide
+---
+name: mono-observability
+description: Observability 가이드. Metrics, Logging, Tracing 설정 및 확인이 필요할 때 사용합니다.
+---
 
 ## Metrics & Dashboards
 

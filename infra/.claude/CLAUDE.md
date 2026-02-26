@@ -43,7 +43,7 @@ infra/
 | `k8s/common/configmap.yaml` | 비민감 환경 변수 (DB, Kafka, Redis, JWT, 로그 레벨) |
 | `k8s/common/secret.yaml` | 민감 데이터 (DB 자격 증명, JWT Secret) — base64 인코딩 |
 
-상세: `@infra/.claude/docs/k8s-deployment-guide.md` (ConfigMap/Secret 변수 목록 포함)
+상세: `/mono-k8s` skill 참조 (ConfigMap/Secret 변수 목록 포함)
 
 ## K8s Probe 전략
 
@@ -66,12 +66,9 @@ infra/
 - **HEALTHCHECK 미사용**: k8s probe가 담당
 - **.dockerignore**: `.git`, `.gradle`, `**/src` 등 빌드 컨텍스트 최소화
 
-## 상세 문서
+## 관련 Skills
 
-| 문서 | 내용 |
-|------|------|
-| `@infra/.claude/docs/k8s-deployment-guide.md` | Deployment 패턴, Ingress 설정, ConfigMap/Secret |
-| `@infra/.claude/docs/operational-procedures.md` | 서비스 추가, 환경변수 변경, 스케일링, 롤링 업데이트 |
-| `@infra/.claude/docs/troubleshooting-guide.md` | 6가지 주요 문제 해결 시나리오 |
-| `@infra/.claude/docs/makefile-reference.md` | Makefile 명령어 레퍼런스 |
-| `@infra/.claude/docs/best-practices.md` | 리소스, 설정, 배포, 보안 모범 사례 |
+| Skill | 내용 |
+|-------|------|
+| `/mono-k8s` | Deployment 패턴, Ingress 설정, ConfigMap/Secret |
+| `/mono-infra-ops` | 서비스 추가, 환경변수 변경, 스케일링, 문제 해결, 모범 사례 |

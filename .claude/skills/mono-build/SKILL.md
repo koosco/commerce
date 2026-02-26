@@ -136,3 +136,52 @@ ls services/auth-service/build/libs/
 |----------|----------|------|
 | Common | `:common:{module-name}` | `:common:common-core` |
 | Service | `:services:{service-name}` | `:services:order-service` |
+
+---
+
+## Load Testing (k6)
+
+Load testing uses **k6** (JavaScript-based) and is NOT part of the Gradle build system.
+
+### Execution Rules (CRITICAL)
+
+- Load tests must **NOT** be executed automatically
+- Load tests must only be triggered **explicitly by the user**
+- Do **NOT** add load tests to CI/CD pipelines
+- Be mindful of resource usage in shared environments
+
+### Test Structure (Three-Stage Approach)
+
+```
+Smoke Test → Baseline Test → Stress Test
+```
+
+| Stage | VUs | Duration | Purpose |
+|-------|-----|----------|---------|
+| Smoke | 1-2 | ~30s | Verify system is functional |
+| Baseline | 20-50 | 5-10min | Establish performance baseline |
+| Stress | 100+ | 15-30min | Find system limits |
+
+### Commands (from `load-test/` directory)
+
+```bash
+# Install dependencies
+npm install
+
+# Run smoke test
+k6 run scripts/inventory/decrease_concurrency/smoke.test.js
+
+# Run baseline test
+k6 run scripts/inventory/decrease_concurrency/baseline.test.js
+
+# Run stress test
+k6 run scripts/inventory/decrease_concurrency/stress.test.js
+```
+
+### Metrics & Visualization
+
+- Metrics are exported to **Prometheus**
+- Results are visualized in **Grafana** (`infra/monitoring/`)
+- Key metrics: Response time (P50/P95/P99), Error rate, Throughput (RPS)
+
+See `load-test/CLAUDE.md` for detailed guidance.
