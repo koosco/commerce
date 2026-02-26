@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -43,8 +44,9 @@ class ReviewController(
     fun createReview(
         @AuthId userId: Long,
         @Valid @RequestBody request: CreateReviewRequest,
+        @RequestHeader("Idempotency-Key", required = false) idempotencyKey: String?,
     ): ApiResponse<ReviewResponse> {
-        val result = createReviewUseCase.execute(request.toCommand(userId))
+        val result = createReviewUseCase.execute(request.toCommand(userId), idempotencyKey)
         return ApiResponse.Companion.success(ReviewResponse.from(result))
     }
 

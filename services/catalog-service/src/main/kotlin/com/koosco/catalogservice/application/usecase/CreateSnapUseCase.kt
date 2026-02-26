@@ -18,10 +18,10 @@ class CreateSnapUseCase(
 ) {
 
     @Transactional
-    fun execute(command: CreateSnapCommand): SnapResult {
-        if (command.idempotencyKey != null) {
+    fun execute(command: CreateSnapCommand, idempotencyKey: String? = null): SnapResult {
+        if (idempotencyKey != null) {
             val existing = catalogIdempotencyRepository.findByIdempotencyKeyAndResourceType(
-                command.idempotencyKey,
+                idempotencyKey,
                 "SNAP",
             )
             if (existing != null) {
@@ -43,9 +43,9 @@ class CreateSnapUseCase(
 
         val saved = snapRepository.save(snap)
 
-        if (command.idempotencyKey != null) {
+        if (idempotencyKey != null) {
             catalogIdempotencyRepository.save(
-                CatalogIdempotency.create(command.idempotencyKey, "SNAP", saved.id!!),
+                CatalogIdempotency.create(idempotencyKey, "SNAP", saved.id!!),
             )
         }
 

@@ -18,10 +18,10 @@ class CreateBrandUseCase(
 ) {
 
     @Transactional
-    fun execute(command: CreateBrandCommand): BrandResult {
-        if (command.idempotencyKey != null) {
+    fun execute(command: CreateBrandCommand, idempotencyKey: String? = null): BrandResult {
+        if (idempotencyKey != null) {
             val existing = catalogIdempotencyRepository.findByIdempotencyKeyAndResourceType(
-                command.idempotencyKey,
+                idempotencyKey,
                 "BRAND",
             )
             if (existing != null) {
@@ -37,9 +37,9 @@ class CreateBrandUseCase(
         )
         val saved = brandRepository.save(brand)
 
-        if (command.idempotencyKey != null) {
+        if (idempotencyKey != null) {
             catalogIdempotencyRepository.save(
-                CatalogIdempotency.create(command.idempotencyKey, "BRAND", saved.id!!),
+                CatalogIdempotency.create(idempotencyKey, "BRAND", saved.id!!),
             )
         }
 

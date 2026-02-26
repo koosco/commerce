@@ -21,10 +21,10 @@ class CreateCategoryUseCase(
 
     @CacheEvict(cacheNames = ["categoryTree"], allEntries = true)
     @Transactional
-    fun execute(command: CreateCategoryCommand): CategoryInfo {
-        if (command.idempotencyKey != null) {
+    fun execute(command: CreateCategoryCommand, idempotencyKey: String? = null): CategoryInfo {
+        if (idempotencyKey != null) {
             val existing = catalogIdempotencyRepository.findByIdempotencyKeyAndResourceType(
-                command.idempotencyKey,
+                idempotencyKey,
                 "CATEGORY",
             )
             if (existing != null) {
@@ -53,9 +53,9 @@ class CreateCategoryUseCase(
         )
         val savedCategory = categoryRepository.save(category)
 
-        if (command.idempotencyKey != null) {
+        if (idempotencyKey != null) {
             catalogIdempotencyRepository.save(
-                CatalogIdempotency.create(command.idempotencyKey, "CATEGORY", savedCategory.id!!),
+                CatalogIdempotency.create(idempotencyKey, "CATEGORY", savedCategory.id!!),
             )
         }
 

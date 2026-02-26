@@ -11,7 +11,6 @@ data class CreateProductCommand(
     val thumbnailImageUrl: String?,
     val brandId: Long?,
     val optionGroups: List<ProductOptionGroup>,
-    val idempotencyKey: String? = null,
 ) {
     data class ProductOptionGroup(val name: String, val ordering: Int = 0, val options: List<ProductOption>)
 
