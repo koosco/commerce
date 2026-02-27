@@ -20,6 +20,8 @@ data class ProductListResponse(
     val brandName: String?,
     val averageRating: Double,
     val reviewCount: Int,
+    val viewCount: Long,
+    val orderCount: Long,
 ) {
     companion object {
         fun from(productInfo: ProductInfo): ProductListResponse = ProductListResponse(
@@ -35,6 +37,8 @@ data class ProductListResponse(
             brandName = productInfo.brandName,
             averageRating = productInfo.averageRating,
             reviewCount = productInfo.reviewCount,
+            viewCount = productInfo.viewCount,
+            orderCount = productInfo.orderCount,
         )
     }
 }

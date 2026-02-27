@@ -11,7 +11,6 @@ import com.koosco.catalogservice.application.command.DeleteProductCommand
 import com.koosco.catalogservice.application.command.FindSkuCommand
 import com.koosco.catalogservice.application.command.GetProductDetailCommand
 import com.koosco.catalogservice.application.command.GetProductListCommand
-import com.koosco.catalogservice.application.command.ProductSortType
 import com.koosco.catalogservice.application.command.RemoveProductOptionCommand
 import com.koosco.catalogservice.application.usecase.AddProductOptionUseCase
 import com.koosco.catalogservice.application.usecase.ChangeProductStatusUseCase
@@ -22,6 +21,7 @@ import com.koosco.catalogservice.application.usecase.GetProductDetailUseCase
 import com.koosco.catalogservice.application.usecase.GetProductListUseCase
 import com.koosco.catalogservice.application.usecase.RemoveProductOptionUseCase
 import com.koosco.catalogservice.application.usecase.UpdateProductUseCase
+import com.koosco.catalogservice.domain.enums.SortStrategy
 import com.koosco.common.core.response.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -71,8 +71,8 @@ class ProductController(
         @Parameter(description = "브랜드 ID") @RequestParam(required = false) brandId: Long?,
         @Parameter(description = "최소 가격") @RequestParam(required = false) minPrice: Long?,
         @Parameter(description = "최대 가격") @RequestParam(required = false) maxPrice: Long?,
-        @Parameter(description = "정렬 (LATEST, PRICE_ASC, PRICE_DESC)")
-        @RequestParam(required = false, defaultValue = "LATEST") sort: ProductSortType,
+        @Parameter(description = "정렬 (RECOMMENDED, LATEST, PRICE_ASC, PRICE_DESC, POPULARITY)")
+        @RequestParam(required = false, defaultValue = "LATEST") sort: SortStrategy,
         @Parameter(description = "페이징 파라미터 (page, size)") @PageableDefault(size = 20) pageable: Pageable,
         @Parameter(hidden = true) @RequestParam allRequestParams: Map<String, String>,
     ): ApiResponse<Page<ProductListResponse>> {

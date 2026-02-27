@@ -1,5 +1,6 @@
 package com.koosco.catalogservice.application.command
 
+import com.koosco.catalogservice.domain.enums.SortStrategy
 import org.springframework.data.domain.Pageable
 
 /**
@@ -16,17 +17,15 @@ data class GetProductListCommand(
     val brandId: Long?,
     val minPrice: Long?,
     val maxPrice: Long?,
-    val sort: ProductSortType,
+    val sort: SortStrategy,
     val pageable: Pageable,
     val attributeFilters: Map<Long, String> = emptyMap(),
 )
 
-enum class ProductSortType {
-    LATEST,
-    PRICE_ASC,
-    PRICE_DESC,
-    RATING_DESC,
-    REVIEW_COUNT_DESC,
-}
+/**
+ * @deprecated Use [SortStrategy] instead. Kept for backward compatibility.
+ */
+@Deprecated("Use SortStrategy instead", ReplaceWith("SortStrategy"))
+typealias ProductSortType = SortStrategy
 
 data class GetProductDetailCommand(val productId: Long)
