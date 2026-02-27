@@ -2,6 +2,7 @@ package com.koosco.inventoryservice.infra.batch
 
 import com.koosco.inventoryservice.application.port.InventorySnapshotWriter
 import com.koosco.inventoryservice.application.port.InventoryStockSnapshotQueryPort
+import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component
  * date           : 2025. 12. 29. 오전 5:09
  * description    :
  */
+@Profile("batch")
 @Component
 class InventorySnapshotScheduler(
     private val snapshotQuery: InventoryStockSnapshotQueryPort,
