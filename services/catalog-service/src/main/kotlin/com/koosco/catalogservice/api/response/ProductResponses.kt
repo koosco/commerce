@@ -22,6 +22,7 @@ data class ProductListResponse(
     val reviewCount: Int,
     val viewCount: Long,
     val orderCount: Long,
+    val salesCount: Long,
 ) {
     companion object {
         fun from(productInfo: ProductInfo): ProductListResponse = ProductListResponse(
@@ -39,6 +40,7 @@ data class ProductListResponse(
             reviewCount = productInfo.reviewCount,
             viewCount = productInfo.viewCount,
             orderCount = productInfo.orderCount,
+            salesCount = productInfo.salesCount,
         )
     }
 }

@@ -10,6 +10,7 @@ import com.koosco.catalogservice.domain.enums.ProductStatus
 import com.koosco.catalogservice.domain.enums.SortStrategy
 import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.core.types.dsl.CaseBuilder
+import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.core.types.dsl.NumberExpression
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.data.domain.Page
@@ -80,6 +81,9 @@ class ProductQuery(
             SortStrategy.PRICE_ASC -> query.orderBy(product.price.asc())
             SortStrategy.PRICE_DESC -> query.orderBy(product.price.desc())
             SortStrategy.POPULARITY -> query.orderBy(popularityScore().desc())
+            SortStrategy.BEST_SELLING -> query.orderBy(product.salesCount.desc(), product.createdAt.desc())
+            SortStrategy.RATING_DESC -> query.orderBy(product.averageRating.desc(), product.reviewCount.desc())
+            SortStrategy.REVIEW_COUNT_DESC -> query.orderBy(product.reviewCount.desc(), product.averageRating.desc())
         }
     }
 
@@ -130,7 +134,24 @@ class ProductQuery(
     }
 
     /**
-     * viewCount * 1 + orderCount * 3 으로 인기도 점수 계산
+     * 인기도 점수 계산:
+     * salesCount * 0.4 + (averageRating / 5.0) * 0.3 + recencyScore * 0.3
+     *
+     * recencyScore: 최근 30일 이내 생성된 상품일수록 높은 점수 (0.0 ~ 1.0)
+     * QueryDSL에서 날짜 계산이 제한적이므로 recencyScore는 고정 상수(0.5)로 근사한다.
      */
-    private fun popularityScore(): NumberExpression<Long> = product.viewCount.add(product.orderCount.multiply(3))
+    private fun popularityScore(): NumberExpression<Double> {
+        val salesScore = product.salesCount.doubleValue().multiply(WEIGHT_SALES)
+        val ratingScore = product.averageRating.divide(MAX_RATING).multiply(WEIGHT_RATING)
+        val recencyScore = Expressions.asNumber(DEFAULT_RECENCY_SCORE).multiply(WEIGHT_RECENCY)
+        return salesScore.add(ratingScore).add(recencyScore)
+    }
+
+    companion object {
+        private const val WEIGHT_SALES = 0.4
+        private const val WEIGHT_RATING = 0.3
+        private const val WEIGHT_RECENCY = 0.3
+        private const val MAX_RATING = 5.0
+        private const val DEFAULT_RECENCY_SCORE = 0.5
+    }
 }
