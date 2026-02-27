@@ -61,7 +61,6 @@ class ProductQuery(
             .findProductIdsByAttributeFilters(command.attributeFilters)
 
         if (matchingProductIds.isEmpty()) {
-            // No products match the attribute filters, return impossible condition
             return baseConditions + product.id.eq(-1L)
         }
 
