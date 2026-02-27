@@ -58,6 +58,12 @@ class Product(
     @Column(name = "review_count", nullable = false)
     var reviewCount: Int = 0,
 
+    @Column(name = "view_count", nullable = false)
+    var viewCount: Long = 0,
+
+    @Column(name = "order_count", nullable = false)
+    var orderCount: Long = 0,
+
     @OneToMany(mappedBy = "product", cascade = [CascadeType.ALL], orphanRemoval = true)
     val skus: MutableList<ProductSku> = mutableListOf(),
 
@@ -109,6 +115,14 @@ class Product(
     fun updateReviewStatistics(averageRating: Double, reviewCount: Int) {
         this.averageRating = averageRating
         this.reviewCount = reviewCount
+    }
+
+    fun incrementViewCount() {
+        this.viewCount++
+    }
+
+    fun incrementOrderCount() {
+        this.orderCount++
     }
 
     fun delete() {
