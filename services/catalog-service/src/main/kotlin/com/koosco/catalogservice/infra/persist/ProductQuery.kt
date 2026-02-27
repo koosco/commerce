@@ -2,6 +2,7 @@ package com.koosco.catalogservice.infra.persist
 
 import com.koosco.catalogservice.application.command.GetProductListCommand
 import com.koosco.catalogservice.application.command.ProductSortType
+import com.koosco.catalogservice.application.port.ProductAttributeValueRepository
 import com.koosco.catalogservice.domain.entity.Product
 import com.koosco.catalogservice.domain.entity.QProduct.product
 import com.koosco.catalogservice.domain.enums.ProductStatus
@@ -13,7 +14,10 @@ import org.springframework.data.support.PageableExecutionUtils
 import org.springframework.stereotype.Repository
 
 @Repository
-class ProductQuery(private val queryFactory: JPAQueryFactory) {
+class ProductQuery(
+    private val queryFactory: JPAQueryFactory,
+    private val productAttributeValueRepository: ProductAttributeValueRepository,
+) {
 
     fun search(command: GetProductListCommand): Page<Product> {
         val where = buildWhere(command)
@@ -36,17 +40,35 @@ class ProductQuery(private val queryFactory: JPAQueryFactory) {
         }
     }
 
-    private fun buildWhere(command: GetProductListCommand): List<BooleanExpression> = listOfNotNull(
-        product.status.eq(ProductStatus.ACTIVE),
-        command.categoryId?.let { product.categoryId.eq(it) },
-        command.brandId?.let { product.brandId.eq(it) },
+    private fun buildWhere(command: GetProductListCommand): List<BooleanExpression> {
+        val baseConditions = mutableListOf<BooleanExpression>(
+            product.status.eq(ProductStatus.ACTIVE),
+        )
+
+        command.categoryId?.let { baseConditions.add(product.categoryId.eq(it)) }
+        command.brandId?.let { baseConditions.add(product.brandId.eq(it)) }
         command.keyword?.takeIf { it.isNotBlank() }?.let {
-            product.name.containsIgnoreCase(it)
-                .or(product.description.containsIgnoreCase(it))
-        },
-        command.minPrice?.let { product.price.goe(it) },
-        command.maxPrice?.let { product.price.loe(it) },
-    )
+            baseConditions.add(
+                product.name.containsIgnoreCase(it)
+                    .or(product.description.containsIgnoreCase(it)),
+            )
+        }
+        command.minPrice?.let { baseConditions.add(product.price.goe(it)) }
+        command.maxPrice?.let { baseConditions.add(product.price.loe(it)) }
+
+        if (command.attributeFilters.isNotEmpty()) {
+            val matchingProductIds = productAttributeValueRepository
+                .findProductIdsByAttributeFilters(command.attributeFilters)
+
+            if (matchingProductIds.isEmpty()) {
+                baseConditions.add(product.id.eq(-1L))
+            } else {
+                baseConditions.add(product.id.`in`(matchingProductIds))
+            }
+        }
+
+        return baseConditions
+    }
 
     private fun sortOrder(sort: ProductSortType): OrderSpecifier<*> = when (sort) {
         ProductSortType.LATEST -> product.createdAt.desc()

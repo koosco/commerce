@@ -18,6 +18,7 @@ data class GetProductListCommand(
     val maxPrice: Long?,
     val sort: ProductSortType,
     val pageable: Pageable,
+    val attributeFilters: Map<Long, String> = emptyMap(),
 )
 
 enum class ProductSortType {
