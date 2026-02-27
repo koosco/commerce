@@ -11,6 +11,8 @@ interface ProductRepository {
 
     fun findByIdWithOptions(productId: Long): Product?
 
+    fun findByIdWithDiscountPolicies(productId: Long): Product?
+
     fun findBySkuId(skuId: String): Product?
 
     fun search(command: GetProductListCommand): Page<Product>

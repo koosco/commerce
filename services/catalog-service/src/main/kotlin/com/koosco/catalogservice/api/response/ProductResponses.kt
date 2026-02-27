@@ -7,12 +7,6 @@ import com.koosco.catalogservice.domain.entity.ProductOption
 import com.koosco.catalogservice.domain.entity.ProductOptionGroup
 import com.koosco.catalogservice.domain.enums.ProductStatus
 
-/**
- * fileName       : ProductResponses
- * author         : koo
- * date           : 2025. 12. 22. 오전 9:20
- * description    :
- */
 data class ProductListResponse(
     val id: Long,
     val name: String,
