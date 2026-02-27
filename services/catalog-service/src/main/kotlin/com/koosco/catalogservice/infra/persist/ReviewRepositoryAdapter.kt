@@ -17,4 +17,9 @@ class ReviewRepositoryAdapter(private val jpaReviewRepository: JpaReviewReposito
 
     override fun findByProductId(productId: Long, pageable: Pageable): Page<Review> =
         jpaReviewRepository.findByProductIdAndStatusNot(productId, ContentStatus.DELETED, pageable)
+
+    override fun calculateAverageRating(productId: Long): Double = jpaReviewRepository.calculateAverageRating(productId)
+
+    override fun countByProductId(productId: Long): Int =
+        jpaReviewRepository.countByProductIdAndStatusNot(productId, ContentStatus.DELETED)
 }
