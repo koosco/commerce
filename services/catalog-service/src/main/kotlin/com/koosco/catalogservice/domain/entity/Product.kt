@@ -58,6 +58,9 @@ class Product(
     @OneToMany(mappedBy = "product", cascade = [CascadeType.ALL], orphanRemoval = true)
     val optionGroups: MutableList<ProductOptionGroup> = mutableListOf(),
 
+    @OneToMany(mappedBy = "product", cascade = [CascadeType.ALL], orphanRemoval = true)
+    val discountPolicies: MutableList<DiscountPolicy> = mutableListOf(),
+
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
@@ -109,6 +112,28 @@ class Product(
         require(name.isNotBlank()) { "상품명이 비어있습니다." }
         require(price > 0) { "가격은 0보다 커야 합니다." }
         require(skus.isNotEmpty()) { "SKU가 1개 이상 있어야 활성화할 수 있습니다." }
+    }
+
+    /**
+     * 적용 가능한 할인 정책 중 가장 유리한(할인 금액이 큰) 할인을 적용하여 판매가를 계산한다.
+     * 적용 가능한 할인이 없으면 원래 가격을 반환한다.
+     */
+    fun calculateSellingPrice(now: LocalDateTime = LocalDateTime.now()): Long {
+        val bestDiscount = discountPolicies
+            .filter { it.isActiveAt(now) }
+            .maxByOrNull { it.calculateDiscountAmount(price) }
+            ?: return price
+
+        return bestDiscount.calculateSellingPrice(price)
+    }
+
+    /**
+     * 현재 적용 중인 최적 할인율(%)을 반환한다. 할인이 없으면 0.
+     */
+    fun calculateDiscountRate(now: LocalDateTime = LocalDateTime.now()): Int {
+        val sellingPrice = calculateSellingPrice(now)
+        if (sellingPrice >= price || price == 0L) return 0
+        return ((price - sellingPrice) * 100 / price).toInt()
     }
 
     fun addSkus(skus: List<ProductSku>) {

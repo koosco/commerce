@@ -7,16 +7,12 @@ import com.koosco.catalogservice.domain.entity.ProductOption
 import com.koosco.catalogservice.domain.entity.ProductOptionGroup
 import com.koosco.catalogservice.domain.enums.ProductStatus
 
-/**
- * fileName       : ProductResponses
- * author         : koo
- * date           : 2025. 12. 22. 오전 9:20
- * description    :
- */
 data class ProductListResponse(
     val id: Long,
     val name: String,
-    val price: Long,
+    val originalPrice: Long,
+    val sellingPrice: Long,
+    val discountRate: Int,
     val status: ProductStatus,
     val categoryId: Long?,
     val thumbnailImageUrl: String?,
@@ -27,7 +23,9 @@ data class ProductListResponse(
         fun from(productInfo: ProductInfo): ProductListResponse = ProductListResponse(
             id = productInfo.id,
             name = productInfo.name,
-            price = productInfo.price,
+            originalPrice = productInfo.price,
+            sellingPrice = productInfo.sellingPrice,
+            discountRate = productInfo.discountRate,
             status = productInfo.status,
             categoryId = productInfo.categoryId,
             thumbnailImageUrl = productInfo.thumbnailImageUrl,
@@ -41,7 +39,9 @@ data class ProductDetailResponse(
     val id: Long,
     val name: String,
     val description: String?,
-    val price: Long,
+    val originalPrice: Long,
+    val sellingPrice: Long,
+    val discountRate: Int,
     val status: ProductStatus,
     val categoryId: Long?,
     val thumbnailImageUrl: String?,
@@ -54,7 +54,9 @@ data class ProductDetailResponse(
             id = productInfo.id,
             name = productInfo.name,
             description = productInfo.description,
-            price = productInfo.price,
+            originalPrice = productInfo.price,
+            sellingPrice = productInfo.sellingPrice,
+            discountRate = productInfo.discountRate,
             status = productInfo.status,
             categoryId = productInfo.categoryId,
             thumbnailImageUrl = productInfo.thumbnailImageUrl,

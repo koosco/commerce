@@ -19,6 +19,9 @@ class ProductRepositoryImpl(
 
     override fun findByIdWithOptions(productId: Long): Product? = jpaProductRepository.findByIdWithOptions(productId)
 
+    override fun findByIdWithDiscountPolicies(productId: Long): Product? =
+        jpaProductRepository.findByIdWithDiscountPolicies(productId)
+
     override fun findBySkuId(skuId: String): Product? = jpaProductRepository.findBySkuId(skuId)
 
     override fun search(command: GetProductListCommand): Page<Product> = productQuery.search(command)
