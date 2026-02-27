@@ -59,7 +59,11 @@ class ProductController(
     private val addProductOptionUseCase: AddProductOptionUseCase,
     private val removeProductOptionUseCase: RemoveProductOptionUseCase,
 ) {
-    @Operation(summary = "상품 리스트를 조회합니다.", description = "필터링 조건에 따라 상품을 페이징처리하여 조회합니다.")
+    @Operation(
+        summary = "상품 리스트를 조회합니다.",
+        description = "필터링 조건에 따라 상품을 페이징처리하여 조회합니다. " +
+            "속성 필터링: attr.{attributeId}={value} 형식으로 전달합니다. 예: attr.1=빨강&attr.2=XL",
+    )
     @GetMapping
     fun getProducts(
         @Parameter(description = "카테고리 ID") @RequestParam(required = false) categoryId: Long?,
@@ -70,7 +74,14 @@ class ProductController(
         @Parameter(description = "정렬 (LATEST, PRICE_ASC, PRICE_DESC)")
         @RequestParam(required = false, defaultValue = "LATEST") sort: ProductSortType,
         @Parameter(description = "페이징 파라미터 (page, size)") @PageableDefault(size = 20) pageable: Pageable,
+        @Parameter(hidden = true) @RequestParam allRequestParams: Map<String, String>,
     ): ApiResponse<Page<ProductListResponse>> {
+        val attributeFilters = allRequestParams
+            .filter { it.key.startsWith("attr.") }
+            .mapKeys { it.key.removePrefix("attr.").toLongOrNull() }
+            .filterKeys { it != null }
+            .mapKeys { it.key!! }
+
         val command = GetProductListCommand(
             categoryId = categoryId,
             keyword = keyword,
@@ -79,6 +90,7 @@ class ProductController(
             maxPrice = maxPrice,
             sort = sort,
             pageable = pageable,
+            attributeFilters = attributeFilters,
         )
 
         return ApiResponse.success(

@@ -1,5 +1,12 @@
 rootProject.name = "commerce"
 
+buildCache {
+    local {
+        directory = File(rootDir, ".gradle/build-cache")
+        removeUnusedEntriesAfterDays = 7
+    }
+}
+
 // Common modules
 include(":common:common-core")
 include(":common:common-security")
