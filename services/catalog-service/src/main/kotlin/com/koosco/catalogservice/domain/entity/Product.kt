@@ -64,6 +64,9 @@ class Product(
     @Column(name = "order_count", nullable = false)
     var orderCount: Long = 0,
 
+    @Column(name = "sales_count", nullable = false)
+    var salesCount: Long = 0,
+
     @OneToMany(mappedBy = "product", cascade = [CascadeType.ALL], orphanRemoval = true)
     val skus: MutableList<ProductSku> = mutableListOf(),
 
@@ -123,6 +126,14 @@ class Product(
 
     fun incrementOrderCount() {
         this.orderCount++
+    }
+
+    fun incrementSalesCount(quantity: Int) {
+        this.salesCount += quantity
+    }
+
+    fun decrementSalesCount(quantity: Int) {
+        this.salesCount = maxOf(0, this.salesCount - quantity)
     }
 
     fun delete() {

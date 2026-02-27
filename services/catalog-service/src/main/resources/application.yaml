@@ -78,6 +78,9 @@ catalog:
     consumer:
       inventory:
         stock: koosco.commerce.inventory.stock
+      order:
+        confirmed: koosco.commerce.order.confirmed
+        cancelled: koosco.commerce.order.cancelled
       user-behavior: user-behavior-events
 
 common:
