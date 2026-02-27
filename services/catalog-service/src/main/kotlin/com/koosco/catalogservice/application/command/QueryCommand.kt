@@ -20,6 +20,7 @@ data class GetProductListCommand(
     val sort: SortStrategy,
     val pageable: Pageable,
     val attributeFilters: Map<Long, String> = emptyMap(),
+    val userId: Long? = null,
 )
 
 /**
@@ -28,4 +29,4 @@ data class GetProductListCommand(
 @Deprecated("Use SortStrategy instead", ReplaceWith("SortStrategy"))
 typealias ProductSortType = SortStrategy
 
-data class GetProductDetailCommand(val productId: Long)
+data class GetProductDetailCommand(val productId: Long, val userId: Long? = null)

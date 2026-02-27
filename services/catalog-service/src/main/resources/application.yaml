@@ -28,6 +28,10 @@ spring:
           batch_size: 20
         order_inserts: true
         order_updates: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
   datasource:
     url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:commerce-catalog}
     username: ${DB_USERNAME:admin}
@@ -66,6 +70,7 @@ jwt:
 catalog:
   topic:
     default: koosco.commerce.catalog.default
+    user-behavior: user-behavior-events
     mappings:
       "product.sku.created": koosco.commerce.product.default
       "product.status.changed": koosco.commerce.product.default
@@ -73,6 +78,7 @@ catalog:
     consumer:
       inventory:
         stock: koosco.commerce.inventory.stock
+      user-behavior: user-behavior-events
 
 common:
   openapi:
