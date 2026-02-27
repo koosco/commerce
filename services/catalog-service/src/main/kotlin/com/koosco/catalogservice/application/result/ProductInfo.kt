@@ -17,6 +17,8 @@ data class ProductInfo(
     val thumbnailImageUrl: String?,
     val brandId: Long?,
     val brandName: String? = null,
+    val averageRating: Double = 0.0,
+    val reviewCount: Int = 0,
     val optionGroups: List<ProductOptionGroupInfo> = emptyList(),
 ) {
     data class ProductOptionGroupInfo(
@@ -63,6 +65,8 @@ data class ProductInfo(
                 thumbnailImageUrl = product.thumbnailImageUrl,
                 brandId = product.brandId,
                 brandName = brandName,
+                averageRating = product.averageRating,
+                reviewCount = product.reviewCount,
                 optionGroups = product.optionGroups.map { ProductOptionGroupInfo.from(it) },
             )
         }

@@ -26,6 +26,15 @@ class CacheConfig {
         )
 
         cacheManager.registerCustomCache(
+            "promotionPrice",
+            Caffeine.newBuilder()
+                .maximumSize(2000)
+                .expireAfterWrite(3, TimeUnit.MINUTES)
+                .recordStats()
+                .build(),
+        )
+
+        cacheManager.registerCustomCache(
             "categoryTree",
             Caffeine.newBuilder()
                 .maximumSize(1)

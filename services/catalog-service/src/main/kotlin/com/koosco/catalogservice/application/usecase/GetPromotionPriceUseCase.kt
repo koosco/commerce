@@ -1,10 +1,9 @@
 package com.koosco.catalogservice.application.usecase
 
-import com.koosco.catalogservice.application.command.GetProductDetailCommand
-import com.koosco.catalogservice.application.port.BrandRepository
+import com.koosco.catalogservice.application.command.GetPromotionPriceCommand
 import com.koosco.catalogservice.application.port.ProductRepository
 import com.koosco.catalogservice.application.port.PromotionRepository
-import com.koosco.catalogservice.application.result.ProductInfo
+import com.koosco.catalogservice.application.result.PromotionPriceInfo
 import com.koosco.catalogservice.common.error.CatalogErrorCode
 import com.koosco.catalogservice.domain.service.PromotionPriceResolver
 import com.koosco.common.core.annotation.UseCase
@@ -14,24 +13,30 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 @UseCase
-class GetProductDetailUseCase(
-    private val productRepository: ProductRepository,
-    private val brandRepository: BrandRepository,
+class GetPromotionPriceUseCase(
     private val promotionRepository: PromotionRepository,
+    private val productRepository: ProductRepository,
 ) {
 
-    @Cacheable(cacheNames = ["productDetail"], key = "#command.productId")
+    @Cacheable(cacheNames = ["promotionPrice"], key = "#command.productId")
     @Transactional(readOnly = true)
-    fun execute(command: GetProductDetailCommand): ProductInfo {
-        val product = productRepository.findByIdWithOptions(command.productId)
+    fun execute(command: GetPromotionPriceCommand): PromotionPriceInfo {
+        val product = productRepository.findOrNull(command.productId)
             ?: throw NotFoundException(CatalogErrorCode.PRODUCT_NOT_FOUND)
 
-        val brandName = product.brandId?.let { brandRepository.findOrNull(it)?.name }
-
         val now = LocalDateTime.now()
-        val activePromotions = promotionRepository.findActiveByProductId(product.id!!, now)
+        val activePromotions = promotionRepository.findActiveByProductId(
+            command.productId,
+            now,
+        )
         val discountPrice = PromotionPriceResolver.resolve(activePromotions)
 
-        return ProductInfo.from(product, brandName, discountPrice)
+        return PromotionPriceInfo(
+            productId = product.id!!,
+            originalPrice = product.price,
+            discountPrice = discountPrice,
+            finalPrice = discountPrice ?: product.price,
+            hasActivePromotion = discountPrice != null,
+        )
     }
 }

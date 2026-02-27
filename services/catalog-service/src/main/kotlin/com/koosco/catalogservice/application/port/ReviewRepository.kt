@@ -11,4 +11,8 @@ interface ReviewRepository {
     fun findByIdOrNull(reviewId: Long): Review?
 
     fun findByProductId(productId: Long, pageable: Pageable): Page<Review>
+
+    fun calculateAverageRating(productId: Long): Double
+
+    fun countByProductId(productId: Long): Int
 }
