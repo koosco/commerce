@@ -21,6 +21,8 @@ class CatalogPublicEndpointProvider : PublicEndpointProvider {
             "/api/reviews/{id}",
             "/api/snaps",
             "/api/snaps/{id}",
+            "/api/promotions/products/{id}",
+            "/api/promotions/products/{id}/price",
         ),
     )
 
