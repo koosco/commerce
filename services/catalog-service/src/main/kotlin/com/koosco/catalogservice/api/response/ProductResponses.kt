@@ -16,23 +16,31 @@ import com.koosco.catalogservice.domain.enums.ProductStatus
 data class ProductListResponse(
     val id: Long,
     val name: String,
-    val price: Long,
+    val originalPrice: Long,
+    val sellingPrice: Long,
+    val discountRate: Int,
     val status: ProductStatus,
     val categoryId: Long?,
     val thumbnailImageUrl: String?,
     val brandId: Long?,
     val brandName: String?,
+    val averageRating: Double,
+    val reviewCount: Int,
 ) {
     companion object {
         fun from(productInfo: ProductInfo): ProductListResponse = ProductListResponse(
             id = productInfo.id,
             name = productInfo.name,
-            price = productInfo.price,
+            originalPrice = productInfo.price,
+            sellingPrice = productInfo.sellingPrice,
+            discountRate = productInfo.discountRate,
             status = productInfo.status,
             categoryId = productInfo.categoryId,
             thumbnailImageUrl = productInfo.thumbnailImageUrl,
             brandId = productInfo.brandId,
             brandName = productInfo.brandName,
+            averageRating = productInfo.averageRating,
+            reviewCount = productInfo.reviewCount,
         )
     }
 }
@@ -41,12 +49,16 @@ data class ProductDetailResponse(
     val id: Long,
     val name: String,
     val description: String?,
-    val price: Long,
+    val originalPrice: Long,
+    val sellingPrice: Long,
+    val discountRate: Int,
     val status: ProductStatus,
     val categoryId: Long?,
     val thumbnailImageUrl: String?,
     val brandId: Long?,
     val brandName: String?,
+    val averageRating: Double,
+    val reviewCount: Int,
     val optionGroups: List<ProductOptionGroupResponse>,
 ) {
     companion object {
@@ -54,12 +66,16 @@ data class ProductDetailResponse(
             id = productInfo.id,
             name = productInfo.name,
             description = productInfo.description,
-            price = productInfo.price,
+            originalPrice = productInfo.price,
+            sellingPrice = productInfo.sellingPrice,
+            discountRate = productInfo.discountRate,
             status = productInfo.status,
             categoryId = productInfo.categoryId,
             thumbnailImageUrl = productInfo.thumbnailImageUrl,
             brandId = productInfo.brandId,
             brandName = productInfo.brandName,
+            averageRating = productInfo.averageRating,
+            reviewCount = productInfo.reviewCount,
             optionGroups = productInfo.optionGroups.map { ProductOptionGroupResponse.from(it) },
         )
     }
