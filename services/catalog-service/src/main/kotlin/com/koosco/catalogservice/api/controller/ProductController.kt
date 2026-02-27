@@ -23,6 +23,7 @@ import com.koosco.catalogservice.application.usecase.RemoveProductOptionUseCase
 import com.koosco.catalogservice.application.usecase.UpdateProductUseCase
 import com.koosco.catalogservice.domain.enums.SortStrategy
 import com.koosco.common.core.response.ApiResponse
+import com.koosco.commonsecurity.resolver.AuthId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
@@ -75,6 +76,7 @@ class ProductController(
         @RequestParam(required = false, defaultValue = "LATEST") sort: SortStrategy,
         @Parameter(description = "페이징 파라미터 (page, size)") @PageableDefault(size = 20) pageable: Pageable,
         @Parameter(hidden = true) @RequestParam allRequestParams: Map<String, String>,
+        @Parameter(hidden = true) @AuthId userId: Long?,
     ): ApiResponse<Page<ProductListResponse>> {
         val attributeFilters = allRequestParams
             .filter { it.key.startsWith("attr.") }
@@ -91,6 +93,7 @@ class ProductController(
             sort = sort,
             pageable = pageable,
             attributeFilters = attributeFilters,
+            userId = userId,
         )
 
         return ApiResponse.success(
@@ -104,8 +107,9 @@ class ProductController(
     @GetMapping("/{productId}")
     fun getProduct(
         @Parameter(description = "Product ID") @PathVariable productId: Long,
+        @Parameter(hidden = true) @AuthId userId: Long?,
     ): ApiResponse<ProductDetailResponse> {
-        val command = GetProductDetailCommand(productId = productId)
+        val command = GetProductDetailCommand(productId = productId, userId = userId)
         val productInfo = getProductDetailUseCase.execute(command)
 
         return ApiResponse.Companion.success(ProductDetailResponse.Companion.from(productInfo))

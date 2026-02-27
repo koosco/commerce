@@ -69,6 +69,7 @@ jwt:
 order:
   topic:
     default: koosco.commerce.order.default
+    user-behavior: user-behavior-events
     mappings:
       "order.failed": koosco.commerce.order.failed
       order:

@@ -38,6 +38,9 @@ dependencies {
     // caffeine cache
     implementation("com.github.ben-manes.caffeine:caffeine")
 
+    // redis
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
     // common
     implementation(project(":common:common-core"))
     implementation(project(":common:common-security"))
