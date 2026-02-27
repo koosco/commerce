@@ -49,9 +49,13 @@ data class ProductInfo(
     }
 
     companion object {
-        fun from(product: Product, brandName: String? = null): ProductInfo {
-            val sellingPrice = product.calculateSellingPrice()
-            val discountRate = product.calculateDiscountRate()
+        fun from(product: Product, brandName: String? = null, discountPrice: Long? = null): ProductInfo {
+            val sellingPrice = discountPrice ?: product.calculateSellingPrice()
+            val discountRate = if (discountPrice != null && product.price > 0) {
+                ((product.price - discountPrice) * 100 / product.price).toInt()
+            } else {
+                product.calculateDiscountRate()
+            }
 
             return ProductInfo(
                 id = product.id!!,

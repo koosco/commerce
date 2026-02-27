@@ -19,6 +19,7 @@ data class GetProductListCommand(
     val sort: ProductSortType,
     val pageable: Pageable,
     val attributeFilters: Map<Long, String> = emptyMap(),
+    val userId: Long? = null,
 )
 
 enum class ProductSortType {
@@ -29,4 +30,4 @@ enum class ProductSortType {
     REVIEW_COUNT_DESC,
 }
 
-data class GetProductDetailCommand(val productId: Long)
+data class GetProductDetailCommand(val productId: Long, val userId: Long? = null)

@@ -4,9 +4,12 @@ import com.koosco.catalogservice.application.command.GetProductListCommand
 import com.koosco.catalogservice.application.port.BrandRepository
 import com.koosco.catalogservice.application.port.ProductRepository
 import com.koosco.catalogservice.application.port.PromotionRepository
+import com.koosco.catalogservice.application.port.UserBehaviorEventProducer
 import com.koosco.catalogservice.application.result.ProductInfo
 import com.koosco.catalogservice.domain.service.PromotionPriceResolver
 import com.koosco.common.core.annotation.UseCase
+import com.koosco.common.core.event.BehaviorType
+import com.koosco.common.core.event.UserBehaviorEvent
 import org.springframework.data.domain.Page
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -16,6 +19,7 @@ class GetProductListUseCase(
     private val productRepository: ProductRepository,
     private val brandRepository: BrandRepository,
     private val promotionRepository: PromotionRepository,
+    private val userBehaviorEventProducer: UserBehaviorEventProducer,
 ) {
 
     @Transactional(readOnly = true)
@@ -38,10 +42,30 @@ class GetProductListUseCase(
             emptyMap()
         }
 
+        publishSearchEvent(command)
+
         return page.map { product ->
             val activePromotions = promotionMap[product.id] ?: emptyList()
             val discountPrice = PromotionPriceResolver.resolve(activePromotions)
             ProductInfo.from(product, brandMap[product.brandId]?.name, discountPrice)
         }
+    }
+
+    private fun publishSearchEvent(command: GetProductListCommand) {
+        val userId = command.userId ?: return
+        val keyword = command.keyword ?: return
+
+        userBehaviorEventProducer.publish(
+            UserBehaviorEvent(
+                userId = userId,
+                behaviorType = BehaviorType.SEARCH,
+                productId = null,
+                searchQuery = keyword,
+                metadata = buildMap {
+                    command.categoryId?.let { put("categoryId", it.toString()) }
+                    command.brandId?.let { put("brandId", it.toString()) }
+                },
+            ),
+        )
     }
 }
