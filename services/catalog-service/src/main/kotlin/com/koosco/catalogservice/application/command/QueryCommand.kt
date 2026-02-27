@@ -25,6 +25,8 @@ enum class ProductSortType {
     LATEST,
     PRICE_ASC,
     PRICE_DESC,
+    RATING_DESC,
+    REVIEW_COUNT_DESC,
 }
 
 data class GetProductDetailCommand(val productId: Long)

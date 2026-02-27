@@ -41,38 +41,37 @@ class ProductQuery(
     }
 
     private fun buildWhere(command: GetProductListCommand): List<BooleanExpression> {
-        val baseConditions = mutableListOf<BooleanExpression>(
+        val baseConditions = listOfNotNull(
             product.status.eq(ProductStatus.ACTIVE),
+            command.categoryId?.let { product.categoryId.eq(it) },
+            command.brandId?.let { product.brandId.eq(it) },
+            command.keyword?.takeIf { it.isNotBlank() }?.let {
+                product.name.containsIgnoreCase(it)
+                    .or(product.description.containsIgnoreCase(it))
+            },
+            command.minPrice?.let { product.price.goe(it) },
+            command.maxPrice?.let { product.price.loe(it) },
         )
 
-        command.categoryId?.let { baseConditions.add(product.categoryId.eq(it)) }
-        command.brandId?.let { baseConditions.add(product.brandId.eq(it)) }
-        command.keyword?.takeIf { it.isNotBlank() }?.let {
-            baseConditions.add(
-                product.name.containsIgnoreCase(it)
-                    .or(product.description.containsIgnoreCase(it)),
-            )
-        }
-        command.minPrice?.let { baseConditions.add(product.price.goe(it)) }
-        command.maxPrice?.let { baseConditions.add(product.price.loe(it)) }
-
-        if (command.attributeFilters.isNotEmpty()) {
-            val matchingProductIds = productAttributeValueRepository
-                .findProductIdsByAttributeFilters(command.attributeFilters)
-
-            if (matchingProductIds.isEmpty()) {
-                baseConditions.add(product.id.eq(-1L))
-            } else {
-                baseConditions.add(product.id.`in`(matchingProductIds))
-            }
+        if (command.attributeFilters.isEmpty()) {
+            return baseConditions
         }
 
-        return baseConditions
+        val matchingProductIds = productAttributeValueRepository
+            .findProductIdsByAttributeFilters(command.attributeFilters)
+
+        if (matchingProductIds.isEmpty()) {
+            return baseConditions + product.id.eq(-1L)
+        }
+
+        return baseConditions + product.id.`in`(matchingProductIds)
     }
 
     private fun sortOrder(sort: ProductSortType): OrderSpecifier<*> = when (sort) {
         ProductSortType.LATEST -> product.createdAt.desc()
         ProductSortType.PRICE_ASC -> product.price.asc()
         ProductSortType.PRICE_DESC -> product.price.desc()
+        ProductSortType.RATING_DESC -> product.averageRating.desc()
+        ProductSortType.REVIEW_COUNT_DESC -> product.reviewCount.desc()
     }
 }

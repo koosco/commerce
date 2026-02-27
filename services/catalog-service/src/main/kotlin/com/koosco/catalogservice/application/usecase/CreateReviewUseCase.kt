@@ -2,6 +2,7 @@ package com.koosco.catalogservice.application.usecase
 
 import com.koosco.catalogservice.application.command.CreateReviewCommand
 import com.koosco.catalogservice.application.port.CatalogIdempotencyRepository
+import com.koosco.catalogservice.application.port.ProductRepository
 import com.koosco.catalogservice.application.port.ReviewRepository
 import com.koosco.catalogservice.application.result.ReviewResult
 import com.koosco.catalogservice.common.error.CatalogErrorCode
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 @UseCase
 class CreateReviewUseCase(
     private val reviewRepository: ReviewRepository,
+    private val productRepository: ProductRepository,
     private val catalogIdempotencyRepository: CatalogIdempotencyRepository,
 ) {
 
@@ -52,6 +54,16 @@ class CreateReviewUseCase(
             )
         }
 
+        updateProductReviewStatistics(command.productId)
+
         return ReviewResult.from(saved)
+    }
+
+    private fun updateProductReviewStatistics(productId: Long) {
+        val product = productRepository.findOrNull(productId)
+            ?: throw NotFoundException(CatalogErrorCode.PRODUCT_NOT_FOUND)
+        val averageRating = reviewRepository.calculateAverageRating(productId)
+        val reviewCount = reviewRepository.countByProductId(productId)
+        product.updateReviewStatistics(averageRating, reviewCount)
     }
 }
