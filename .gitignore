@@ -63,3 +63,6 @@ infra/kafka/kafka-3.7.0/
 # Load test outputs
 load-test/data/
 load-test/results/
+
+# Claude Code local settings
+.claude/settings.local.json
