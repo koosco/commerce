@@ -7,4 +7,5 @@ enum class InventoryAction {
     CANCEL,
     ADD,
     DECREASE,
+    DEDUCT,
 }

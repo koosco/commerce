@@ -21,4 +21,11 @@ interface InventoryRepositoryPort {
     fun findAllBySkuIdInWithLock(skuIds: List<String>): List<Inventory>
 
     fun existsBySkuId(skuId: String): Boolean
+
+    /**
+     * 일반 구매 재고 차감 (조건부 UPDATE)
+     * UPDATE inventory SET total_stock = total_stock - qty WHERE sku_id = :skuId AND total_stock - reserved_stock >= qty
+     * @return 영향받은 row 수 (1: 성공, 0: 재고 부족)
+     */
+    fun deductQuantity(skuId: String, quantity: Int): Int
 }
