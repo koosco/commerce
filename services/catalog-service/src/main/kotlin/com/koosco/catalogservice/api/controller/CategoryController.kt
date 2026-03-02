@@ -11,6 +11,7 @@ import com.koosco.catalogservice.application.usecase.GetCategoryByIdUseCase
 import com.koosco.catalogservice.application.usecase.GetCategoryListUseCase
 import com.koosco.catalogservice.application.usecase.GetCategoryTreeUseCase
 import com.koosco.common.core.response.ApiResponse
+import com.koosco.commonsecurity.resolver.AuthId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
@@ -79,6 +80,7 @@ class CategoryController(
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createCategory(
+        @Parameter(hidden = true) @AuthId userId: Long,
         @Valid @RequestBody request: CategoryCreateRequest,
         @RequestHeader("Idempotency-Key", required = false) idempotencyKey: String?,
     ): ApiResponse<CategoryResponse> {
@@ -97,6 +99,7 @@ class CategoryController(
     @PostMapping("/tree")
     @ResponseStatus(HttpStatus.CREATED)
     fun createCategoryTree(
+        @Parameter(hidden = true) @AuthId userId: Long,
         @Valid @RequestBody request: CategoryTreeCreateRequest,
         @RequestHeader("Idempotency-Key", required = false) idempotencyKey: String?,
     ): ApiResponse<CategoryTreeResponse> {

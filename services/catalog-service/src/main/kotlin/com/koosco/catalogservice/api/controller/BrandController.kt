@@ -9,6 +9,7 @@ import com.koosco.catalogservice.application.usecase.DeleteBrandUseCase
 import com.koosco.catalogservice.application.usecase.GetBrandsUseCase
 import com.koosco.catalogservice.application.usecase.UpdateBrandUseCase
 import com.koosco.common.core.response.ApiResponse
+import com.koosco.commonsecurity.resolver.AuthId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
@@ -56,6 +57,7 @@ class BrandController(
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createBrand(
+        @Parameter(hidden = true) @AuthId userId: Long,
         @Valid @RequestBody request: BrandCreateRequest,
         @RequestHeader("Idempotency-Key", required = false) idempotencyKey: String?,
     ): ApiResponse<BrandResponse> {
@@ -69,6 +71,7 @@ class BrandController(
     )
     @PutMapping("/{brandId}")
     fun updateBrand(
+        @Parameter(hidden = true) @AuthId userId: Long,
         @Parameter(description = "Brand ID") @PathVariable brandId: Long,
         @Valid @RequestBody request: BrandUpdateRequest,
     ): ApiResponse<Any> {
@@ -82,7 +85,10 @@ class BrandController(
     )
     @DeleteMapping("/{brandId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteBrand(@Parameter(description = "Brand ID") @PathVariable brandId: Long): ApiResponse<Any> {
+    fun deleteBrand(
+        @Parameter(hidden = true) @AuthId userId: Long,
+        @Parameter(description = "Brand ID") @PathVariable brandId: Long,
+    ): ApiResponse<Any> {
         deleteBrandUseCase.execute(DeleteBrandCommand(brandId))
         return ApiResponse.success()
     }
