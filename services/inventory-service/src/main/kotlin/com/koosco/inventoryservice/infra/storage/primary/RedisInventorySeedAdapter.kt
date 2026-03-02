@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap
  * date           : 2025. 12. 30. 오전 12:15
  * description    :
  */
-@Profile("local")
+@Profile("!test")
 @Component
 class RedisInventorySeedAdapter(private val redisTemplate: RedisTemplate<String, String>) : InventorySeedPort {
 

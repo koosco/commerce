@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional
  * date           : 2025. 12. 26. 오전 4:57
  * description    : 더미 데이터 영속성 처리를 위한 클래스, local profile only
  */
-@Profile("local")
+@Profile("test")
 @Component
 class InventorySeedAdapter(private val entityManager: EntityManager) : InventorySeedPort {
 
