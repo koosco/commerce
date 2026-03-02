@@ -6,10 +6,31 @@ spring:
   web:
     resources:
       add-mappings: false
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
+        show_sql: false
+        format_sql: false
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+  datasource:
+    url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:commerce-search}
+    username: ${DB_USERNAME:admin}
+    password: ${DB_PASSWORD:admin1234}
+    driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
 
 management:
   endpoints:
@@ -39,14 +60,16 @@ common:
     description: |
       # Search Service API Documentation
 
-      Search quality tracking service.
+      Product search service with FULLTEXT index support.
 
       ## Key Features
+      - **Product Search**: FULLTEXT keyword search with filters
       - **Search Click Logging**: Record search result clicks
       - **Search Metrics**: Expose mAP@k gauges for quality monitoring
 
       ## Authentication
       - JWT Bearer token required for click logging APIs
+      - Anonymous access for product search
     servers:
       - url: http://localhost:8082
         description: Local development
