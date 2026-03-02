@@ -6,6 +6,9 @@ import com.koosco.catalogservice.application.command.GetDiscountPoliciesCommand
 import com.koosco.catalogservice.application.command.UpdateDiscountPolicyCommand
 import com.koosco.catalogservice.application.port.DiscountPolicyRepository
 import com.koosco.catalogservice.application.port.ProductRepository
+import com.koosco.catalogservice.application.usecase.discount.CreateDiscountPolicyUseCase
+import com.koosco.catalogservice.application.usecase.discount.DeleteDiscountPolicyUseCase
+import com.koosco.catalogservice.application.usecase.discount.GetDiscountPoliciesUseCase
 import com.koosco.catalogservice.domain.entity.DiscountPolicy
 import com.koosco.catalogservice.domain.entity.Product
 import com.koosco.catalogservice.domain.enums.DiscountType
@@ -51,7 +54,11 @@ class DiscountPolicyUseCaseTest {
         @Test
         fun `할인 정책을 생성한다`() {
             val useCase =
-                CreateDiscountPolicyUseCase(productRepository, discountPolicyRepository, integrationEventProducer)
+                CreateDiscountPolicyUseCase(
+                    productRepository,
+                    discountPolicyRepository,
+                    integrationEventProducer
+                )
             val product = createProduct()
             val command = CreateDiscountPolicyCommand(
                 productId = 1L,
@@ -85,7 +92,11 @@ class DiscountPolicyUseCaseTest {
         @Test
         fun `상품이 없으면 예외를 던진다`() {
             val useCase =
-                CreateDiscountPolicyUseCase(productRepository, discountPolicyRepository, integrationEventProducer)
+                CreateDiscountPolicyUseCase(
+                    productRepository,
+                    discountPolicyRepository,
+                    integrationEventProducer
+                )
             val command = CreateDiscountPolicyCommand(1L, "할인", DiscountType.RATE, 10, now, now.plusDays(1))
 
             whenever(productRepository.findOrNull(1L)).thenReturn(null)
@@ -97,7 +108,11 @@ class DiscountPolicyUseCaseTest {
         @Test
         fun `활성 할인이 적용되어 가격이 변경되면 이벤트를 발행한다`() {
             val useCase =
-                CreateDiscountPolicyUseCase(productRepository, discountPolicyRepository, integrationEventProducer)
+                CreateDiscountPolicyUseCase(
+                    productRepository,
+                    discountPolicyRepository,
+                    integrationEventProducer
+                )
             val product = createProduct()
             // Add an active SKU to trigger price change event
             val sku = com.koosco.catalogservice.domain.entity.ProductSku(
@@ -185,7 +200,11 @@ class DiscountPolicyUseCaseTest {
         @Test
         fun `할인 정책을 삭제한다`() {
             val useCase =
-                DeleteDiscountPolicyUseCase(productRepository, discountPolicyRepository, integrationEventProducer)
+                DeleteDiscountPolicyUseCase(
+                    productRepository,
+                    discountPolicyRepository,
+                    integrationEventProducer
+                )
             val product = createProduct()
             val policy = DiscountPolicy(
                 id = 1L,
@@ -209,7 +228,11 @@ class DiscountPolicyUseCaseTest {
         @Test
         fun `상품이 없으면 예외를 던진다`() {
             val useCase =
-                DeleteDiscountPolicyUseCase(productRepository, discountPolicyRepository, integrationEventProducer)
+                DeleteDiscountPolicyUseCase(
+                    productRepository,
+                    discountPolicyRepository,
+                    integrationEventProducer
+                )
 
             whenever(productRepository.findOrNull(1L)).thenReturn(null)
 
@@ -220,7 +243,11 @@ class DiscountPolicyUseCaseTest {
         @Test
         fun `할인 정책이 없으면 예외를 던진다`() {
             val useCase =
-                DeleteDiscountPolicyUseCase(productRepository, discountPolicyRepository, integrationEventProducer)
+                DeleteDiscountPolicyUseCase(
+                    productRepository,
+                    discountPolicyRepository,
+                    integrationEventProducer
+                )
             val product = createProduct()
 
             whenever(productRepository.findOrNull(1L)).thenReturn(product)
@@ -233,7 +260,11 @@ class DiscountPolicyUseCaseTest {
         @Test
         fun `할인 정책이 다른 상품에 속하면 예외를 던진다`() {
             val useCase =
-                DeleteDiscountPolicyUseCase(productRepository, discountPolicyRepository, integrationEventProducer)
+                DeleteDiscountPolicyUseCase(
+                    productRepository,
+                    discountPolicyRepository,
+                    integrationEventProducer
+                )
             val product = createProduct()
             val otherProduct = Product(
                 id = 2L,
@@ -262,7 +293,11 @@ class DiscountPolicyUseCaseTest {
         @Test
         fun `활성 할인 삭제 시 가격이 변경되면 이벤트를 발행한다`() {
             val useCase =
-                DeleteDiscountPolicyUseCase(productRepository, discountPolicyRepository, integrationEventProducer)
+                DeleteDiscountPolicyUseCase(
+                    productRepository,
+                    discountPolicyRepository,
+                    integrationEventProducer
+                )
             val product = createProduct()
             val sku = com.koosco.catalogservice.domain.entity.ProductSku(
                 id = 1L,

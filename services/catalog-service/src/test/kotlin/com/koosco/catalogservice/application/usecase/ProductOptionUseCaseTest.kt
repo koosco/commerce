@@ -3,6 +3,8 @@ package com.koosco.catalogservice.application.usecase
 import com.koosco.catalogservice.application.command.AddProductOptionCommand
 import com.koosco.catalogservice.application.command.RemoveProductOptionCommand
 import com.koosco.catalogservice.application.port.ProductRepository
+import com.koosco.catalogservice.application.usecase.brand.AddProductOptionUseCase
+import com.koosco.catalogservice.application.usecase.product.RemoveProductOptionUseCase
 import com.koosco.catalogservice.domain.entity.Product
 import com.koosco.catalogservice.domain.entity.ProductOption
 import com.koosco.catalogservice.domain.entity.ProductOptionGroup

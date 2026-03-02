@@ -5,11 +5,11 @@ import com.koosco.catalogservice.api.request.UpdateSnapRequest
 import com.koosco.catalogservice.api.response.LikeToggleResponse
 import com.koosco.catalogservice.api.response.SnapResponse
 import com.koosco.catalogservice.application.command.DeleteSnapCommand
-import com.koosco.catalogservice.application.usecase.CreateSnapUseCase
-import com.koosco.catalogservice.application.usecase.DeleteSnapUseCase
-import com.koosco.catalogservice.application.usecase.GetSnapFeedUseCase
-import com.koosco.catalogservice.application.usecase.ToggleSnapLikeUseCase
-import com.koosco.catalogservice.application.usecase.UpdateSnapUseCase
+import com.koosco.catalogservice.application.usecase.snap.CreateSnapUseCase
+import com.koosco.catalogservice.application.usecase.snap.DeleteSnapUseCase
+import com.koosco.catalogservice.application.usecase.snap.GetSnapFeedUseCase
+import com.koosco.catalogservice.application.usecase.snap.ToggleSnapLikeUseCase
+import com.koosco.catalogservice.application.usecase.snap.UpdateSnapUseCase
 import com.koosco.common.core.response.ApiResponse
 import com.koosco.commonsecurity.resolver.AuthId
 import io.swagger.v3.oas.annotations.Operation

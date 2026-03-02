@@ -6,6 +6,11 @@ import com.koosco.catalogservice.application.command.UpdateSnapCommand
 import com.koosco.catalogservice.application.port.CatalogIdempotencyRepository
 import com.koosco.catalogservice.application.port.SnapLikeRepository
 import com.koosco.catalogservice.application.port.SnapRepository
+import com.koosco.catalogservice.application.usecase.snap.CreateSnapUseCase
+import com.koosco.catalogservice.application.usecase.snap.DeleteSnapUseCase
+import com.koosco.catalogservice.application.usecase.snap.GetSnapFeedUseCase
+import com.koosco.catalogservice.application.usecase.snap.ToggleSnapLikeUseCase
+import com.koosco.catalogservice.application.usecase.snap.UpdateSnapUseCase
 import com.koosco.catalogservice.domain.entity.Snap
 import com.koosco.catalogservice.domain.entity.SnapLike
 import com.koosco.catalogservice.domain.entity.SnapLikeId
@@ -215,7 +220,11 @@ class SnapUseCaseTest {
 
         @Test
         fun `좋아요를 추가한다`() {
-            val useCase = ToggleSnapLikeUseCase(snapRepository, snapLikeRepository, catalogIdempotencyRepository)
+            val useCase = ToggleSnapLikeUseCase(
+                snapRepository,
+                snapLikeRepository,
+                catalogIdempotencyRepository
+            )
             val snap = createSnap()
 
             whenever(snapRepository.findByIdOrNull(1L)).thenReturn(snap)
@@ -230,7 +239,11 @@ class SnapUseCaseTest {
 
         @Test
         fun `좋아요를 취소한다`() {
-            val useCase = ToggleSnapLikeUseCase(snapRepository, snapLikeRepository, catalogIdempotencyRepository)
+            val useCase = ToggleSnapLikeUseCase(
+                snapRepository,
+                snapLikeRepository,
+                catalogIdempotencyRepository
+            )
             val snap = createSnap()
             snap.likeCount = 1
             val existing = SnapLike(1L, 1L)
@@ -246,7 +259,11 @@ class SnapUseCaseTest {
 
         @Test
         fun `스냅이 없으면 예외를 던진다`() {
-            val useCase = ToggleSnapLikeUseCase(snapRepository, snapLikeRepository, catalogIdempotencyRepository)
+            val useCase = ToggleSnapLikeUseCase(
+                snapRepository,
+                snapLikeRepository,
+                catalogIdempotencyRepository
+            )
 
             whenever(snapRepository.findByIdOrNull(1L)).thenReturn(null)
 
@@ -256,7 +273,11 @@ class SnapUseCaseTest {
 
         @Test
         fun `멱등성 키가 있고 이미 처리되었으면 기존 결과를 반환한다`() {
-            val useCase = ToggleSnapLikeUseCase(snapRepository, snapLikeRepository, catalogIdempotencyRepository)
+            val useCase = ToggleSnapLikeUseCase(
+                snapRepository,
+                snapLikeRepository,
+                catalogIdempotencyRepository
+            )
             val existing = com.koosco.catalogservice.domain.entity.CatalogIdempotency.create("key-1", "SNAP_LIKE", 1L)
 
             whenever(catalogIdempotencyRepository.findByIdempotencyKeyAndResourceType("key-1", "SNAP_LIKE"))
@@ -269,7 +290,11 @@ class SnapUseCaseTest {
 
         @Test
         fun `멱등성 키와 함께 좋아요를 추가하면 멱등성 레코드를 저장한다`() {
-            val useCase = ToggleSnapLikeUseCase(snapRepository, snapLikeRepository, catalogIdempotencyRepository)
+            val useCase = ToggleSnapLikeUseCase(
+                snapRepository,
+                snapLikeRepository,
+                catalogIdempotencyRepository
+            )
             val snap = createSnap()
 
             whenever(catalogIdempotencyRepository.findByIdempotencyKeyAndResourceType("key-1", "SNAP_LIKE"))

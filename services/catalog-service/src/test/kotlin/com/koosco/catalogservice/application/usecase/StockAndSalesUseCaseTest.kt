@@ -3,6 +3,9 @@ package com.koosco.catalogservice.application.usecase
 import com.koosco.catalogservice.application.port.CatalogIdempotencyRepository
 import com.koosco.catalogservice.application.port.ProductLikeRepository
 import com.koosco.catalogservice.application.port.ProductRepository
+import com.koosco.catalogservice.application.usecase.product.ToggleProductLikeUseCase
+import com.koosco.catalogservice.application.usecase.product.UpdateProductSalesCountUseCase
+import com.koosco.catalogservice.application.usecase.product.UpdateProductStockStatusUseCase
 import com.koosco.catalogservice.domain.entity.CatalogIdempotency
 import com.koosco.catalogservice.domain.entity.Product
 import com.koosco.catalogservice.domain.entity.ProductLike
@@ -228,7 +231,11 @@ class StockAndSalesUseCaseTest {
 
         @Test
         fun `좋아요를 추가한다`() {
-            val useCase = ToggleProductLikeUseCase(productRepository, productLikeRepository, idempotencyRepository)
+            val useCase = ToggleProductLikeUseCase(
+                productRepository,
+                productLikeRepository,
+                idempotencyRepository
+            )
             val product = createProduct()
 
             whenever(productRepository.findOrNull(1L)).thenReturn(product)
@@ -243,7 +250,11 @@ class StockAndSalesUseCaseTest {
 
         @Test
         fun `좋아요를 취소한다`() {
-            val useCase = ToggleProductLikeUseCase(productRepository, productLikeRepository, idempotencyRepository)
+            val useCase = ToggleProductLikeUseCase(
+                productRepository,
+                productLikeRepository,
+                idempotencyRepository
+            )
             val product = createProduct()
             product.likeCount = 1
             val existing = ProductLike(1L, 1L)
@@ -259,7 +270,11 @@ class StockAndSalesUseCaseTest {
 
         @Test
         fun `상품이 없으면 예외를 던진다`() {
-            val useCase = ToggleProductLikeUseCase(productRepository, productLikeRepository, idempotencyRepository)
+            val useCase = ToggleProductLikeUseCase(
+                productRepository,
+                productLikeRepository,
+                idempotencyRepository
+            )
 
             whenever(productRepository.findOrNull(1L)).thenReturn(null)
 
@@ -269,7 +284,11 @@ class StockAndSalesUseCaseTest {
 
         @Test
         fun `멱등성 키가 있고 이미 처리된 요청이면 기존 결과를 반환한다`() {
-            val useCase = ToggleProductLikeUseCase(productRepository, productLikeRepository, idempotencyRepository)
+            val useCase = ToggleProductLikeUseCase(
+                productRepository,
+                productLikeRepository,
+                idempotencyRepository
+            )
             val existing = CatalogIdempotency.create("like-key", "PRODUCT_LIKE", 1L)
 
             whenever(idempotencyRepository.findByIdempotencyKeyAndResourceType("like-key", "PRODUCT_LIKE"))

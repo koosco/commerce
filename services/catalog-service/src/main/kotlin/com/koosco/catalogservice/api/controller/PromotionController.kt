@@ -5,9 +5,9 @@ import com.koosco.catalogservice.api.response.PromotionPriceResponse
 import com.koosco.catalogservice.api.response.PromotionResponse
 import com.koosco.catalogservice.application.command.GetPromotionPriceCommand
 import com.koosco.catalogservice.application.command.GetPromotionsByProductCommand
-import com.koosco.catalogservice.application.usecase.CreatePromotionUseCase
-import com.koosco.catalogservice.application.usecase.GetPromotionPriceUseCase
-import com.koosco.catalogservice.application.usecase.GetPromotionsByProductUseCase
+import com.koosco.catalogservice.application.usecase.promotion.CreatePromotionUseCase
+import com.koosco.catalogservice.application.usecase.promotion.GetPromotionPriceUseCase
+import com.koosco.catalogservice.application.usecase.promotion.GetPromotionsByProductUseCase
 import com.koosco.common.core.response.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter

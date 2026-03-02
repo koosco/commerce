@@ -2,6 +2,8 @@ package com.koosco.catalogservice.application.usecase
 
 import com.koosco.catalogservice.application.command.SearchClickCommand
 import com.koosco.catalogservice.application.port.SearchClickLogPort
+import com.koosco.catalogservice.application.usecase.search.CalculateSearchQualityUseCase
+import com.koosco.catalogservice.application.usecase.search.RecordSearchClickUseCase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested

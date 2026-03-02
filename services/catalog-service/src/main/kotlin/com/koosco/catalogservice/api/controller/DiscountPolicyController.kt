@@ -4,9 +4,9 @@ import com.koosco.catalogservice.api.request.CreateDiscountPolicyRequest
 import com.koosco.catalogservice.api.response.DiscountPolicyResponse
 import com.koosco.catalogservice.application.command.DeleteDiscountPolicyCommand
 import com.koosco.catalogservice.application.command.GetDiscountPoliciesCommand
-import com.koosco.catalogservice.application.usecase.CreateDiscountPolicyUseCase
-import com.koosco.catalogservice.application.usecase.DeleteDiscountPolicyUseCase
-import com.koosco.catalogservice.application.usecase.GetDiscountPoliciesUseCase
+import com.koosco.catalogservice.application.usecase.discount.CreateDiscountPolicyUseCase
+import com.koosco.catalogservice.application.usecase.discount.DeleteDiscountPolicyUseCase
+import com.koosco.catalogservice.application.usecase.discount.GetDiscountPoliciesUseCase
 import com.koosco.common.core.response.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter

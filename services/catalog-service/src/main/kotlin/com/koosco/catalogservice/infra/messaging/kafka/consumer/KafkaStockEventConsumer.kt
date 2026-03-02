@@ -1,6 +1,6 @@
 package com.koosco.catalogservice.infra.messaging.kafka.consumer
 
-import com.koosco.catalogservice.application.usecase.UpdateProductStockStatusUseCase
+import com.koosco.catalogservice.application.usecase.product.UpdateProductStockStatusUseCase
 import com.koosco.catalogservice.contract.inbound.inventory.StockDepletedEvent
 import com.koosco.catalogservice.contract.inbound.inventory.StockRestoredEvent
 import com.koosco.common.core.event.CloudEvent

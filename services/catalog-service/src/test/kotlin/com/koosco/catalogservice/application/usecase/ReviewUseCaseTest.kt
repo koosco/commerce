@@ -7,6 +7,11 @@ import com.koosco.catalogservice.application.port.CatalogIdempotencyRepository
 import com.koosco.catalogservice.application.port.ProductRepository
 import com.koosco.catalogservice.application.port.ReviewLikeRepository
 import com.koosco.catalogservice.application.port.ReviewRepository
+import com.koosco.catalogservice.application.usecase.review.CreateReviewUseCase
+import com.koosco.catalogservice.application.usecase.review.DeleteReviewUseCase
+import com.koosco.catalogservice.application.usecase.review.GetReviewsByProductUseCase
+import com.koosco.catalogservice.application.usecase.review.ToggleReviewLikeUseCase
+import com.koosco.catalogservice.application.usecase.review.UpdateReviewUseCase
 import com.koosco.catalogservice.domain.entity.Product
 import com.koosco.catalogservice.domain.entity.Review
 import com.koosco.catalogservice.domain.entity.ReviewLike
@@ -63,7 +68,11 @@ class ReviewUseCaseTest {
 
         @Test
         fun `리뷰를 생성한다`() {
-            val useCase = CreateReviewUseCase(reviewRepository, productRepository, catalogIdempotencyRepository)
+            val useCase = CreateReviewUseCase(
+                reviewRepository,
+                productRepository,
+                catalogIdempotencyRepository
+            )
             val command = CreateReviewCommand(1L, 1L, null, "좋아요", "내용", 5)
 
             whenever(reviewRepository.save(any())).thenAnswer { invocation ->
@@ -88,7 +97,11 @@ class ReviewUseCaseTest {
 
         @Test
         fun `이미지를 포함하여 리뷰를 생성한다`() {
-            val useCase = CreateReviewUseCase(reviewRepository, productRepository, catalogIdempotencyRepository)
+            val useCase = CreateReviewUseCase(
+                reviewRepository,
+                productRepository,
+                catalogIdempotencyRepository
+            )
             val command = CreateReviewCommand(1L, 1L, null, "좋아요", "내용", 5, listOf("http://img1.jpg"))
 
             whenever(reviewRepository.save(any())).thenAnswer { invocation ->
@@ -113,7 +126,11 @@ class ReviewUseCaseTest {
 
         @Test
         fun `멱등성 키가 있으면 기존 리뷰를 반환한다`() {
-            val useCase = CreateReviewUseCase(reviewRepository, productRepository, catalogIdempotencyRepository)
+            val useCase = CreateReviewUseCase(
+                reviewRepository,
+                productRepository,
+                catalogIdempotencyRepository
+            )
             val review = createReview()
             val existing = com.koosco.catalogservice.domain.entity.CatalogIdempotency.create("key-1", "REVIEW", 1L)
 
@@ -131,7 +148,11 @@ class ReviewUseCaseTest {
 
         @Test
         fun `멱등성 키가 있지만 리뷰가 없으면 예외를 던진다`() {
-            val useCase = CreateReviewUseCase(reviewRepository, productRepository, catalogIdempotencyRepository)
+            val useCase = CreateReviewUseCase(
+                reviewRepository,
+                productRepository,
+                catalogIdempotencyRepository
+            )
             val existing = com.koosco.catalogservice.domain.entity.CatalogIdempotency.create("key-1", "REVIEW", 1L)
 
             whenever(catalogIdempotencyRepository.findByIdempotencyKeyAndResourceType("key-1", "REVIEW"))
@@ -145,7 +166,11 @@ class ReviewUseCaseTest {
 
         @Test
         fun `멱등성 키와 함께 리뷰를 생성하면 멱등성 레코드를 저장한다`() {
-            val useCase = CreateReviewUseCase(reviewRepository, productRepository, catalogIdempotencyRepository)
+            val useCase = CreateReviewUseCase(
+                reviewRepository,
+                productRepository,
+                catalogIdempotencyRepository
+            )
             val command = CreateReviewCommand(1L, 1L, null, "좋아요", "내용", 5)
 
             whenever(catalogIdempotencyRepository.findByIdempotencyKeyAndResourceType("key-1", "REVIEW"))
@@ -285,7 +310,11 @@ class ReviewUseCaseTest {
 
         @Test
         fun `좋아요를 추가한다`() {
-            val useCase = ToggleReviewLikeUseCase(reviewRepository, reviewLikeRepository, catalogIdempotencyRepository)
+            val useCase = ToggleReviewLikeUseCase(
+                reviewRepository,
+                reviewLikeRepository,
+                catalogIdempotencyRepository
+            )
             val review = createReview()
 
             whenever(reviewRepository.findByIdOrNull(1L)).thenReturn(review)
@@ -300,7 +329,11 @@ class ReviewUseCaseTest {
 
         @Test
         fun `좋아요를 취소한다`() {
-            val useCase = ToggleReviewLikeUseCase(reviewRepository, reviewLikeRepository, catalogIdempotencyRepository)
+            val useCase = ToggleReviewLikeUseCase(
+                reviewRepository,
+                reviewLikeRepository,
+                catalogIdempotencyRepository
+            )
             val review = createReview()
             review.likeCount = 1
             val existing = ReviewLike(1L, 1L)
@@ -316,7 +349,11 @@ class ReviewUseCaseTest {
 
         @Test
         fun `리뷰가 없으면 예외를 던진다`() {
-            val useCase = ToggleReviewLikeUseCase(reviewRepository, reviewLikeRepository, catalogIdempotencyRepository)
+            val useCase = ToggleReviewLikeUseCase(
+                reviewRepository,
+                reviewLikeRepository,
+                catalogIdempotencyRepository
+            )
 
             whenever(reviewRepository.findByIdOrNull(1L)).thenReturn(null)
 
@@ -326,7 +363,11 @@ class ReviewUseCaseTest {
 
         @Test
         fun `멱등성 키가 있으면 기존 결과를 반환한다`() {
-            val useCase = ToggleReviewLikeUseCase(reviewRepository, reviewLikeRepository, catalogIdempotencyRepository)
+            val useCase = ToggleReviewLikeUseCase(
+                reviewRepository,
+                reviewLikeRepository,
+                catalogIdempotencyRepository
+            )
             val existing = com.koosco.catalogservice.domain.entity.CatalogIdempotency.create("key-1", "REVIEW_LIKE", 1L)
 
             whenever(catalogIdempotencyRepository.findByIdempotencyKeyAndResourceType("key-1", "REVIEW_LIKE"))
@@ -339,7 +380,11 @@ class ReviewUseCaseTest {
 
         @Test
         fun `멱등성 키와 함께 좋아요를 추가하면 멱등성 레코드를 저장한다`() {
-            val useCase = ToggleReviewLikeUseCase(reviewRepository, reviewLikeRepository, catalogIdempotencyRepository)
+            val useCase = ToggleReviewLikeUseCase(
+                reviewRepository,
+                reviewLikeRepository,
+                catalogIdempotencyRepository
+            )
             val review = createReview()
 
             whenever(catalogIdempotencyRepository.findByIdempotencyKeyAndResourceType("key-1", "REVIEW_LIKE"))

@@ -5,6 +5,9 @@ import com.koosco.catalogservice.application.command.GetPromotionPriceCommand
 import com.koosco.catalogservice.application.command.GetPromotionsByProductCommand
 import com.koosco.catalogservice.application.port.ProductRepository
 import com.koosco.catalogservice.application.port.PromotionRepository
+import com.koosco.catalogservice.application.usecase.promotion.CreatePromotionUseCase
+import com.koosco.catalogservice.application.usecase.promotion.GetPromotionPriceUseCase
+import com.koosco.catalogservice.application.usecase.promotion.GetPromotionsByProductUseCase
 import com.koosco.catalogservice.domain.entity.Product
 import com.koosco.catalogservice.domain.entity.Promotion
 import com.koosco.catalogservice.domain.enums.ProductStatus
@@ -49,7 +52,11 @@ class PromotionUseCaseTest {
 
         @Test
         fun `프로모션을 생성한다`() {
-            val useCase = CreatePromotionUseCase(promotionRepository, productRepository, integrationEventProducer)
+            val useCase = CreatePromotionUseCase(
+                promotionRepository,
+                productRepository,
+                integrationEventProducer
+            )
             val product = createProduct()
             val command = CreatePromotionCommand(
                 productId = 1L,
@@ -81,7 +88,11 @@ class PromotionUseCaseTest {
 
         @Test
         fun `활성 프로모션이면 이벤트를 발행한다`() {
-            val useCase = CreatePromotionUseCase(promotionRepository, productRepository, integrationEventProducer)
+            val useCase = CreatePromotionUseCase(
+                promotionRepository,
+                productRepository,
+                integrationEventProducer
+            )
             val product = createProduct()
             val command = CreatePromotionCommand(
                 productId = 1L,
@@ -118,7 +129,11 @@ class PromotionUseCaseTest {
 
         @Test
         fun `상품이 없으면 예외를 던진다`() {
-            val useCase = CreatePromotionUseCase(promotionRepository, productRepository, integrationEventProducer)
+            val useCase = CreatePromotionUseCase(
+                promotionRepository,
+                productRepository,
+                integrationEventProducer
+            )
             val command = CreatePromotionCommand(1L, 8000, now, now.plusDays(1), PromotionType.CAMPAIGN, 0)
 
             whenever(productRepository.findOrNull(1L)).thenReturn(null)

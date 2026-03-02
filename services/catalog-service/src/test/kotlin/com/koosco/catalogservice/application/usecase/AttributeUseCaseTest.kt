@@ -9,6 +9,12 @@ import com.koosco.catalogservice.application.port.CategoryAttributeRepository
 import com.koosco.catalogservice.application.port.CategoryRepository
 import com.koosco.catalogservice.application.port.ProductAttributeValueRepository
 import com.koosco.catalogservice.application.port.ProductRepository
+import com.koosco.catalogservice.application.usecase.category.CreateCategoryAttributeUseCase
+import com.koosco.catalogservice.application.usecase.category.DeleteCategoryAttributeUseCase
+import com.koosco.catalogservice.application.usecase.category.GetCategoryAttributesUseCase
+import com.koosco.catalogservice.application.usecase.category.UpdateCategoryAttributeUseCase
+import com.koosco.catalogservice.application.usecase.product.GetProductAttributeValuesUseCase
+import com.koosco.catalogservice.application.usecase.product.SetProductAttributeValuesUseCase
 import com.koosco.catalogservice.domain.entity.Category
 import com.koosco.catalogservice.domain.entity.CategoryAttribute
 import com.koosco.catalogservice.domain.entity.Product
@@ -78,7 +84,8 @@ class AttributeUseCaseTest {
 
         @Test
         fun `카테고리에 속성을 추가한다`() {
-            val useCase = CreateCategoryAttributeUseCase(categoryRepository, categoryAttributeRepository)
+            val useCase =
+                CreateCategoryAttributeUseCase(categoryRepository, categoryAttributeRepository)
             val command = CreateCategoryAttributeCommand(
                 categoryId = 1L,
                 name = "색상",
@@ -110,7 +117,8 @@ class AttributeUseCaseTest {
 
         @Test
         fun `카테고리가 없으면 예외를 던진다`() {
-            val useCase = CreateCategoryAttributeUseCase(categoryRepository, categoryAttributeRepository)
+            val useCase =
+                CreateCategoryAttributeUseCase(categoryRepository, categoryAttributeRepository)
             val command = CreateCategoryAttributeCommand(
                 categoryId = 999L,
                 name = "색상",
@@ -130,7 +138,8 @@ class AttributeUseCaseTest {
 
         @Test
         fun `카테고리의 속성 목록을 조회한다`() {
-            val useCase = GetCategoryAttributesUseCase(categoryRepository, categoryAttributeRepository)
+            val useCase =
+                GetCategoryAttributesUseCase(categoryRepository, categoryAttributeRepository)
             val command = GetCategoryAttributesCommand(categoryId = 1L, includeInherited = false)
             val attrs = listOf(
                 createAttribute(1L, 1L, "색상", AttributeType.STRING),
@@ -149,7 +158,8 @@ class AttributeUseCaseTest {
 
         @Test
         fun `상위 카테고리 속성을 상속받아 조회한다`() {
-            val useCase = GetCategoryAttributesUseCase(categoryRepository, categoryAttributeRepository)
+            val useCase =
+                GetCategoryAttributesUseCase(categoryRepository, categoryAttributeRepository)
             val parent = createCategory(1L, "의류")
             val child = createCategory(2L, "상의", parent)
             val command = GetCategoryAttributesCommand(categoryId = 2L, includeInherited = true)
@@ -172,7 +182,8 @@ class AttributeUseCaseTest {
 
         @Test
         fun `카테고리가 없으면 예외를 던진다`() {
-            val useCase = GetCategoryAttributesUseCase(categoryRepository, categoryAttributeRepository)
+            val useCase =
+                GetCategoryAttributesUseCase(categoryRepository, categoryAttributeRepository)
             val command = GetCategoryAttributesCommand(categoryId = 999L)
 
             whenever(categoryRepository.findByIdOrNull(999L)).thenReturn(null)

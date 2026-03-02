@@ -5,11 +5,11 @@ import com.koosco.catalogservice.api.request.CategoryTreeCreateRequest
 import com.koosco.catalogservice.api.response.CategoryResponse
 import com.koosco.catalogservice.api.response.CategoryTreeResponse
 import com.koosco.catalogservice.application.command.GetCategoryListCommand
-import com.koosco.catalogservice.application.usecase.CreateCategoryTreeUseCase
-import com.koosco.catalogservice.application.usecase.CreateCategoryUseCase
-import com.koosco.catalogservice.application.usecase.GetCategoryByIdUseCase
-import com.koosco.catalogservice.application.usecase.GetCategoryListUseCase
-import com.koosco.catalogservice.application.usecase.GetCategoryTreeUseCase
+import com.koosco.catalogservice.application.usecase.category.CreateCategoryTreeUseCase
+import com.koosco.catalogservice.application.usecase.category.CreateCategoryUseCase
+import com.koosco.catalogservice.application.usecase.category.GetCategoryByIdUseCase
+import com.koosco.catalogservice.application.usecase.category.GetCategoryListUseCase
+import com.koosco.catalogservice.application.usecase.category.GetCategoryTreeUseCase
 import com.koosco.common.core.response.ApiResponse
 import com.koosco.commonsecurity.resolver.AuthId
 import io.swagger.v3.oas.annotations.Operation

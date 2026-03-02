@@ -4,10 +4,10 @@ import com.koosco.catalogservice.application.command.CreateCategoryCommand
 import com.koosco.catalogservice.application.command.CreateCategoryTreeCommand
 import com.koosco.catalogservice.application.command.GetCategoryListCommand
 import com.koosco.catalogservice.application.port.CategoryRepository
-import com.koosco.catalogservice.application.usecase.CreateCategoryTreeUseCase
-import com.koosco.catalogservice.application.usecase.CreateCategoryUseCase
-import com.koosco.catalogservice.application.usecase.GetCategoryListUseCase
-import com.koosco.catalogservice.application.usecase.GetCategoryTreeUseCase
+import com.koosco.catalogservice.application.usecase.category.CreateCategoryTreeUseCase
+import com.koosco.catalogservice.application.usecase.category.CreateCategoryUseCase
+import com.koosco.catalogservice.application.usecase.category.GetCategoryListUseCase
+import com.koosco.catalogservice.application.usecase.category.GetCategoryTreeUseCase
 import com.koosco.common.core.test.IntegrationTestBase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull

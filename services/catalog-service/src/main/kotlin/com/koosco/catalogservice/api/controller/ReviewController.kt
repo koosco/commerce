@@ -5,11 +5,11 @@ import com.koosco.catalogservice.api.request.UpdateReviewRequest
 import com.koosco.catalogservice.api.response.LikeToggleResponse
 import com.koosco.catalogservice.api.response.ReviewResponse
 import com.koosco.catalogservice.application.command.DeleteReviewCommand
-import com.koosco.catalogservice.application.usecase.CreateReviewUseCase
-import com.koosco.catalogservice.application.usecase.DeleteReviewUseCase
-import com.koosco.catalogservice.application.usecase.GetReviewsByProductUseCase
-import com.koosco.catalogservice.application.usecase.ToggleReviewLikeUseCase
-import com.koosco.catalogservice.application.usecase.UpdateReviewUseCase
+import com.koosco.catalogservice.application.usecase.review.CreateReviewUseCase
+import com.koosco.catalogservice.application.usecase.review.DeleteReviewUseCase
+import com.koosco.catalogservice.application.usecase.review.GetReviewsByProductUseCase
+import com.koosco.catalogservice.application.usecase.review.ToggleReviewLikeUseCase
+import com.koosco.catalogservice.application.usecase.review.UpdateReviewUseCase
 import com.koosco.common.core.response.ApiResponse
 import com.koosco.commonsecurity.resolver.AuthId
 import io.swagger.v3.oas.annotations.Operation

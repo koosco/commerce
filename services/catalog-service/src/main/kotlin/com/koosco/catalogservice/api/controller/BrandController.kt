@@ -4,10 +4,10 @@ import com.koosco.catalogservice.api.request.BrandCreateRequest
 import com.koosco.catalogservice.api.request.BrandUpdateRequest
 import com.koosco.catalogservice.api.response.BrandResponse
 import com.koosco.catalogservice.application.command.DeleteBrandCommand
-import com.koosco.catalogservice.application.usecase.CreateBrandUseCase
-import com.koosco.catalogservice.application.usecase.DeleteBrandUseCase
-import com.koosco.catalogservice.application.usecase.GetBrandsUseCase
-import com.koosco.catalogservice.application.usecase.UpdateBrandUseCase
+import com.koosco.catalogservice.application.usecase.brand.CreateBrandUseCase
+import com.koosco.catalogservice.application.usecase.brand.DeleteBrandUseCase
+import com.koosco.catalogservice.application.usecase.brand.GetBrandsUseCase
+import com.koosco.catalogservice.application.usecase.brand.UpdateBrandUseCase
 import com.koosco.common.core.response.ApiResponse
 import com.koosco.commonsecurity.resolver.AuthId
 import io.swagger.v3.oas.annotations.Operation

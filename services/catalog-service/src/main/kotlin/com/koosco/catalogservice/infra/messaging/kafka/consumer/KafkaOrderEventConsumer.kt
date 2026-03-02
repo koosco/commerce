@@ -1,6 +1,6 @@
 package com.koosco.catalogservice.infra.messaging.kafka.consumer
 
-import com.koosco.catalogservice.application.usecase.UpdateProductSalesCountUseCase
+import com.koosco.catalogservice.application.usecase.product.UpdateProductSalesCountUseCase
 import com.koosco.catalogservice.contract.inbound.order.OrderCancelledEvent
 import com.koosco.catalogservice.contract.inbound.order.OrderConfirmedEvent
 import com.koosco.common.core.event.CloudEvent

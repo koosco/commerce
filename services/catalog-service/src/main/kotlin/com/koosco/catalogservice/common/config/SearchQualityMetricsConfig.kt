@@ -1,6 +1,6 @@
 package com.koosco.catalogservice.common.config
 
-import com.koosco.catalogservice.application.usecase.CalculateSearchQualityUseCase
+import com.koosco.catalogservice.application.usecase.search.CalculateSearchQualityUseCase
 import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
 import jakarta.annotation.PostConstruct

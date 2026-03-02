@@ -2,8 +2,8 @@ package com.koosco.catalogservice.api.controller
 
 import com.koosco.catalogservice.api.request.SetProductAttributeValuesRequest
 import com.koosco.catalogservice.api.response.ProductAttributeValueResponse
-import com.koosco.catalogservice.application.usecase.GetProductAttributeValuesUseCase
-import com.koosco.catalogservice.application.usecase.SetProductAttributeValuesUseCase
+import com.koosco.catalogservice.application.usecase.product.GetProductAttributeValuesUseCase
+import com.koosco.catalogservice.application.usecase.product.SetProductAttributeValuesUseCase
 import com.koosco.common.core.response.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter

@@ -13,10 +13,16 @@ import com.koosco.catalogservice.application.port.CategoryRepository
 import com.koosco.catalogservice.application.port.ProductRepository
 import com.koosco.catalogservice.application.port.PromotionRepository
 import com.koosco.catalogservice.application.port.UserBehaviorEventProducer
+import com.koosco.catalogservice.application.usecase.product.ChangeProductStatusUseCase
+import com.koosco.catalogservice.application.usecase.product.CreateProductUseCase
+import com.koosco.catalogservice.application.usecase.product.DeleteProductUseCase
+import com.koosco.catalogservice.application.usecase.product.FindSkuUseCase
+import com.koosco.catalogservice.application.usecase.product.GetProductDetailUseCase
+import com.koosco.catalogservice.application.usecase.product.GetProductListUseCase
+import com.koosco.catalogservice.application.usecase.product.UpdateProductUseCase
 import com.koosco.catalogservice.domain.entity.Brand
 import com.koosco.catalogservice.domain.entity.CatalogIdempotency
 import com.koosco.catalogservice.domain.entity.Product
-import com.koosco.catalogservice.domain.entity.ProductOptionGroup
 import com.koosco.catalogservice.domain.entity.ProductSku
 import com.koosco.catalogservice.domain.entity.Promotion
 import com.koosco.catalogservice.domain.enums.ProductStatus

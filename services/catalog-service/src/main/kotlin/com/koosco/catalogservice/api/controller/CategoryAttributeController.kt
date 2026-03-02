@@ -5,10 +5,10 @@ import com.koosco.catalogservice.api.request.UpdateCategoryAttributeRequest
 import com.koosco.catalogservice.api.response.CategoryAttributeResponse
 import com.koosco.catalogservice.application.command.DeleteCategoryAttributeCommand
 import com.koosco.catalogservice.application.command.GetCategoryAttributesCommand
-import com.koosco.catalogservice.application.usecase.CreateCategoryAttributeUseCase
-import com.koosco.catalogservice.application.usecase.DeleteCategoryAttributeUseCase
-import com.koosco.catalogservice.application.usecase.GetCategoryAttributesUseCase
-import com.koosco.catalogservice.application.usecase.UpdateCategoryAttributeUseCase
+import com.koosco.catalogservice.application.usecase.category.CreateCategoryAttributeUseCase
+import com.koosco.catalogservice.application.usecase.category.DeleteCategoryAttributeUseCase
+import com.koosco.catalogservice.application.usecase.category.GetCategoryAttributesUseCase
+import com.koosco.catalogservice.application.usecase.category.UpdateCategoryAttributeUseCase
 import com.koosco.common.core.response.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter

@@ -5,6 +5,11 @@ import com.koosco.catalogservice.application.command.CreateCategoryTreeCommand
 import com.koosco.catalogservice.application.command.GetCategoryListCommand
 import com.koosco.catalogservice.application.port.CatalogIdempotencyRepository
 import com.koosco.catalogservice.application.port.CategoryRepository
+import com.koosco.catalogservice.application.usecase.category.CreateCategoryTreeUseCase
+import com.koosco.catalogservice.application.usecase.category.CreateCategoryUseCase
+import com.koosco.catalogservice.application.usecase.category.GetCategoryByIdUseCase
+import com.koosco.catalogservice.application.usecase.category.GetCategoryListUseCase
+import com.koosco.catalogservice.application.usecase.category.GetCategoryTreeUseCase
 import com.koosco.catalogservice.domain.entity.Category
 import com.koosco.common.core.exception.ConflictException
 import com.koosco.common.core.exception.NotFoundException
@@ -151,7 +156,8 @@ class CategoryUseCaseTest {
 
         @Test
         fun `카테고리 트리를 생성한다`() {
-            val useCase = CreateCategoryTreeUseCase(categoryRepository, catalogIdempotencyRepository)
+            val useCase =
+                CreateCategoryTreeUseCase(categoryRepository, catalogIdempotencyRepository)
             val command = CreateCategoryTreeCommand(
                 name = "패션",
                 children = listOf(
@@ -182,7 +188,8 @@ class CategoryUseCaseTest {
 
         @Test
         fun `멱등성 키가 있으면 기존 트리를 반환한다`() {
-            val useCase = CreateCategoryTreeUseCase(categoryRepository, catalogIdempotencyRepository)
+            val useCase =
+                CreateCategoryTreeUseCase(categoryRepository, catalogIdempotencyRepository)
             val category = createCategory()
             val existing =
                 com.koosco.catalogservice.domain.entity.CatalogIdempotency.create("key-1", "CATEGORY_TREE", 1L)
@@ -202,7 +209,8 @@ class CategoryUseCaseTest {
 
         @Test
         fun `멱등성 키가 있지만 카테고리가 없으면 예외를 던진다`() {
-            val useCase = CreateCategoryTreeUseCase(categoryRepository, catalogIdempotencyRepository)
+            val useCase =
+                CreateCategoryTreeUseCase(categoryRepository, catalogIdempotencyRepository)
             val existing =
                 com.koosco.catalogservice.domain.entity.CatalogIdempotency.create("key-1", "CATEGORY_TREE", 1L)
 
@@ -221,7 +229,8 @@ class CategoryUseCaseTest {
 
         @Test
         fun `멱등성 키와 함께 트리를 생성하면 멱등성 레코드를 저장한다`() {
-            val useCase = CreateCategoryTreeUseCase(categoryRepository, catalogIdempotencyRepository)
+            val useCase =
+                CreateCategoryTreeUseCase(categoryRepository, catalogIdempotencyRepository)
             val command = CreateCategoryTreeCommand(name = "패션")
 
             whenever(

@@ -5,6 +5,10 @@ import com.koosco.catalogservice.application.command.DeleteBrandCommand
 import com.koosco.catalogservice.application.command.UpdateBrandCommand
 import com.koosco.catalogservice.application.port.BrandRepository
 import com.koosco.catalogservice.application.port.CatalogIdempotencyRepository
+import com.koosco.catalogservice.application.usecase.brand.CreateBrandUseCase
+import com.koosco.catalogservice.application.usecase.brand.DeleteBrandUseCase
+import com.koosco.catalogservice.application.usecase.brand.GetBrandsUseCase
+import com.koosco.catalogservice.application.usecase.brand.UpdateBrandUseCase
 import com.koosco.catalogservice.domain.entity.Brand
 import com.koosco.common.core.exception.NotFoundException
 import org.assertj.core.api.Assertions.assertThat
