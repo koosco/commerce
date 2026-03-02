@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "PreCommit": [
+      {
+        "matcher": "**/*.kt",
+        "command": "./gradlew spotlessCheck"
+      }
+    ]
+  }
+}
