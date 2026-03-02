@@ -1,7 +1,7 @@
 package com.koosco.catalogservice.api.response
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.koosco.catalogservice.domain.entity.ProductSku
+import com.koosco.catalogservice.application.result.SkuResult
 
 /**
  * SKU 조회 응답
@@ -11,10 +11,11 @@ data class SkuResponse(
     val productId: Long,
     val price: Long,
     val optionValues: Map<String, String>,
-    val available: Boolean, // 재고 있는지 여부 (향후 inventory-service 연동)
+    val available: Boolean,
 ) {
     companion object {
-        fun from(sku: ProductSku, available: Boolean = true): SkuResponse {
+        fun from(skuResult: SkuResult): SkuResponse {
+            val sku = skuResult.sku
             // JSON 문자열을 Map으로 파싱
             val optionValuesMap = jacksonObjectMapper()
                 .readValue(sku.optionValues, Map::class.java) as Map<String, String>
@@ -24,7 +25,7 @@ data class SkuResponse(
                 productId = sku.product.id!!,
                 price = sku.price,
                 optionValues = optionValuesMap,
-                available = available,
+                available = skuResult.available,
             )
         }
     }

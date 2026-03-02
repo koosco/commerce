@@ -2,6 +2,7 @@ package com.koosco.catalogservice.application.usecase.product
 
 import com.koosco.catalogservice.application.command.GetProductDetailCommand
 import com.koosco.catalogservice.application.port.BrandRepository
+import com.koosco.catalogservice.application.port.InventoryQueryPort
 import com.koosco.catalogservice.application.port.ProductRepository
 import com.koosco.catalogservice.application.port.PromotionRepository
 import com.koosco.catalogservice.application.port.UserBehaviorEventProducer
@@ -22,6 +23,7 @@ class GetProductDetailUseCase(
     private val brandRepository: BrandRepository,
     private val promotionRepository: PromotionRepository,
     private val userBehaviorEventProducer: UserBehaviorEventProducer,
+    private val inventoryQueryPort: InventoryQueryPort,
 ) {
 
     @Cacheable(cacheNames = ["productDetail"], key = "#command.productId")
@@ -36,9 +38,18 @@ class GetProductDetailUseCase(
         val activePromotions = promotionRepository.findActiveByProductId(product.id!!, now)
         val discountPrice = PromotionPriceResolver.resolve(activePromotions)
 
+        // 실시간 재고 조회
+        val skuIds = product.skus.map { it.skuId }
+        val availability = if (skuIds.isNotEmpty()) {
+            inventoryQueryPort.getAvailability(skuIds)
+        } else {
+            emptyMap()
+        }
+        val hasAvailableStock = skuIds.isEmpty() || availability.values.any { it }
+
         publishViewEvent(command)
 
-        return ProductInfo.from(product, brandName, discountPrice)
+        return ProductInfo.from(product, brandName, discountPrice, hasAvailableStock)
     }
 
     private fun publishViewEvent(command: GetProductDetailCommand) {
