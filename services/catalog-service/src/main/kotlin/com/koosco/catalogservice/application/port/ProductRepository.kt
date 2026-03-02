@@ -15,5 +15,7 @@ interface ProductRepository {
 
     fun findBySkuId(skuId: String): Product?
 
+    fun findBySkuPkId(skuPkId: Long): Product?
+
     fun search(command: GetProductListCommand): Page<Product>
 }
