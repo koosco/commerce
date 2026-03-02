@@ -1,13 +1,18 @@
 {
   "hooks": {
-    "PreCommit": [
+    "PreToolUse": [
       {
-        "matcher": "**/*.kt",
-        "command": "./gradlew spotlessCheck"
-      },
-      {
-        "matcher": "services/**/*.kt",
-        "command": "bash -c 'CHANGED_SERVICES=$(git diff --cached --name-only -- services/ | sed -n \"s|^\\(services/[^/]*\\)/.*|\\1|p\" | sort -u); for svc in $CHANGED_SERVICES; do MODULE=\":$(echo $svc | tr / :)\"; echo \"Running jacocoTestCoverageVerification for $MODULE\"; ./gradlew \"${MODULE}:jacocoTestCoverageVerification\" || exit 1; done'"
+        "matcher": "Bash(git commit:*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./gradlew spotlessCheck"
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'CHANGED_SERVICES=$(git diff --cached --name-only -- services/ | sed -n \"s|^\\(services/[^/]*\\)/.*|\\1|p\" | sort -u); for svc in $CHANGED_SERVICES; do MODULE=\":$(echo $svc | tr / :)\"; echo \"Running jacocoTestCoverageVerification for $MODULE\"; ./gradlew \"${MODULE}:jacocoTestCoverageVerification\" || exit 1; done'"
+          }
+        ]
       }
     ]
   }
