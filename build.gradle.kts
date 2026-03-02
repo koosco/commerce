@@ -30,6 +30,7 @@ subprojects {
     tasks.withType<Test> {
         useJUnitPlatform()
         finalizedBy(tasks.withType<JacocoReport>())
+        finalizedBy(tasks.withType<JacocoCoverageVerification>())
     }
 
     tasks.withType<JacocoReport> {
@@ -38,6 +39,45 @@ subprojects {
             xml.required.set(true)
             html.required.set(true)
             csv.required.set(false)
+        }
+    }
+
+    tasks.withType<JacocoCoverageVerification> {
+        dependsOn(tasks.withType<JacocoReport>())
+
+        violationRules {
+            rule {
+                element = "CLASS"
+                includes = listOf("*.domain.*")
+                excludes = listOf(
+                    "*.api.*",
+                    "*.infra.*",
+                    "*.config.*",
+                    "*Application*",
+                    "*.contract.*",
+                    "*.common.*",
+                )
+                limit {
+                    counter = "LINE"
+                    minimum = "0.80".toBigDecimal()
+                }
+            }
+            rule {
+                element = "CLASS"
+                includes = listOf("*.application.*")
+                excludes = listOf(
+                    "*.api.*",
+                    "*.infra.*",
+                    "*.config.*",
+                    "*Application*",
+                    "*.contract.*",
+                    "*.common.*",
+                )
+                limit {
+                    counter = "LINE"
+                    minimum = "0.70".toBigDecimal()
+                }
+            }
         }
     }
 
