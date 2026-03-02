@@ -1,8 +1,8 @@
 package com.koosco.catalogservice.domain.entity
 
-import com.koosco.catalogservice.application.command.CreateCategoryTreeCommand
 import com.koosco.catalogservice.common.error.CatalogErrorCode
 import com.koosco.catalogservice.domain.service.CategoryCodeGenerator
+import com.koosco.catalogservice.domain.vo.CategoryTreeSpec
 import com.koosco.common.core.exception.ConflictException
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
@@ -84,8 +84,8 @@ class Category(
             )
         }
 
-        fun createTree(command: CreateCategoryTreeCommand): Category = createNodeRecursively(command, null)
-        private fun createNodeRecursively(command: CreateCategoryTreeCommand, parent: Category?): Category {
+        fun createTree(command: CategoryTreeSpec): Category = createNodeRecursively(command, null)
+        private fun createNodeRecursively(command: CategoryTreeSpec, parent: Category?): Category {
             parent?.hasNoDuplicateChild(command.name)
 
             // 현재 노드 생성

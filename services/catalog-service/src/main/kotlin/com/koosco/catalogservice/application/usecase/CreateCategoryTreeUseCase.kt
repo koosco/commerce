@@ -33,7 +33,7 @@ class CreateCategoryTreeUseCase(
             }
         }
 
-        val rootCategory = Category.createTree(command)
+        val rootCategory = Category.createTree(command.toSpec())
 
         categoryRepository.save(rootCategory)
 

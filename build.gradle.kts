@@ -40,4 +40,10 @@ subprojects {
             csv.required.set(false)
         }
     }
+
+    plugins.withType<JavaPlugin> {
+        dependencies {
+            "testImplementation"("com.tngtech.archunit:archunit-junit5:1.3.0")
+        }
+    }
 }
