@@ -1,25 +1,25 @@
 package com.koosco.catalogservice.application.usecase
 
 import com.koosco.catalogservice.application.port.CatalogIdempotencyRepository
-import com.koosco.catalogservice.application.port.SnapLikeRepository
-import com.koosco.catalogservice.application.port.SnapRepository
+import com.koosco.catalogservice.application.port.ProductLikeRepository
+import com.koosco.catalogservice.application.port.ProductRepository
 import com.koosco.catalogservice.common.error.CatalogErrorCode
 import com.koosco.catalogservice.domain.entity.CatalogIdempotency
-import com.koosco.catalogservice.domain.entity.SnapLike
-import com.koosco.catalogservice.domain.entity.SnapLikeId
+import com.koosco.catalogservice.domain.entity.ProductLike
+import com.koosco.catalogservice.domain.entity.ProductLikeId
 import com.koosco.common.core.annotation.UseCase
 import com.koosco.common.core.exception.NotFoundException
 import org.springframework.transaction.annotation.Transactional
 
 @UseCase
-class ToggleSnapLikeUseCase(
-    private val snapRepository: SnapRepository,
-    private val snapLikeRepository: SnapLikeRepository,
+class ToggleProductLikeUseCase(
+    private val productRepository: ProductRepository,
+    private val productLikeRepository: ProductLikeRepository,
     private val idempotencyRepository: CatalogIdempotencyRepository,
 ) {
 
     @Transactional
-    fun execute(snapId: Long, userId: Long, idempotencyKey: String? = null): Boolean {
+    fun execute(productId: Long, userId: Long, idempotencyKey: String? = null): Boolean {
         if (idempotencyKey != null) {
             val existing = idempotencyRepository.findByIdempotencyKeyAndResourceType(
                 idempotencyKey,
@@ -30,18 +30,18 @@ class ToggleSnapLikeUseCase(
             }
         }
 
-        val snap = snapRepository.findByIdOrNull(snapId)
-            ?: throw NotFoundException(CatalogErrorCode.SNAP_NOT_FOUND)
+        val product = productRepository.findOrNull(productId)
+            ?: throw NotFoundException(CatalogErrorCode.PRODUCT_NOT_FOUND)
 
-        val existing = snapLikeRepository.findById(SnapLikeId(snapId, userId))
+        val existing = productLikeRepository.findById(ProductLikeId(productId, userId))
 
         val liked = if (existing != null) {
-            snapLikeRepository.delete(existing)
-            snap.likeCount = maxOf(0, snap.likeCount - 1)
+            productLikeRepository.delete(existing)
+            product.likeCount = maxOf(0, product.likeCount - 1)
             false
         } else {
-            snapLikeRepository.save(SnapLike(snapId = snapId, userId = userId))
-            snap.likeCount += 1
+            productLikeRepository.save(ProductLike(productId = productId, userId = userId))
+            product.likeCount += 1
             true
         }
 
@@ -59,6 +59,6 @@ class ToggleSnapLikeUseCase(
     }
 
     companion object {
-        private const val RESOURCE_TYPE = "SNAP_LIKE"
+        private const val RESOURCE_TYPE = "PRODUCT_LIKE"
     }
 }

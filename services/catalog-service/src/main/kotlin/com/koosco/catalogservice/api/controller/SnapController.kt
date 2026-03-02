@@ -79,8 +79,12 @@ class SnapController(
 
     @Operation(summary = "스냅 좋아요 토글")
     @PostMapping("/{snapId}/like")
-    fun toggleSnapLike(@AuthId userId: Long, @PathVariable snapId: Long): ApiResponse<LikeToggleResponse> {
-        val liked = toggleSnapLikeUseCase.execute(snapId, userId)
+    fun toggleSnapLike(
+        @AuthId userId: Long,
+        @PathVariable snapId: Long,
+        @RequestHeader("Idempotency-Key", required = false) idempotencyKey: String?,
+    ): ApiResponse<LikeToggleResponse> {
+        val liked = toggleSnapLikeUseCase.execute(snapId, userId, idempotencyKey)
         return ApiResponse.Companion.success(LikeToggleResponse(liked))
     }
 }

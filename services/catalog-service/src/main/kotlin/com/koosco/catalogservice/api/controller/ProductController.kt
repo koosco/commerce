@@ -4,6 +4,7 @@ import com.koosco.catalogservice.api.request.AddOptionRequest
 import com.koosco.catalogservice.api.request.ChangeStatusRequest
 import com.koosco.catalogservice.api.request.ProductCreateRequest
 import com.koosco.catalogservice.api.request.ProductUpdateRequest
+import com.koosco.catalogservice.api.response.LikeToggleResponse
 import com.koosco.catalogservice.api.response.ProductDetailResponse
 import com.koosco.catalogservice.api.response.ProductListResponse
 import com.koosco.catalogservice.api.response.SkuResponse
@@ -20,6 +21,7 @@ import com.koosco.catalogservice.application.usecase.FindSkuUseCase
 import com.koosco.catalogservice.application.usecase.GetProductDetailUseCase
 import com.koosco.catalogservice.application.usecase.GetProductListUseCase
 import com.koosco.catalogservice.application.usecase.RemoveProductOptionUseCase
+import com.koosco.catalogservice.application.usecase.ToggleProductLikeUseCase
 import com.koosco.catalogservice.application.usecase.UpdateProductUseCase
 import com.koosco.catalogservice.domain.enums.SortStrategy
 import com.koosco.common.core.response.ApiResponse
@@ -59,6 +61,7 @@ class ProductController(
     private val changeProductStatusUseCase: ChangeProductStatusUseCase,
     private val addProductOptionUseCase: AddProductOptionUseCase,
     private val removeProductOptionUseCase: RemoveProductOptionUseCase,
+    private val toggleProductLikeUseCase: ToggleProductLikeUseCase,
 ) {
     @Operation(
         summary = "상품 리스트를 조회합니다.",
@@ -237,5 +240,20 @@ class ProductController(
         deleteProductUseCase.execute(DeleteProductCommand(productId = productId))
 
         return ApiResponse.Companion.success()
+    }
+
+    @Operation(
+        summary = "상품 좋아요 토글",
+        description = "상품 좋아요를 토글합니다. Idempotency-Key 헤더를 통해 멱등성을 보장할 수 있습니다.",
+        security = [SecurityRequirement(name = "bearerAuth")],
+    )
+    @PostMapping("/{productId}/like")
+    fun toggleProductLike(
+        @Parameter(hidden = true) @AuthId userId: Long,
+        @Parameter(description = "Product ID") @PathVariable productId: Long,
+        @RequestHeader("Idempotency-Key", required = false) idempotencyKey: String?,
+    ): ApiResponse<LikeToggleResponse> {
+        val liked = toggleProductLikeUseCase.execute(productId, userId, idempotencyKey)
+        return ApiResponse.Companion.success(LikeToggleResponse(liked))
     }
 }

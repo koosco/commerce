@@ -50,6 +50,7 @@
 | 25 | PUT    | [/api/snaps/{snapId}](#put-apisnapssnapid)                            | 스냅 수정       | @AuthId |
 | 26 | DELETE | [/api/snaps/{snapId}](#delete-apisnapssnapid)                         | 스냅 삭제       | @AuthId |
 | 27 | POST   | [/api/snaps/{snapId}/like](#post-apisnapssnapidlike)                  | 스냅 좋아요 토글   | @AuthId |
+| 28 | POST   | [/api/products/{productId}/like](#post-apiproductsproductidlike)      | 상품 좋아요 토글   | @AuthId |
 
 ### Inventory Service (:8083)
 
@@ -519,6 +520,12 @@ Cookie에 포함된 Refresh Token으로 Access Token을 재발급합니다.
 
 리뷰 좋아요 토글 | **Auth: @AuthId**
 
+**Headers**
+
+| Name            | Required | Description                    |
+|-----------------|----------|--------------------------------|
+| Idempotency-Key | No       | 멱등성 키 (네트워크 재시도 시 동일 결과 보장) |
+
 **Response**
 
 ```json
@@ -584,6 +591,32 @@ Cookie에 포함된 Refresh Token으로 Access Token을 재발급합니다.
 ### POST /api/snaps/{snapId}/like
 
 스냅 좋아요 토글 | **Auth: @AuthId**
+
+**Headers**
+
+| Name            | Required | Description                    |
+|-----------------|----------|--------------------------------|
+| Idempotency-Key | No       | 멱등성 키 (네트워크 재시도 시 동일 결과 보장) |
+
+**Response**
+
+```json
+{
+  "liked": "boolean"
+}
+```
+
+---
+
+### POST /api/products/{productId}/like
+
+상품 좋아요 토글 | **Auth: @AuthId**
+
+**Headers**
+
+| Name            | Required | Description                    |
+|-----------------|----------|--------------------------------|
+| Idempotency-Key | No       | 멱등성 키 (네트워크 재시도 시 동일 결과 보장) |
 
 **Response**
 

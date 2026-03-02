@@ -67,6 +67,9 @@ class Product(
     @Column(name = "sales_count", nullable = false)
     var salesCount: Long = 0,
 
+    @Column(name = "like_count", nullable = false)
+    var likeCount: Long = 0,
+
     @OneToMany(mappedBy = "product", cascade = [CascadeType.ALL], orphanRemoval = true)
     val skus: MutableList<ProductSku> = mutableListOf(),
 

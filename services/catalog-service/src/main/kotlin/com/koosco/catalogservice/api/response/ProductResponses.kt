@@ -23,6 +23,7 @@ data class ProductListResponse(
     val viewCount: Long,
     val orderCount: Long,
     val salesCount: Long,
+    val likeCount: Long,
 ) {
     companion object {
         fun from(productInfo: ProductInfo): ProductListResponse = ProductListResponse(
@@ -41,6 +42,7 @@ data class ProductListResponse(
             viewCount = productInfo.viewCount,
             orderCount = productInfo.orderCount,
             salesCount = productInfo.salesCount,
+            likeCount = productInfo.likeCount,
         )
     }
 }
@@ -59,6 +61,7 @@ data class ProductDetailResponse(
     val brandName: String?,
     val averageRating: Double,
     val reviewCount: Int,
+    val likeCount: Long,
     val optionGroups: List<ProductOptionGroupResponse>,
 ) {
     companion object {
@@ -76,6 +79,7 @@ data class ProductDetailResponse(
             brandName = productInfo.brandName,
             averageRating = productInfo.averageRating,
             reviewCount = productInfo.reviewCount,
+            likeCount = productInfo.likeCount,
             optionGroups = productInfo.optionGroups.map { ProductOptionGroupResponse.from(it) },
         )
     }

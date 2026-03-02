@@ -80,8 +80,12 @@ class ReviewController(
 
     @Operation(summary = "리뷰 좋아요 토글")
     @PostMapping("/reviews/{reviewId}/like")
-    fun toggleReviewLike(@AuthId userId: Long, @PathVariable reviewId: Long): ApiResponse<LikeToggleResponse> {
-        val liked = toggleReviewLikeUseCase.execute(reviewId, userId)
+    fun toggleReviewLike(
+        @AuthId userId: Long,
+        @PathVariable reviewId: Long,
+        @RequestHeader("Idempotency-Key", required = false) idempotencyKey: String?,
+    ): ApiResponse<LikeToggleResponse> {
+        val liked = toggleReviewLikeUseCase.execute(reviewId, userId, idempotencyKey)
         return ApiResponse.Companion.success(LikeToggleResponse(liked))
     }
 }

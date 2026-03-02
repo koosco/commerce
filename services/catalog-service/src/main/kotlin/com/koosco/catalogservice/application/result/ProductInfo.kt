@@ -22,6 +22,7 @@ data class ProductInfo(
     val viewCount: Long = 0,
     val orderCount: Long = 0,
     val salesCount: Long = 0,
+    val likeCount: Long = 0,
     val optionGroups: List<ProductOptionGroupInfo> = emptyList(),
 ) {
     data class ProductOptionGroupInfo(
@@ -78,6 +79,7 @@ data class ProductInfo(
                 viewCount = product.viewCount,
                 orderCount = product.orderCount,
                 salesCount = product.salesCount,
+                likeCount = product.likeCount,
                 optionGroups = product.optionGroups.map { ProductOptionGroupInfo.from(it) },
             )
         }
