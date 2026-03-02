@@ -42,40 +42,42 @@ subprojects {
         }
     }
 
+    val jacocoCommonExcludes = listOf(
+        "*.config.*",
+        "*Application*",
+        "*.contract.*",
+        "*.common.*",
+    )
+
+    // PreCommit용: domain, application, api 계층 80% (infra 제외)
     tasks.withType<JacocoCoverageVerification> {
         dependsOn(tasks.withType<JacocoReport>())
 
         violationRules {
             rule {
                 element = "CLASS"
-                includes = listOf("*.domain.*")
-                excludes = listOf(
-                    "*.api.*",
-                    "*.infra.*",
-                    "*.config.*",
-                    "*Application*",
-                    "*.contract.*",
-                    "*.common.*",
-                )
+                includes = listOf("*.domain.*", "*.application.*", "*.api.*")
+                excludes = jacocoCommonExcludes + listOf("*.infra.*")
                 limit {
                     counter = "LINE"
                     minimum = "0.80".toBigDecimal()
                 }
             }
+        }
+    }
+
+    // CI용: 전체 계층 80% (infra 포함)
+    tasks.register<JacocoCoverageVerification>("jacocoCiCoverageVerification") {
+        dependsOn(tasks.withType<JacocoReport>())
+
+        violationRules {
             rule {
                 element = "CLASS"
-                includes = listOf("*.application.*")
-                excludes = listOf(
-                    "*.api.*",
-                    "*.infra.*",
-                    "*.config.*",
-                    "*Application*",
-                    "*.contract.*",
-                    "*.common.*",
-                )
+                includes = listOf("*.domain.*", "*.application.*", "*.api.*", "*.infra.*")
+                excludes = jacocoCommonExcludes
                 limit {
                     counter = "LINE"
-                    minimum = "0.70".toBigDecimal()
+                    minimum = "0.80".toBigDecimal()
                 }
             }
         }
