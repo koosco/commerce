@@ -72,7 +72,7 @@ class CreateOrderIntegrationTest : IntegrationTestBase() {
         assertEquals(23000L, result.totalAmount) // 10000 * 2 + 3000 shipping
 
         // verify persistence using GetOrderDetailUseCase (handles transaction scope)
-        val detail = getOrderDetailUseCase.execute(result.orderId)
+        val detail = getOrderDetailUseCase.execute(result.orderId, userId)
         assertNotNull(detail)
         assertEquals(userId, detail.userId)
         assertEquals(1, detail.items.size)

@@ -47,6 +47,7 @@ subprojects {
         "*Application*",
         "*.contract.*",
         "*.common.*",
+        "*.Q*",
     )
 
     // PreCommit용: domain, application, api 계층 80% (infra 제외)

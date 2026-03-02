@@ -1,6 +1,7 @@
 package com.koosco.inventoryservice.integration.kafka
 
 import com.koosco.common.core.event.CloudEvent
+import com.koosco.common.core.test.IntegrationTestBase
 import com.koosco.inventoryservice.application.port.InventoryStockSnapshotQueryPort
 import com.koosco.inventoryservice.application.port.InventoryStockStorePort
 import com.koosco.inventoryservice.contract.inbound.order.OrderCancelledEvent
@@ -36,7 +37,7 @@ import java.util.UUID
 @Testcontainers
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-class KafkaOrderEventConsumerIntegrationTest : KafkaContainerTestBase() {
+class KafkaOrderEventConsumerIntegrationTest : IntegrationTestBase() {
 
     @MockitoBean
     private lateinit var inventoryStockStore: InventoryStockStorePort
@@ -57,9 +58,6 @@ class KafkaOrderEventConsumerIntegrationTest : KafkaContainerTestBase() {
 
     @BeforeEach
     fun setUp() {
-        // Create topics before tests
-        createTopics(orderPlacedTopic, orderConfirmedTopic, orderCancelledTopic)
-
         reset(inventoryStockStore)
         kafkaTemplate = createTestKafkaTemplate()
 

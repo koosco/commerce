@@ -2,6 +2,7 @@ package com.koosco.inventoryservice.integration.kafka
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.koosco.common.core.event.IntegrationEventProducer
+import com.koosco.common.core.test.IntegrationTestBase
 import com.koosco.inventoryservice.application.port.InventoryStockSnapshotQueryPort
 import com.koosco.inventoryservice.contract.outbound.inventory.StockConfirmFailedEvent
 import com.koosco.inventoryservice.contract.outbound.inventory.StockConfirmedEvent
@@ -32,7 +33,7 @@ import java.util.UUID
 @Testcontainers
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-class KafkaStockEventProducerIntegrationTest : KafkaContainerTestBase() {
+class KafkaStockEventProducerIntegrationTest : IntegrationTestBase() {
 
     @MockitoBean
     private lateinit var inventoryStockSnapshotQueryPort: InventoryStockSnapshotQueryPort

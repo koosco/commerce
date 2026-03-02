@@ -1,6 +1,7 @@
 package com.koosco.orderservice.integration.kafka
 
 import com.koosco.common.core.event.CloudEvent
+import com.koosco.common.core.test.KafkaContainerTestBase
 import com.koosco.orderservice.application.usecase.CancelOrderByPaymentFailureUseCase
 import com.koosco.orderservice.application.usecase.MarkOrderPaidUseCase
 import com.koosco.orderservice.application.usecase.MarkOrderPaymentCreatedUseCase
@@ -32,7 +33,7 @@ import java.util.UUID
 @Testcontainers
 @ActiveProfiles("test")
 @DisplayName("KafkaPaymentEventConsumer Integration Tests")
-class KafkaPaymentEventConsumerIntegrationTest : KafkaIntegrationTestBase() {
+class KafkaPaymentEventConsumerIntegrationTest : KafkaContainerTestBase() {
 
     @Value("\${order.topic.mappings.payment.created}")
     private lateinit var paymentCreatedTopic: String

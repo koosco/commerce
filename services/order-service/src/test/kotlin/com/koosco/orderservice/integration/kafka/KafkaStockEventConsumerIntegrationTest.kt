@@ -1,6 +1,7 @@
 package com.koosco.orderservice.integration.kafka
 
 import com.koosco.common.core.event.CloudEvent
+import com.koosco.common.core.test.KafkaContainerTestBase
 import com.koosco.orderservice.application.usecase.MarkOrderConfirmedUseCase
 import com.koosco.orderservice.application.usecase.MarkOrderPaymentPendingUseCase
 import com.koosco.orderservice.contract.inbound.inventory.StockConfirmFailedEvent
@@ -33,7 +34,7 @@ import java.util.UUID
 @Testcontainers
 @ActiveProfiles("test")
 @DisplayName("KafkaStockEventConsumer Integration Tests")
-class KafkaStockEventConsumerIntegrationTest : KafkaIntegrationTestBase() {
+class KafkaStockEventConsumerIntegrationTest : KafkaContainerTestBase() {
 
     @Value("\${order.topic.mappings.stock.reserved}")
     private lateinit var stockReservedTopic: String

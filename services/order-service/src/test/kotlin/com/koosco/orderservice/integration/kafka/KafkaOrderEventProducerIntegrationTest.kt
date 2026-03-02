@@ -1,6 +1,7 @@
 package com.koosco.orderservice.integration.kafka
 
 import com.koosco.common.core.event.IntegrationEventProducer
+import com.koosco.common.core.test.KafkaContainerTestBase
 import com.koosco.orderservice.contract.outbound.order.OrderCancelledEvent
 import com.koosco.orderservice.contract.outbound.order.OrderConfirmedEvent
 import com.koosco.orderservice.contract.outbound.order.OrderPlacedEvent
@@ -27,7 +28,7 @@ import java.util.UUID
 @Testcontainers
 @ActiveProfiles("test")
 @DisplayName("KafkaOrderEventProducer Integration Tests")
-class KafkaOrderEventProducerIntegrationTest : KafkaIntegrationTestBase() {
+class KafkaOrderEventProducerIntegrationTest : KafkaContainerTestBase() {
 
     @Autowired
     private lateinit var eventProducer: IntegrationEventProducer
