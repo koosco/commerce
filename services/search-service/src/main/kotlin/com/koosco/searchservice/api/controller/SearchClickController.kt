@@ -1,7 +1,7 @@
-package com.koosco.catalogservice.api.controller
+package com.koosco.searchservice.api.controller
 
-import com.koosco.catalogservice.api.request.SearchClickRequest
-import com.koosco.catalogservice.application.usecase.search.RecordSearchClickUseCase
+import com.koosco.searchservice.api.request.SearchClickRequest
+import com.koosco.searchservice.application.usecase.search.RecordSearchClickUseCase
 import com.koosco.common.core.response.ApiResponse
 import com.koosco.commonsecurity.resolver.AuthId
 import io.swagger.v3.oas.annotations.Operation

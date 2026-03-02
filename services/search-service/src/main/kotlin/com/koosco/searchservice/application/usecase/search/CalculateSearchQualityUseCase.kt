@@ -1,6 +1,6 @@
-package com.koosco.catalogservice.application.usecase.search
+package com.koosco.searchservice.application.usecase.search
 
-import com.koosco.catalogservice.application.port.SearchClickLogPort
+import com.koosco.searchservice.application.port.SearchClickLogPort
 import com.koosco.common.core.annotation.UseCase
 import org.slf4j.LoggerFactory
 

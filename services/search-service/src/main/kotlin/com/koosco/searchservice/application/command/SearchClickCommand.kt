@@ -1,4 +1,4 @@
-package com.koosco.catalogservice.application.command
+package com.koosco.searchservice.application.command
 
 /**
  * 검색 결과에서 사용자가 클릭한 상품 데이터.

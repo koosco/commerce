@@ -1,6 +1,6 @@
-package com.koosco.catalogservice.api.request
+package com.koosco.searchservice.api.request
 
-import com.koosco.catalogservice.application.command.SearchClickCommand
+import com.koosco.searchservice.application.command.SearchClickCommand
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive

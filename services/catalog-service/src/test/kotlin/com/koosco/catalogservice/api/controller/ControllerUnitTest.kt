@@ -13,7 +13,6 @@ import com.koosco.catalogservice.api.request.CreateReviewRequest
 import com.koosco.catalogservice.api.request.CreateSnapRequest
 import com.koosco.catalogservice.api.request.ProductCreateRequest
 import com.koosco.catalogservice.api.request.ProductUpdateRequest
-import com.koosco.catalogservice.api.request.SearchClickRequest
 import com.koosco.catalogservice.api.request.SetProductAttributeValuesRequest
 import com.koosco.catalogservice.api.request.UpdateCategoryAttributeRequest
 import com.koosco.catalogservice.api.request.UpdateReviewRequest
@@ -60,7 +59,6 @@ import com.koosco.catalogservice.application.usecase.promotion.GetPromotionPrice
 import com.koosco.catalogservice.application.usecase.promotion.GetPromotionsByProductUseCase
 import com.koosco.catalogservice.application.usecase.review.GetReviewsByProductUseCase
 import com.koosco.catalogservice.application.usecase.snap.GetSnapFeedUseCase
-import com.koosco.catalogservice.application.usecase.search.RecordSearchClickUseCase
 import com.koosco.catalogservice.application.usecase.product.RemoveProductOptionUseCase
 import com.koosco.catalogservice.application.usecase.product.SetProductAttributeValuesUseCase
 import com.koosco.catalogservice.application.usecase.product.ToggleProductLikeUseCase
@@ -142,30 +140,6 @@ class ControllerUnitTest {
         type = PromotionType.CAMPAIGN, priority = 0,
         description = "캠페인", active = true,
     )
-
-    // --- SearchClickController ---
-
-    @Nested
-    @DisplayName("SearchClickController는")
-    inner class SearchClickControllerTest {
-
-        @Mock lateinit var recordSearchClickUseCase: RecordSearchClickUseCase
-
-        @Test
-        fun `검색 클릭을 기록한다`() {
-            val controller = SearchClickController(recordSearchClickUseCase)
-            val request = SearchClickRequest(
-                searchQuery = "스마트폰",
-                clickedProductId = 1L,
-                clickPosition = 3,
-                totalResults = 50,
-            )
-
-            val response = controller.recordSearchClick(request, 1L)
-
-            assertThat(response).isNotNull
-        }
-    }
 
     // --- BrandController ---
 

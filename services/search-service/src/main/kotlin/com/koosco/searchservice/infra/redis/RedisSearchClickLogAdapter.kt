@@ -1,7 +1,7 @@
-package com.koosco.catalogservice.infra.redis
+package com.koosco.searchservice.infra.redis
 
-import com.koosco.catalogservice.application.command.SearchClickCommand
-import com.koosco.catalogservice.application.port.SearchClickLogPort
+import com.koosco.searchservice.application.command.SearchClickCommand
+import com.koosco.searchservice.application.port.SearchClickLogPort
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
 import java.time.Duration
@@ -9,7 +9,7 @@ import java.time.Duration
 /**
  * Redis 기반 검색 클릭 로그 저장소.
  * Sorted Set을 사용하여 검색 쿼리별 클릭 위치를 저장한다.
- * - key: catalog:search:click:{query}
+ * - key: search:click:{query}
  * - member: {productId}:{position}
  * - score: position (정렬용)
  * TTL을 설정하여 오래된 데이터를 자동으로 정리한다.
@@ -42,7 +42,7 @@ class RedisSearchClickLogAdapter(private val redisTemplate: StringRedisTemplate)
     }
 
     companion object {
-        private const val KEY_PREFIX = "catalog:search:click:"
+        private const val KEY_PREFIX = "search:click:"
         private val TTL = Duration.ofDays(7)
 
         fun clickKey(query: String): String = "$KEY_PREFIX$query"

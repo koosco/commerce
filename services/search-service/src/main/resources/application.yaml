@@ -1,0 +1,64 @@
+spring:
+  application:
+    name: search-service
+  profiles:
+    active: local
+  web:
+    resources:
+      add-mappings: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+
+jwt:
+  secret: ${JWT_SECRET:mySecretKeyForJWTWhichShouldBeAtLeast256BitsLongToEnsureSecurityAndCompliance}
+
+common:
+  openapi:
+    enabled: true
+    title: "Search Service API"
+    version: "v1.0.0"
+    description: |
+      # Search Service API Documentation
+
+      Search quality tracking service.
+
+      ## Key Features
+      - **Search Click Logging**: Record search result clicks
+      - **Search Metrics**: Expose mAP@k gauges for quality monitoring
+
+      ## Authentication
+      - JWT Bearer token required for click logging APIs
+    servers:
+      - url: http://localhost:8082
+        description: Local development
+
+springdoc:
+  swagger-ui:
+    enabled: ${SWAGGER_UI_ENABLED:true}
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+    deep-linking: true
+  api-docs:
+    path: /v3/api-docs
+  show-actuator: ${SPRINGDOC_SHOW_ACTUATOR:true}

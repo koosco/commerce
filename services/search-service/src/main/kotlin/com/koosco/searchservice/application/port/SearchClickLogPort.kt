@@ -1,6 +1,6 @@
-package com.koosco.catalogservice.application.port
+package com.koosco.searchservice.application.port
 
-import com.koosco.catalogservice.application.command.SearchClickCommand
+import com.koosco.searchservice.application.command.SearchClickCommand
 
 /**
  * 검색 클릭 로그 저장 및 조회 포트.
