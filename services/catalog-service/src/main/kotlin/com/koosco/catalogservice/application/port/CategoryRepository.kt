@@ -17,4 +17,6 @@ interface CategoryRepository {
     fun findAllByOrderByDepthAscOrderingAsc(): List<Category>
 
     fun existsByNameAndParent(name: String, parent: Category?): Boolean
+
+    fun findDescendantIds(categoryId: Long): List<Long>
 }

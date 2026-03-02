@@ -25,4 +25,6 @@ class CategoryRepositoryImpl(private val jpaCategoryRepository: JpaCategoryRepos
 
     override fun existsByNameAndParent(name: String, parent: Category?): Boolean =
         jpaCategoryRepository.existsByNameAndParent(name, parent)
+
+    override fun findDescendantIds(categoryId: Long): List<Long> = jpaCategoryRepository.findDescendantIds(categoryId)
 }

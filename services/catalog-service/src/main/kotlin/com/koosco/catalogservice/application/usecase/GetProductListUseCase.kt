@@ -2,6 +2,7 @@ package com.koosco.catalogservice.application.usecase
 
 import com.koosco.catalogservice.application.command.GetProductListCommand
 import com.koosco.catalogservice.application.port.BrandRepository
+import com.koosco.catalogservice.application.port.CategoryRepository
 import com.koosco.catalogservice.application.port.ProductRepository
 import com.koosco.catalogservice.application.port.PromotionRepository
 import com.koosco.catalogservice.application.port.UserBehaviorEventProducer
@@ -18,13 +19,19 @@ import java.time.LocalDateTime
 class GetProductListUseCase(
     private val productRepository: ProductRepository,
     private val brandRepository: BrandRepository,
+    private val categoryRepository: CategoryRepository,
     private val promotionRepository: PromotionRepository,
     private val userBehaviorEventProducer: UserBehaviorEventProducer,
 ) {
 
     @Transactional(readOnly = true)
     fun execute(command: GetProductListCommand): Page<ProductInfo> {
-        val page = productRepository.search(command)
+        val resolvedCommand = command.categoryId?.let {
+            val descendantIds = categoryRepository.findDescendantIds(it)
+            command.copy(categoryIds = descendantIds)
+        } ?: command
+
+        val page = productRepository.search(resolvedCommand)
 
         val brandIds = page.content.mapNotNull { it.brandId }.distinct()
         val brandMap = if (brandIds.isNotEmpty()) {

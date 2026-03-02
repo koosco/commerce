@@ -50,7 +50,8 @@ class ProductQuery(
     private fun buildWhere(command: GetProductListCommand): List<BooleanExpression> {
         val baseConditions = listOfNotNull(
             product.status.eq(ProductStatus.ACTIVE),
-            command.categoryId?.let { product.categoryId.eq(it) },
+            command.categoryIds?.takeIf { it.isNotEmpty() }?.let { product.categoryId.`in`(it) }
+                ?: command.categoryId?.let { product.categoryId.eq(it) },
             command.brandId?.let { product.brandId.eq(it) },
             command.keyword?.takeIf { it.isNotBlank() }?.let {
                 product.name.containsIgnoreCase(it)

@@ -21,6 +21,7 @@ data class GetProductListCommand(
     val pageable: Pageable,
     val attributeFilters: Map<Long, String> = emptyMap(),
     val userId: Long? = null,
+    val categoryIds: List<Long>? = null,
 )
 
 /**
