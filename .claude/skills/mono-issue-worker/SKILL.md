@@ -12,16 +12,16 @@ GitHub 이슈 목록을 받아서 각 이슈마다 독립된 git worktree에서 
 ### Phase 1: 이슈 수집 및 분석
 
 1. **이슈 목록 가져오기**
-   - 사용자가 이슈 번호를 직접 지정한 경우: 해당 이슈들 사용
-   - 사용자가 필터를 지정한 경우 (예: "priority:medium"): `gh issue list --label "priority:medium"` 으로 조회
-   - 미지정 시: `gh issue list --state open --limit 20` 으로 목록을 보여주고 AskUserQuestion으로 선택 요청
+    - 사용자가 이슈 번호를 직접 지정한 경우: 해당 이슈들 사용
+    - 사용자가 필터를 지정한 경우 (예: "priority:medium"): `gh issue list --label "priority:medium"` 으로 조회
+    - 미지정 시: `gh issue list --state open --limit 20` 으로 목록을 보여주고 AskUserQuestion으로 선택 요청
 
 2. **이슈 상세 조회**: 각 이슈에 대해 `gh issue view {number} --json title,body,labels` 실행
 
 3. **의존성 분석**: 이슈 본문에서 "선행 작업", "depends on", "blockedBy" 등의 키워드를 찾아 의존성 그래프 구성
-   - 의존성이 있는 이슈는 선행 이슈 완료 후 순차 실행
-   - 독립적인 이슈는 모두 병렬 실행
-   - 겹치는 이슈는 하나로 통합 (예: 같은 서비스의 Circuit Breaker)
+    - 의존성이 있는 이슈는 선행 이슈 완료 후 순차 실행
+    - 독립적인 이슈는 모두 병렬 실행
+    - 겹치는 이슈는 하나로 통합 (예: 같은 서비스의 Circuit Breaker)
 
 4. **실행 계획 확인**: 사용자에게 실행 계획을 보여주고 승인 요청
    ```
@@ -35,11 +35,11 @@ GitHub 이슈 목록을 받아서 각 이슈마다 독립된 git worktree에서 
 
 각 subagent에 다음 설정 사용:
 
-| 설정 | 값 |
-|------|-----|
-| subagent_type | `general-purpose` |
-| isolation | `worktree` |
-| run_in_background | `true` |
+| 설정                | 값                 |
+|-------------------|-------------------|
+| subagent_type     | `general-purpose` |
+| isolation         | `worktree`        |
+| run_in_background | `true`            |
 
 #### Subagent 프롬프트 템플릿
 
@@ -93,12 +93,13 @@ This is a Kotlin/Spring Boot multi-module Gradle project (mono repo).
    ```
 
 3. **브랜치 네이밍 규칙**:
-   | 이슈 유형 | 브랜치 패턴 | 예시 |
-   |----------|------------|------|
-   | Feature | `feat/{short-name}` | `feat/stock-event-consumer` |
-   | Refactor | `refactor/{short-name}` | `refactor/idempotency-header` |
-   | Improvement | `feat/{short-name}` | `feat/circuit-breaker` |
-   | Bug Fix | `fix/{short-name}` | `fix/redis-timeout` |
+
+| 이슈 유형       | 브랜치 패턴                  | 예시                            |
+|-------------|-------------------------|-------------------------------|
+| Feature     | `feat/{short-name}`     | `feat/stock-event-consumer`   |
+| Refactor    | `refactor/{short-name}` | `refactor/idempotency-header` |
+| Improvement | `feat/{short-name}`     | `feat/circuit-breaker`        |
+| Bug Fix     | `fix/{short-name}`      | `fix/redis-timeout`           |
 
 4. **Push 및 PR 생성**:
    ```bash

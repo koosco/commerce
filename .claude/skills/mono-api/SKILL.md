@@ -12,13 +12,13 @@ description: API 문서 업데이트 가이드. 새로운 API 추가, 기존 API
 ### API 추가 시
 
 1. **TOC 업데이트**: 해당 서비스 섹션의 테이블에 새 API 행 추가
-   - Method, Endpoint (앵커 링크 포함), Description, Auth 컬럼
+    - Method, Endpoint (앵커 링크 포함), Description, Auth 컬럼
 2. **상세 섹션 추가**: 해당 서비스 하위에 API 상세 블록 추가
-   - HTTP Method + Path (H3 제목)
-   - 설명 및 Auth 표시
-   - Request Body (JSON 예시)
-   - Query/Path Parameters (해당 시)
-   - Response (주요 필드가 있는 경우)
+    - HTTP Method + Path (H3 제목)
+    - 설명 및 Auth 표시
+    - Request Body (JSON 예시)
+    - Query/Path Parameters (해당 시)
+    - Response (주요 필드가 있는 경우)
 
 ### API 수정 시
 
@@ -43,6 +43,7 @@ TOC의 링크는 다음 규칙을 따릅니다:
 - `{param}`에서 중괄호 제거
 
 예시:
+
 - `GET /api/products/{productId}` → `#get-apiproductsproductid`
 - `POST /api/carts/me/items` → `#post-apicartsmeitems`
 

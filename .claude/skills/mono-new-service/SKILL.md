@@ -142,16 +142,16 @@ tasks.jar {
 ### 3. Application.kt
 
 ```kotlin
-package com.koosco.{servicename}
+package com.koosco.{ servicename }
 
-import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.runApplication
+import org . springframework . boot . autoconfigure . SpringBootApplication
+        import org . springframework . boot . runApplication
 
-@SpringBootApplication
-class {ServiceName}Application
+        @SpringBootApplication
+        class {ServiceName } Application
 
 fun main(args: Array<String>) {
-    runApplication<{ServiceName}Application>(*args)
+    runApplication < { ServiceName } Application >(*args)
 }
 ```
 
@@ -160,22 +160,22 @@ fun main(args: Array<String>) {
 JWT 인증을 사용하는 경우 공개 엔드포인트 설정:
 
 ```kotlin
-package com.koosco.{servicename}.common.config
+package com.koosco.{ servicename }.common.config
 
-import com.koosco.commonsecurity.jwt.PublicEndpoints
-import org.springframework.stereotype.Component
+import com . koosco . commonsecurity . jwt . PublicEndpoints
+        import org . springframework . stereotype . Component
 
-@Component
-class PublicEndpointProvider : PublicEndpoints {
-    override fun publicEndpoints(): List<String> {
-        return listOf(
-            "/actuator/**",
-            "/swagger-ui/**",
-            "/v3/api-docs/**",
-            // 추가 공개 엔드포인트
-        )
-    }
-}
+        @Component
+        class PublicEndpointProvider : PublicEndpoints {
+            override fun publicEndpoints(): List<String> {
+                return listOf(
+                    "/actuator/**",
+                    "/swagger-ui/**",
+                    "/v3/api-docs/**",
+                    // 추가 공개 엔드포인트
+                )
+            }
+        }
 ```
 
 ### 5. application.yaml
@@ -183,7 +183,7 @@ class PublicEndpointProvider : PublicEndpoints {
 ```yaml
 spring:
   application:
-    name: {service-name}
+    name: { service-name }
   datasource:
     url: jdbc:mariadb://localhost:3306/commerce-{service}
     username: admin
@@ -199,7 +199,7 @@ spring:
         dialect: org.hibernate.dialect.MariaDBDialect
 
 server:
-  port: {PORT}
+  port: { PORT }
 
 jwt:
   secret: ${JWT_SECRET:your-secret-key}
@@ -254,14 +254,14 @@ EXPOSE {PORT}
 
 ## 서비스 포트 규칙
 
-| Service | Port |
-|---------|------|
-| auth-service | 8089 |
-| user-service | 8081 |
-| catalog-service | 8084 |
+| Service           | Port |
+|-------------------|------|
+| auth-service      | 8089 |
+| user-service      | 8081 |
+| catalog-service   | 8084 |
 | inventory-service | 8083 |
-| order-service | 8085 |
-| payment-service | 8087 |
+| order-service     | 8085 |
+| payment-service   | 8087 |
 
 ## 빌드 및 확인
 

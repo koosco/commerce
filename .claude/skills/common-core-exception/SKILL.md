@@ -49,17 +49,17 @@ throw NotFoundException(
 
 ### 3. 예외 계층구조
 
-| 예외 클래스 | HTTP Status | 용도 |
-|------------|-------------|------|
-| `BadRequestException` | 400 | 잘못된 요청 |
-| `ValidationException` | 400 | 유효성 검사 실패 |
-| `UnauthorizedException` | 401 | 인증 필요 |
-| `ForbiddenException` | 403 | 권한 없음 |
-| `NotFoundException` | 404 | 리소스 없음 |
-| `ConflictException` | 409 | 충돌 |
-| `InternalServerException` | 500 | 서버 오류 |
-| `ExternalServiceException` | 502 | 외부 서비스 오류 |
-| `ServiceUnavailableException` | 503 | 서비스 불가 |
+| 예외 클래스                        | HTTP Status | 용도        |
+|-------------------------------|-------------|-----------|
+| `BadRequestException`         | 400         | 잘못된 요청    |
+| `ValidationException`         | 400         | 유효성 검사 실패 |
+| `UnauthorizedException`       | 401         | 인증 필요     |
+| `ForbiddenException`          | 403         | 권한 없음     |
+| `NotFoundException`           | 404         | 리소스 없음    |
+| `ConflictException`           | 409         | 충돌        |
+| `InternalServerException`     | 500         | 서버 오류     |
+| `ExternalServiceException`    | 502         | 외부 서비스 오류 |
+| `ServiceUnavailableException` | 503         | 서비스 불가    |
 
 ### 4. 필드 에러 포함
 
@@ -95,7 +95,9 @@ Auto-Configuration으로 자동 등록됩니다. 다음을 자동 처리합니�
     "code": "ORDER-404-001",
     "message": "주문을 찾을 수 없습니다.",
     "details": "주문 ID: order-123 를 찾을 수 없습니다.",
-    "fieldErrors": [...]
+    "fieldErrors": [
+      ...
+    ]
   },
   "timestamp": "2024-01-15T10:30:00Z"
 }

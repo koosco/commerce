@@ -43,11 +43,11 @@ class OrderService(
 }
 ```
 
-| 메서드 | Propagation | 용도 |
-|--------|-------------|------|
-| `run { }` | REQUIRED | 기존 트랜잭션 참여 또는 새로 생성 |
-| `readOnly { }` | REQUIRED + readOnly | 읽기 전용 최적화 |
-| `runNew { }` | REQUIRES_NEW | 항상 새 트랜잭션 생성 |
+| 메서드            | Propagation         | 용도                  |
+|----------------|---------------------|---------------------|
+| `run { }`      | REQUIRED            | 기존 트랜잭션 참여 또는 새로 생성 |
+| `readOnly { }` | REQUIRED + readOnly | 읽기 전용 최적화           |
+| `runNew { }`   | REQUIRES_NEW        | 항상 새 트랜잭션 생성        |
 
 ### 2. JsonUtils
 
@@ -110,12 +110,12 @@ data class UpdateUserRequest(
 )
 ```
 
-| 값 | 결과 |
-|----|------|
-| `null` | ✅ 유효 |
+| 값        | 결과   |
+|----------|------|
+| `null`   | ✅ 유효 |
 | `"John"` | ✅ 유효 |
-| `""` | ❌ 무효 |
-| `"   "` | ❌ 무효 |
+| `""`     | ❌ 무효 |
+| `"   "`  | ❌ 무효 |
 
 ### 5. @EnumIfPresent 어노테이션
 
@@ -134,12 +134,12 @@ data class UpdateOrderRequest(
 )
 ```
 
-| 값 | 결과 |
-|----|------|
-| `null` | ✅ 유효 |
-| `"PENDING"` | ✅ 유효 |
+| 값           | 결과             |
+|-------------|----------------|
+| `null`      | ✅ 유효           |
+| `"PENDING"` | ✅ 유효           |
 | `"pending"` | ❌ 무효 (대소문자 구분) |
-| `"UNKNOWN"` | ❌ 무효 |
+| `"UNKNOWN"` | ❌ 무효           |
 
 ### 6. 어노테이션 조합
 
@@ -164,12 +164,12 @@ data class UpdateProductRequest(
 
 Auto-Configuration으로 자동 등록되는 빈:
 
-| 빈 | 조건 | 기본값 |
-|----|------|--------|
-| `GlobalExceptionHandler` | Servlet 웹앱 | 활성화 |
-| `ApiResponseAdvice` | Servlet 웹앱 | 비활성화 |
-| `ObjectMapper` | 미정의 시 | 활성화 |
-| `TransactionRunner` | 미정의 시 | 활성화 |
+| 빈                        | 조건         | 기본값  |
+|--------------------------|------------|------|
+| `GlobalExceptionHandler` | Servlet 웹앱 | 활성화  |
+| `ApiResponseAdvice`      | Servlet 웹앱 | 비활성화 |
+| `ObjectMapper`           | 미정의 시      | 활성화  |
+| `TransactionRunner`      | 미정의 시      | 활성화  |
 
 커스텀 구현 제공 시 Auto-Configuration이 비활성화됩니다:
 

@@ -14,14 +14,14 @@ description: 여러 서비스에 대한 작업을 subagent를 통해 병렬로 �
 
 ### 1. 대상 서비스 식별
 
-| 서비스 | 모듈 경로 | 포트 |
-|--------|----------|------|
-| auth-service | `services/auth-service` | 8089 |
-| user-service | `services/user-service` | 8081 |
-| catalog-service | `services/catalog-service` | 8084 |
+| 서비스               | 모듈 경로                        | 포트   |
+|-------------------|------------------------------|------|
+| auth-service      | `services/auth-service`      | 8089 |
+| user-service      | `services/user-service`      | 8081 |
+| catalog-service   | `services/catalog-service`   | 8084 |
 | inventory-service | `services/inventory-service` | 8083 |
-| order-service | `services/order-service` | 8085 |
-| payment-service | `services/payment-service` | 8087 |
+| order-service     | `services/order-service`     | 8085 |
+| payment-service   | `services/payment-service`   | 8087 |
 
 "모든 서비스" 또는 "전체 서비스"라고 하면 6개 서비스 모두를 대상으로 합니다.
 
@@ -48,6 +48,7 @@ description: 여러 서비스에 대한 작업을 subagent를 통해 병렬로 �
 ```
 
 Kafka 이벤트 작업 시 추가:
+
 ```
 - 반드시 CloudEvent 포맷을 사용하세요
 - CloudEvent 스펙: common/common-core/src/main/kotlin/com/koosco/common/core/event/CloudEvent.kt
@@ -68,21 +69,21 @@ Kafka 이벤트 작업 시 추가:
 
 ## Subagent 설정
 
-| 설정 | 값 |
-|------|-----|
-| subagent_type | `general-purpose` |
-| model | 기본 (상속) |
+| 설정                | 값                      |
+|-------------------|------------------------|
+| subagent_type     | `general-purpose`      |
+| model             | 기본 (상속)                |
 | run_in_background | `true` (권장, 오래 걸리는 작업) |
 
 ## 서비스 그룹
 
-| 그룹 | 서비스 |
-|------|--------|
-| all / 전체 | auth, user, catalog, inventory, order, payment |
-| kafka-enabled | catalog, inventory, order, payment |
-| auth-related | auth, user |
-| commerce-core | catalog, inventory, order, payment |
-| order-flow | order, payment, inventory |
+| 그룹            | 서비스                                            |
+|---------------|------------------------------------------------|
+| all / 전체      | auth, user, catalog, inventory, order, payment |
+| kafka-enabled | catalog, inventory, order, payment             |
+| auth-related  | auth, user                                     |
+| commerce-core | catalog, inventory, order, payment             |
+| order-flow    | order, payment, inventory                      |
 
 ## 주의사항
 

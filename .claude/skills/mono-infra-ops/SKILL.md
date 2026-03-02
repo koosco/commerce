@@ -8,14 +8,17 @@ description: 인프라 운영 절차 가이드. 새 서비스 추가, 환경변�
 ### 새 서비스 추가
 
 **생성할 파일**:
+
 1. `k8s/services/<new-service>.yaml` - Deployment + Service
 
 **업데이트할 파일**:
+
 2. `k8s/ingress-dev.yaml` - 경로 `/api/<new-service>` 추가
 3. `k8s/ingress.yaml` - 경로 추가 (운영용)
 4. `Makefile` - SERVICES 변수에 추가
 
 **단계**:
+
 ```bash
 # 1. 서비스 매니페스트 생성 (기존 것에서 복사)
 cp k8s/services/auth-service.yaml k8s/services/new-service.yaml
@@ -63,16 +66,19 @@ make k8s-restart
 ### 서비스 스케일링
 
 **모든 서비스**:
+
 ```bash
 make k8s-scale REPLICAS=5
 ```
 
 **단일 서비스**:
+
 ```bash
 kubectl scale deployment/order-service --replicas=3 -n commerce
 ```
 
 **영구 스케일링** (권장):
+
 ```bash
 # 서비스 매니페스트 편집
 vim k8s/services/order-service.yaml
@@ -126,14 +132,14 @@ kubectl rollout status deployment/order-service -n commerce
 
 ### 명령 카테고리
 
-| 카테고리 | 명령어 | 목적 |
-|---------|--------|------|
-| **네임스페이스** | `k8s-ns-create`, `k8s-ns-delete` | 네임스페이스 라이프사이클 |
-| **리소스** | `k8s-apply-all`, `k8s-services-apply` | 리소스 배포 |
-| **배포** | `k8s-start`, `k8s-stop`, `k8s-restart`, `k8s-scale` | 서비스 작업 |
-| **Ingress** | `k8s-ingress-apply`, `k8s-ingress-list` | Ingress 관리 |
-| **모니터링** | `k8s-status`, `k8s-deployments` | 상태 확인 |
-| **로컬 개발** | `k8s-traefik-ip`, `k8s-port-forward` | 로컬 접근 |
+| 카테고리        | 명령어                                                 | 목적            |
+|-------------|-----------------------------------------------------|---------------|
+| **네임스페이스**  | `k8s-ns-create`, `k8s-ns-delete`                    | 네임스페이스 라이프사이클 |
+| **리소스**     | `k8s-apply-all`, `k8s-services-apply`               | 리소스 배포        |
+| **배포**      | `k8s-start`, `k8s-stop`, `k8s-restart`, `k8s-scale` | 서비스 작업        |
+| **Ingress** | `k8s-ingress-apply`, `k8s-ingress-list`             | Ingress 관리    |
+| **모니터링**    | `k8s-status`, `k8s-deployments`                     | 상태 확인         |
+| **로컬 개발**   | `k8s-traefik-ip`, `k8s-port-forward`                | 로컬 접근         |
 
 ### 일반적인 워크플로우
 
@@ -159,55 +165,55 @@ make k8s-ns-delete
 
 #### 네임스페이스 명령어
 
-| 명령어 | 설명 |
-|--------|------|
-| `k8s-ns-create` | commerce 네임스페이스 생성 |
+| 명령어             | 설명                             |
+|-----------------|--------------------------------|
+| `k8s-ns-create` | commerce 네임스페이스 생성             |
 | `k8s-ns-delete` | commerce 네임스페이스 삭제 (모든 리소스 포함) |
 
 #### 리소스 명령어
 
-| 명령어 | 설명 |
-|--------|------|
+| 명령어                       | 설명                                               |
+|---------------------------|--------------------------------------------------|
 | `k8s-apply-all ENV=<env>` | 모든 리소스 적용 (ConfigMap, Secret, Services, Ingress) |
-| `k8s-services-apply` | 서비스 Deployment만 적용 |
+| `k8s-services-apply`      | 서비스 Deployment만 적용                               |
 
 #### 배포 명령어
 
-| 명령어 | 설명 |
-|--------|------|
-| `k8s-start` | 모든 서비스 시작 (replicas > 0) |
-| `k8s-stop` | 모든 서비스 중지 (replicas = 0) |
-| `k8s-restart` | 모든 서비스 롤링 재시작 |
-| `k8s-scale REPLICAS=<n>` | 모든 서비스를 n개 복제본으로 스케일링 |
+| 명령어                      | 설명                       |
+|--------------------------|--------------------------|
+| `k8s-start`              | 모든 서비스 시작 (replicas > 0) |
+| `k8s-stop`               | 모든 서비스 중지 (replicas = 0) |
+| `k8s-restart`            | 모든 서비스 롤링 재시작            |
+| `k8s-scale REPLICAS=<n>` | 모든 서비스를 n개 복제본으로 스케일링    |
 
 #### Ingress 명령어
 
-| 명령어 | 설명 |
-|--------|------|
+| 명령어                           | 설명             |
+|-------------------------------|----------------|
 | `k8s-ingress-apply ENV=<env>` | Ingress 리소스 적용 |
-| `k8s-ingress-list` | Ingress 상태 조회 |
+| `k8s-ingress-list`            | Ingress 상태 조회  |
 
 #### 모니터링 명령어
 
-| 명령어 | 설명 |
-|--------|------|
-| `k8s-status` | 전체 상태 확인 (pods, services, ingress) |
-| `k8s-deployments` | Deployment 상태 확인 |
+| 명령어               | 설명                                 |
+|-------------------|------------------------------------|
+| `k8s-status`      | 전체 상태 확인 (pods, services, ingress) |
+| `k8s-deployments` | Deployment 상태 확인                   |
 
 #### 로컬 개발 명령어
 
-| 명령어 | 설명 |
-|--------|------|
-| `k8s-traefik-ip` | Traefik Ingress IP 조회 |
-| `k8s-port-forward` | 로컬 포트 포워딩 설정 |
+| 명령어                | 설명                    |
+|--------------------|-----------------------|
+| `k8s-traefik-ip`   | Traefik Ingress IP 조회 |
+| `k8s-port-forward` | 로컬 포트 포워딩 설정          |
 
 ### 환경 변수
 
-| 변수 | 기본값 | 설명 |
-|------|--------|------|
-| `ENV` | dev | 환경 (dev, prod) |
+| 변수          | 기본값      | 설명                |
+|-------------|----------|-------------------|
+| `ENV`       | dev      | 환경 (dev, prod)    |
 | `NAMESPACE` | commerce | Kubernetes 네임스페이스 |
-| `REPLICAS` | 2 | 스케일링 시 복제본 수 |
+| `REPLICAS`  | 2        | 스케일링 시 복제본 수      |
 
 ---
 
@@ -218,6 +224,7 @@ make k8s-ns-delete
 **증상**: Pod가 반복적으로 재시작
 
 **디버깅**:
+
 ```bash
 kubectl get pods -n commerce
 kubectl logs <pod-이름> -n commerce
@@ -225,11 +232,13 @@ kubectl describe pod <pod-이름> -n commerce
 kubectl top pods -n commerce
 ```
 
-**해결책**: ConfigMap/Secret 확인, DB 연결 확인 (`DB_HOST: host.k3d.internal`), `initialDelaySeconds` 증가, 리소스 제한 증가
+**해결책**: ConfigMap/Secret 확인, DB 연결 확인 (`DB_HOST: host.k3d.internal`), `initialDelaySeconds` 증가, 리소스
+제한 증가
 
 ### 문제 2: 서비스가 데이터베이스에 연결할 수 없음
 
 **디버깅**:
+
 ```bash
 kubectl run -it --rm debug --image=mysql:8 --restart=Never -n commerce \
   -- mysql -h host.k3d.internal -u admin -padmin1234
@@ -241,6 +250,7 @@ kubectl get configmap commerce-common-config -n commerce -o yaml
 ### 문제 3: 서비스가 Kafka에 연결할 수 없음
 
 **디버깅**:
+
 ```bash
 kubectl run -it --rm kafka-test --image=confluentinc/cp-kafka:latest \
   --restart=Never -n commerce \
@@ -253,6 +263,7 @@ docker ps | grep kafka
 ### 문제 4: Ingress가 트래픽을 라우팅하지 않음
 
 **디버깅**:
+
 ```bash
 kubectl get ingress -n commerce
 kubectl get pods -n kube-system | grep traefik
@@ -264,6 +275,7 @@ curl http://<traefik-ip>/api/auth/health
 ### 문제 5: 이미지 풀 오류 (ImagePullBackOff)
 
 **해결책**:
+
 ```bash
 ./gradlew :services:auth-service:build
 docker build -t auth-service:latest services/auth-service/
@@ -274,6 +286,7 @@ k3d image import auth-service:latest -c <클러스터-이름>
 ### 문제 6: 헬스 체크 실패
 
 **디버깅**:
+
 ```bash
 kubectl exec -it <pod-이름> -n commerce -- \
   wget -qO- http://localhost:8080/actuator/health

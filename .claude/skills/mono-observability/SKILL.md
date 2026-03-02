@@ -18,15 +18,16 @@ description: Observability 가이드. Metrics, Logging, Tracing 설정 및 확�
 
 ### Profile별 동작
 
-| Profile | 출력 | 레벨 | 용도 |
-|---------|------|------|------|
-| `local` | Plain text stdout | - | 로컬 개발 |
-| `dev` | JSON stdout | DEBUG | k3d 개발 |
-| `prod` | JSON stdout | INFO | Loki/Promtail 수집용 |
+| Profile | 출력                | 레벨    | 용도                |
+|---------|-------------------|-------|-------------------|
+| `local` | Plain text stdout | -     | 로컬 개발             |
+| `dev`   | JSON stdout       | DEBUG | k3d 개발            |
+| `prod`  | JSON stdout       | INFO  | Loki/Promtail 수집용 |
 
 ### JSON 포맷
 
 LogstashEncoder 사용:
+
 - `@timestamp`, `message`, `level`, `service`, `traceId`, `spanId`
 
 ### 주의사항

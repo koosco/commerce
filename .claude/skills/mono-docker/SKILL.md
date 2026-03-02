@@ -52,12 +52,12 @@ make docker-down
 
 ## 프로필 기반 실행
 
-| 프로필 | 서비스 | 용도 |
-|--------|--------|------|
-| `core` | MariaDB, Redis | 기본 개발 |
-| `kafka` | Kafka, Debezium, Kafka UI | 이벤트 기반 개발 |
-| `monitoring` | Prometheus, Grafana, Node Exporter | 메트릭 수집 |
-| `full` | 모든 서비스 | 통합 테스트 |
+| 프로필          | 서비스                                | 용도        |
+|--------------|------------------------------------|-----------|
+| `core`       | MariaDB, Redis                     | 기본 개발     |
+| `kafka`      | Kafka, Debezium, Kafka UI          | 이벤트 기반 개발 |
+| `monitoring` | Prometheus, Grafana, Node Exporter | 메트릭 수집    |
+| `full`       | 모든 서비스                             | 통합 테스트    |
 
 ```bash
 # 직접 docker compose 사용
@@ -68,26 +68,26 @@ docker compose --env-file .env.local --profile full up -d
 
 ## 서비스 접속 정보
 
-| 서비스 | 접속 정보 |
-|--------|----------|
-| MariaDB | `localhost:3306` (admin/admin1234) |
-| Redis | `localhost:6379` |
-| Kafka | `localhost:9092` |
-| Kafka UI | `http://localhost:18080` |
-| Debezium | `localhost:18083` |
-| Prometheus | `http://localhost:9090` |
-| Grafana | `http://localhost:3000` (admin/admin123) |
+| 서비스        | 접속 정보                                    |
+|------------|------------------------------------------|
+| MariaDB    | `localhost:3306` (admin/admin1234)       |
+| Redis      | `localhost:6379`                         |
+| Kafka      | `localhost:9092`                         |
+| Kafka UI   | `http://localhost:18080`                 |
+| Debezium   | `localhost:18083`                        |
+| Prometheus | `http://localhost:9090`                  |
+| Grafana    | `http://localhost:3000` (admin/admin123) |
 
 ## 데이터베이스
 
-| Service | Database |
-|---------|----------|
-| auth-service | commerce-auth |
-| user-service | commerce-user |
-| catalog-service | commerce-catalog |
+| Service           | Database           |
+|-------------------|--------------------|
+| auth-service      | commerce-auth      |
+| user-service      | commerce-user      |
+| catalog-service   | commerce-catalog   |
 | inventory-service | commerce-inventory |
-| order-service | commerce-order |
-| payment-service | commerce-payment |
+| order-service     | commerce-order     |
+| payment-service   | commerce-payment   |
 
 ## 데이터베이스 접속
 

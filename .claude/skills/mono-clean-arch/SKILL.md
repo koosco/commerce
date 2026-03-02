@@ -63,6 +63,7 @@ description: Clean Architecture 계층 구조와 의존성 규칙 가이드. 새
 ```
 
 **핵심 규칙:**
+
 - `application`, `domain` → `api`, `infra` 의존 금지
 - `infra` → `application` 의존 가능 (Port 구현)
 - `api` → `application` 의존 가능 (Use Case 호출)
@@ -219,14 +220,14 @@ Request → Controller → Command → UseCase → Domain → Repository
 Response ← Controller ← Result ← UseCase ← Domain ← Repository
 ```
 
-| 단계 | 객체 | 설명 |
-|-----|------|------|
-| API 진입 | `XxxRequest` | HTTP Request Body |
-| 명령 변환 | `XxxCommand` | Use Case 입력 |
-| 비즈니스 로직 | `Domain Entity` | 핵심 도메인 로직 |
-| 영속화 | `XxxEntity` | JPA Entity |
-| 결과 변환 | `XxxResult` | Use Case 출력 |
-| 응답 반환 | `XxxResponse` | HTTP Response Body |
+| 단계      | 객체              | 설명                 |
+|---------|-----------------|--------------------|
+| API 진입  | `XxxRequest`    | HTTP Request Body  |
+| 명령 변환   | `XxxCommand`    | Use Case 입력        |
+| 비즈니스 로직 | `Domain Entity` | 핵심 도메인 로직          |
+| 영속화     | `XxxEntity`     | JPA Entity         |
+| 결과 변환   | `XxxResult`     | Use Case 출력        |
+| 응답 반환   | `XxxResponse`   | HTTP Response Body |
 
 ## Anti-Patterns (피해야 할 것)
 
