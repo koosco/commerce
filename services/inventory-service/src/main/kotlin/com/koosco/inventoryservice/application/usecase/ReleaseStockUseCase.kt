@@ -1,9 +1,9 @@
 package com.koosco.inventoryservice.application.usecase
 
 import com.koosco.common.core.annotation.UseCase
+import com.koosco.common.core.event.IntegrationEventProducer
 import com.koosco.common.core.messaging.MessageContext
 import com.koosco.inventoryservice.application.command.CancelStockCommand
-import com.koosco.inventoryservice.application.port.IntegrationEventProducer
 import com.koosco.inventoryservice.application.port.InventoryLogPort
 import com.koosco.inventoryservice.application.port.InventoryStockQueryPort
 import com.koosco.inventoryservice.application.port.InventoryStockStorePort

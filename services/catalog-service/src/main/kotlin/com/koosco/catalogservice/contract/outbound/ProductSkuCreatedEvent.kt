@@ -1,22 +1,20 @@
 package com.koosco.catalogservice.contract.outbound
 
-import com.koosco.catalogservice.contract.ProductIntegrationEvent
+import com.koosco.common.core.event.IntegrationEvent
 import java.time.LocalDateTime
 
-/**
- * fileName       : ProductSkuCreatedEvent
- * author         : koo
- * date           : 2025. 12. 23. 오전 3:19
- * description    :
- */
 data class ProductSkuCreatedEvent(
-    override val skuId: String,
+    val skuId: String,
     val productId: Long,
     val productCode: String,
     val price: Long,
     val optionValues: String,
     val initialQuantity: Int = 0,
     val createdAt: LocalDateTime,
-) : ProductIntegrationEvent {
+) : IntegrationEvent {
+    override val aggregateId: String get() = skuId
+
     override fun getEventType(): String = "product.sku.created"
+
+    override fun getSubject(): String = "sku/$skuId"
 }

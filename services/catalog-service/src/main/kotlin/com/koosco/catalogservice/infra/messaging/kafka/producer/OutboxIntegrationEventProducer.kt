@@ -1,11 +1,11 @@
 package com.koosco.catalogservice.infra.messaging.kafka.producer
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.koosco.catalogservice.application.port.IntegrationEventProducer
 import com.koosco.catalogservice.common.config.KafkaTopicResolver
-import com.koosco.catalogservice.contract.CatalogIntegrationEvent
 import com.koosco.catalogservice.domain.entity.CatalogOutboxEntry
 import com.koosco.catalogservice.infra.outbox.CatalogOutboxRepository
+import com.koosco.common.core.event.IntegrationEvent
+import com.koosco.common.core.event.IntegrationEventProducer
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -31,7 +31,7 @@ class OutboxIntegrationEventProducer(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun publish(event: CatalogIntegrationEvent) {
+    override fun publish(event: IntegrationEvent) {
         val cloudEvent = event.toCloudEvent(source)
         val topic = topicResolver.resolve(event)
         val partitionKey = event.getPartitionKey()
@@ -41,14 +41,14 @@ class OutboxIntegrationEventProducer(
             objectMapper.writeValueAsString(cloudEvent)
         } catch (e: Exception) {
             logger.error(
-                "Failed to serialize CloudEvent: type=$eventType, aggregateId=${event.getAggregateId()}",
+                "Failed to serialize CloudEvent: type=$eventType, aggregateId=${event.aggregateId}",
                 e,
             )
             throw e
         }
 
         val outboxEntry = CatalogOutboxEntry.create(
-            aggregateId = event.getAggregateId(),
+            aggregateId = event.aggregateId,
             eventType = eventType,
             payload = payload,
             topic = topic,
@@ -58,7 +58,7 @@ class OutboxIntegrationEventProducer(
         outboxRepository.save(outboxEntry)
 
         logger.info(
-            "Outbox entry saved: type=$eventType, aggregateId=${event.getAggregateId()}, topic=$topic",
+            "Outbox entry saved: type=$eventType, aggregateId=${event.aggregateId}, topic=$topic",
         )
     }
 }

@@ -1,7 +1,7 @@
 package com.koosco.catalogservice.contract.outbound
 
-import com.koosco.catalogservice.contract.CatalogIntegrationEvent
 import com.koosco.catalogservice.domain.enums.ProductStatus
+import com.koosco.common.core.event.IntegrationEvent
 import java.time.LocalDateTime
 
 data class ProductStatusChangedEvent(
@@ -10,8 +10,8 @@ data class ProductStatusChangedEvent(
     val previousStatus: ProductStatus,
     val newStatus: ProductStatus,
     val changedAt: LocalDateTime,
-) : CatalogIntegrationEvent {
-    override fun getAggregateId(): String = productId.toString()
+) : IntegrationEvent {
+    override val aggregateId: String get() = productId.toString()
 
     override fun getEventType(): String = "product.status.changed"
 

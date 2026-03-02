@@ -1,7 +1,7 @@
 package com.koosco.inventoryservice.integration.kafka
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.koosco.inventoryservice.application.port.IntegrationEventProducer
+import com.koosco.common.core.event.IntegrationEventProducer
 import com.koosco.inventoryservice.application.port.InventoryStockSnapshotQueryPort
 import com.koosco.inventoryservice.contract.outbound.inventory.StockConfirmFailedEvent
 import com.koosco.inventoryservice.contract.outbound.inventory.StockConfirmedEvent

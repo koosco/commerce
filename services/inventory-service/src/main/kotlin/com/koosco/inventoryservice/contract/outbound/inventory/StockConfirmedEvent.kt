@@ -1,26 +1,24 @@
 package com.koosco.inventoryservice.contract.outbound.inventory
 
-import com.koosco.inventoryservice.contract.InventoryIntegrationEvent
+import com.koosco.common.core.event.IntegrationEvent
 import com.koosco.inventoryservice.domain.enums.StockConfirmFailReason
 
-/**
- * fileName       : StockConfirmedEvent
- * author         : koo
- * date           : 2025. 12. 24. 오전 2:32
- * description    :
- */
 /**
  * 재고 확정 성공
  * OrderCompleted → Inventory.confirm 성공 시 발행
  */
 data class StockConfirmedEvent(
-    override val orderId: Long,
+    val orderId: Long,
     val items: List<ConfirmedItem>,
 
     val correlationId: String,
     val causationId: String?,
-) : InventoryIntegrationEvent {
+) : IntegrationEvent {
+    override val aggregateId: String get() = orderId.toString()
+
     override fun getEventType(): String = "stock.confirmed"
+
+    override fun getSubject(): String = "inventory/$orderId"
 
     data class ConfirmedItem(val skuId: String, val quantity: Int)
 }
@@ -30,11 +28,15 @@ data class StockConfirmedEvent(
  * OrderCompleted → Inventory.confirm 실패 시 발행
  */
 data class StockConfirmFailedEvent(
-    override val orderId: Long,
+    val orderId: Long,
     val reason: StockConfirmFailReason?,
 
     val correlationId: String,
     val causationId: String? = null,
-) : InventoryIntegrationEvent {
+) : IntegrationEvent {
+    override val aggregateId: String get() = orderId.toString()
+
     override fun getEventType(): String = "stock.confirm.failed"
+
+    override fun getSubject(): String = "inventory/$orderId"
 }

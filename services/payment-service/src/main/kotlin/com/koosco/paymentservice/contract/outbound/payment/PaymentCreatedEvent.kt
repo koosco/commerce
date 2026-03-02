@@ -1,13 +1,11 @@
 package com.koosco.paymentservice.contract.outbound.payment
 
-import com.koosco.paymentservice.contract.PaymentIntegrationEvent
+import com.koosco.common.core.event.IntegrationEvent
 
-/**
- * fileName       : PaymentCreatedEvent
- * author         : koo
- * date           : 2025. 12. 24. 오후 9:20
- * description    :
- */
-data class PaymentCreatedEvent(override val paymentId: String, val orderId: Long) : PaymentIntegrationEvent {
+data class PaymentCreatedEvent(val paymentId: String, val orderId: Long) : IntegrationEvent {
+    override val aggregateId: String get() = paymentId
+
     override fun getEventType(): String = "payment.created"
+
+    override fun getSubject(): String = "payment/$paymentId"
 }

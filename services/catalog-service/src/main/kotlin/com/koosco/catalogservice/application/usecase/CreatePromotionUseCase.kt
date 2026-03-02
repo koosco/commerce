@@ -1,7 +1,6 @@
 package com.koosco.catalogservice.application.usecase
 
 import com.koosco.catalogservice.application.command.CreatePromotionCommand
-import com.koosco.catalogservice.application.port.IntegrationEventProducer
 import com.koosco.catalogservice.application.port.ProductRepository
 import com.koosco.catalogservice.application.port.PromotionRepository
 import com.koosco.catalogservice.application.result.PromotionInfo
@@ -10,6 +9,7 @@ import com.koosco.catalogservice.contract.outbound.PromotionActivatedEvent
 import com.koosco.catalogservice.domain.entity.Promotion
 import com.koosco.catalogservice.domain.service.PromotionPriceResolver
 import com.koosco.common.core.annotation.UseCase
+import com.koosco.common.core.event.IntegrationEventProducer
 import com.koosco.common.core.exception.NotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional

@@ -1,6 +1,6 @@
 package com.koosco.inventoryservice.contract.outbound.inventory
 
-import com.koosco.inventoryservice.contract.InventoryIntegrationEvent
+import com.koosco.common.core.event.IntegrationEvent
 
 /**
  * 재고 소진 이벤트
@@ -8,11 +8,13 @@ import com.koosco.inventoryservice.contract.InventoryIntegrationEvent
  * catalog-service가 소비하여 상품 상태를 OUT_OF_STOCK으로 변경
  */
 data class StockDepletedEvent(
-    override val orderId: Long,
+    val orderId: Long,
     val skuId: String,
     val correlationId: String,
     val causationId: String?,
-) : InventoryIntegrationEvent {
+) : IntegrationEvent {
+    override val aggregateId: String get() = orderId.toString()
+
     override fun getEventType(): String = "stock.depleted"
 
     override fun getPartitionKey(): String = skuId
@@ -26,11 +28,13 @@ data class StockDepletedEvent(
  * catalog-service가 소비하여 상품 상태를 ACTIVE로 변경
  */
 data class StockRestoredEvent(
-    override val orderId: Long,
+    val orderId: Long,
     val skuId: String,
     val correlationId: String,
     val causationId: String?,
-) : InventoryIntegrationEvent {
+) : IntegrationEvent {
+    override val aggregateId: String get() = orderId.toString()
+
     override fun getEventType(): String = "stock.restored"
 
     override fun getPartitionKey(): String = skuId

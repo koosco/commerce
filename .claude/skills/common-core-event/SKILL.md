@@ -10,6 +10,53 @@ description: common-core Kafka 이벤트 발행 가이드. DomainEvent 정의, C
 
 ## Quick Reference
 
+### 0. IntegrationEvent 인터페이스 (common-core)
+
+```kotlin
+import com.koosco.common.core.event.IntegrationEvent
+
+// IntegrationEvent: 서비스 간 통합 이벤트 공통 인터페이스
+interface IntegrationEvent {
+    val aggregateId: String
+    fun getEventType(): String
+    fun getPartitionKey(): String = aggregateId
+    fun getSubject(): String
+    fun toCloudEvent(source: String): CloudEvent<out IntegrationEvent>
+}
+
+// Concrete event 예시
+data class OrderPlacedEvent(
+    val orderId: Long,
+    val userId: Long,
+) : IntegrationEvent {
+    override val aggregateId: String get() = orderId.toString()
+    override fun getEventType(): String = "order.placed"
+    override fun getSubject(): String = "order/$orderId"
+}
+```
+
+### 0-1. IntegrationEventProducer 포트 (common-core)
+
+```kotlin
+import com.koosco.common.core.event.IntegrationEventProducer
+
+// 모든 서비스에서 공통으로 사용하는 이벤트 발행 포트
+interface IntegrationEventProducer {
+    fun publish(event: IntegrationEvent)
+}
+```
+
+### 0-2. TopicResolver 인터페이스 (common-core)
+
+```kotlin
+import com.koosco.common.core.event.TopicResolver
+
+// 이벤트 타입 → Kafka 토픽 매핑
+interface TopicResolver {
+    fun resolve(event: IntegrationEvent): String
+}
+```
+
 ### 1. DomainEvent 정의
 
 ```kotlin

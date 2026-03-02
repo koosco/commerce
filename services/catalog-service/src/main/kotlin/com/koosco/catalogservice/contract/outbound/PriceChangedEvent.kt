@@ -1,6 +1,6 @@
 package com.koosco.catalogservice.contract.outbound
 
-import com.koosco.catalogservice.contract.CatalogIntegrationEvent
+import com.koosco.common.core.event.IntegrationEvent
 import java.time.LocalDateTime
 
 data class PriceChangedEvent(
@@ -10,8 +10,8 @@ data class PriceChangedEvent(
     val newPrice: Long,
     val reason: String,
     val changedAt: LocalDateTime,
-) : CatalogIntegrationEvent {
-    override fun getAggregateId(): String = skuId
+) : IntegrationEvent {
+    override val aggregateId: String get() = skuId
 
     override fun getEventType(): String = "product.price.changed"
 

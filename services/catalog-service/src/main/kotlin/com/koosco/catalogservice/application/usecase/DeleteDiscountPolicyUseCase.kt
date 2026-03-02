@@ -2,12 +2,12 @@ package com.koosco.catalogservice.application.usecase
 
 import com.koosco.catalogservice.application.command.DeleteDiscountPolicyCommand
 import com.koosco.catalogservice.application.port.DiscountPolicyRepository
-import com.koosco.catalogservice.application.port.IntegrationEventProducer
 import com.koosco.catalogservice.application.port.ProductRepository
 import com.koosco.catalogservice.common.error.CatalogErrorCode
 import com.koosco.catalogservice.contract.outbound.PriceChangedEvent
 import com.koosco.catalogservice.domain.entity.Product
 import com.koosco.common.core.annotation.UseCase
+import com.koosco.common.core.event.IntegrationEventProducer
 import com.koosco.common.core.exception.NotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheEvict

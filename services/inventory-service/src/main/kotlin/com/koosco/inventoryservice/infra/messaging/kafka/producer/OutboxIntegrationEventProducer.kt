@@ -1,9 +1,9 @@
 package com.koosco.inventoryservice.infra.messaging.kafka.producer
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.koosco.inventoryservice.application.port.IntegrationEventProducer
+import com.koosco.common.core.event.IntegrationEvent
+import com.koosco.common.core.event.IntegrationEventProducer
 import com.koosco.inventoryservice.common.config.kafka.KafkaTopicResolver
-import com.koosco.inventoryservice.contract.InventoryIntegrationEvent
 import com.koosco.inventoryservice.domain.entity.InventoryOutboxEntry
 import com.koosco.inventoryservice.infra.outbox.InventoryOutboxRepository
 import org.slf4j.LoggerFactory
@@ -34,7 +34,7 @@ class OutboxIntegrationEventProducer(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun publish(event: InventoryIntegrationEvent) {
+    override fun publish(event: IntegrationEvent) {
         val cloudEvent = event.toCloudEvent(source)
         val topic = topicResolver.resolve(event)
         val partitionKey = event.getPartitionKey()
@@ -44,14 +44,14 @@ class OutboxIntegrationEventProducer(
             objectMapper.writeValueAsString(cloudEvent)
         } catch (e: Exception) {
             logger.error(
-                "Failed to serialize CloudEvent: type=$eventType, orderId=${event.orderId}",
+                "Failed to serialize CloudEvent: type=$eventType, aggregateId=${event.aggregateId}",
                 e,
             )
             throw e
         }
 
         val outboxEntry = InventoryOutboxEntry.create(
-            aggregateId = event.orderId.toString(),
+            aggregateId = event.aggregateId,
             eventType = eventType,
             payload = payload,
             topic = topic,
@@ -61,7 +61,7 @@ class OutboxIntegrationEventProducer(
         outboxRepository.save(outboxEntry)
 
         logger.info(
-            "Outbox entry saved: type=$eventType, orderId=${event.orderId}, topic=$topic",
+            "Outbox entry saved: type=$eventType, aggregateId=${event.aggregateId}, topic=$topic",
         )
     }
 }

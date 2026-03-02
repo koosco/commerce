@@ -2,8 +2,8 @@ package com.koosco.orderservice.application.usecase
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.koosco.common.core.annotation.UseCase
+import com.koosco.common.core.event.IntegrationEventProducer
 import com.koosco.orderservice.application.command.CreateOrderCommand
-import com.koosco.orderservice.application.port.IntegrationEventProducer
 import com.koosco.orderservice.application.port.OrderIdempotencyRepository
 import com.koosco.orderservice.application.port.OrderRepository
 import com.koosco.orderservice.application.port.OrderStatusHistoryRepository

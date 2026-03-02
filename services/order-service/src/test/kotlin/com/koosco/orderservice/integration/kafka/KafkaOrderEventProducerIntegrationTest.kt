@@ -1,6 +1,6 @@
 package com.koosco.orderservice.integration.kafka
 
-import com.koosco.orderservice.application.port.IntegrationEventProducer
+import com.koosco.common.core.event.IntegrationEventProducer
 import com.koosco.orderservice.contract.outbound.order.OrderCancelledEvent
 import com.koosco.orderservice.contract.outbound.order.OrderConfirmedEvent
 import com.koosco.orderservice.contract.outbound.order.OrderPlacedEvent

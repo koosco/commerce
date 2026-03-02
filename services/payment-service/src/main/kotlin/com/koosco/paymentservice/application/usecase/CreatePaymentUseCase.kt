@@ -1,9 +1,9 @@
 package com.koosco.paymentservice.application.usecase
 
 import com.koosco.common.core.annotation.UseCase
+import com.koosco.common.core.event.IntegrationEventProducer
 import com.koosco.common.core.messaging.MessageContext
 import com.koosco.paymentservice.application.command.CreatePaymentCommand
-import com.koosco.paymentservice.application.port.IntegrationEventProducer
 import com.koosco.paymentservice.application.port.PaymentRepository
 import com.koosco.paymentservice.contract.outbound.payment.PaymentCreatedEvent
 import com.koosco.paymentservice.domain.entity.Payment

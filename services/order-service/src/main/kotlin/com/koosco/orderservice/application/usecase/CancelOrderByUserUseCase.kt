@@ -1,10 +1,10 @@
 package com.koosco.orderservice.application.usecase
 
 import com.koosco.common.core.annotation.UseCase
+import com.koosco.common.core.event.IntegrationEventProducer
 import com.koosco.common.core.exception.NotFoundException
 import com.koosco.common.core.messaging.MessageContext
 import com.koosco.orderservice.application.command.CancelOrderCommand
-import com.koosco.orderservice.application.port.IntegrationEventProducer
 import com.koosco.orderservice.application.port.OrderRepository
 import com.koosco.orderservice.application.port.OrderStatusHistoryRepository
 import com.koosco.orderservice.common.error.OrderErrorCode

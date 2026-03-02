@@ -1,9 +1,9 @@
 package com.koosco.paymentservice.application.usecase
 
 import com.koosco.common.core.annotation.UseCase
+import com.koosco.common.core.event.IntegrationEventProducer
 import com.koosco.common.core.exception.NotFoundException
 import com.koosco.paymentservice.application.command.CancelPaymentCommand
-import com.koosco.paymentservice.application.port.IntegrationEventProducer
 import com.koosco.paymentservice.application.port.PaymentGateway
 import com.koosco.paymentservice.application.port.PaymentRepository
 import com.koosco.paymentservice.common.PaymentErrorCode

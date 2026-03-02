@@ -6,6 +6,9 @@ description: Kafka Producer/Consumer 작성 및 이벤트 처리 가이드. Kafk
 ## 참조 소스코드
 
 - CloudEvent 스펙: `common/common-core/src/main/kotlin/com/koosco/common/core/event/CloudEvent.kt`
+- IntegrationEvent 인터페이스: `common/common-core/src/main/kotlin/com/koosco/common/core/event/IntegrationEvent.kt`
+- IntegrationEventProducer 포트: `common/common-core/src/main/kotlin/com/koosco/common/core/event/IntegrationEventProducer.kt`
+- TopicResolver 인터페이스: `common/common-core/src/main/kotlin/com/koosco/common/core/event/TopicResolver.kt`
 - Event 관련 코드: `common/common-core/src/main/kotlin/com/koosco/common/core/event/`
 - MessageContext:
   `common/common-core/src/main/kotlin/com/koosco/common/core/messaging/MessageContext.kt`
@@ -17,12 +20,16 @@ description: Kafka Producer/Consumer 작성 및 이벤트 처리 가이드. Kafk
 ### 디렉토리 구조
 
 ```
+common/common-core/
+└── event/
+    ├── IntegrationEvent.kt              # 공통 인터페이스 (common-core)
+    ├── IntegrationEventProducer.kt      # Port 인터페이스 (common-core)
+    └── TopicResolver.kt                 # Topic 매핑 인터페이스 (common-core)
+
 services/{service}/
 ├── application/
-│   ├── port/
-│   │   └── IntegrationEventProducer.kt    # Port 인터페이스
 │   └── contract/
-│       └── {Service}IntegrationEvent.kt    # 이벤트 계약
+│       └── outbound/                    # Concrete event 정의
 └── infra/
     └── messaging/kafka/producer/
         └── OutboxIntegrationEventProducer.kt  # Kafka 어댑터 (Outbox 패턴)
@@ -36,10 +43,12 @@ services/{service}/
 ### 발행 패턴
 
 ```kotlin
+import com.koosco.common.core.event.IntegrationEventProducer
+
 @UseCase
 class CreateOrderUseCase(
     private val orderRepository: OrderRepository,
-    private val integrationEventProducer: IntegrationEventProducer,
+    private val integrationEventProducer: IntegrationEventProducer,  // common-core 인터페이스
 ) {
     @Transactional
     fun execute(command: CreateOrderCommand): CreateOrderResult {

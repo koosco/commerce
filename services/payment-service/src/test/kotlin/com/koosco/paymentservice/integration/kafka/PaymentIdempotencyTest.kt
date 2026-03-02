@@ -1,9 +1,9 @@
 package com.koosco.paymentservice.integration.kafka
 
 import com.koosco.common.core.event.CloudEvent
+import com.koosco.common.core.event.IntegrationEventProducer
 import com.koosco.common.core.test.KafkaContainerTestBase
 import com.koosco.paymentservice.application.port.IdempotencyRepository
-import com.koosco.paymentservice.application.port.IntegrationEventProducer
 import com.koosco.paymentservice.application.port.PaymentGateway
 import com.koosco.paymentservice.application.port.PaymentRepository
 import com.koosco.paymentservice.contract.inbound.order.OrderPlacedEvent

@@ -1,18 +1,12 @@
 package com.koosco.inventoryservice.common.config.kafka
 
-import com.koosco.inventoryservice.contract.InventoryIntegrationEvent
-import com.koosco.inventoryservice.infra.messaging.IntegrationTopicResolver
+import com.koosco.common.core.event.IntegrationEvent
+import com.koosco.common.core.event.TopicResolver
 import org.springframework.stereotype.Component
 
-/**
- * fileName       : TopicResolver
- * author         : koo
- * date           : 2025. 12. 19. 오후 1:24
- * description    : domain event와 topic mapping
- */
 @Component
-class KafkaTopicResolver(private val props: KafkaTopicProperties) : IntegrationTopicResolver {
+class KafkaTopicResolver(private val props: KafkaTopicProperties) : TopicResolver {
 
-    override fun resolve(event: InventoryIntegrationEvent): String = props.mappings[event.getEventType()]
+    override fun resolve(event: IntegrationEvent): String = props.mappings[event.getEventType()]
         ?: props.default
 }

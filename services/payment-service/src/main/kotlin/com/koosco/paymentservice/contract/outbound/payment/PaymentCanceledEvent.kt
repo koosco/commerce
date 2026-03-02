@@ -1,9 +1,9 @@
 package com.koosco.paymentservice.contract.outbound.payment
 
-import com.koosco.paymentservice.contract.PaymentIntegrationEvent
+import com.koosco.common.core.event.IntegrationEvent
 
 data class PaymentCanceledEvent(
-    override val paymentId: String,
+    val paymentId: String,
     val orderId: Long,
     val pgTransactionId: String?,
     val canceledAmount: Long,
@@ -12,6 +12,10 @@ data class PaymentCanceledEvent(
     val isFullyCanceled: Boolean,
     val currency: String = "KRW",
     val canceledAt: Long,
-) : PaymentIntegrationEvent {
+) : IntegrationEvent {
+    override val aggregateId: String get() = paymentId
+
     override fun getEventType(): String = "payment.canceled"
+
+    override fun getSubject(): String = "payment/$paymentId"
 }

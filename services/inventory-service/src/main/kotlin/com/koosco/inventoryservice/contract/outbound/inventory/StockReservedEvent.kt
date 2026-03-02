@@ -1,22 +1,20 @@
 package com.koosco.inventoryservice.contract.outbound.inventory
 
-import com.koosco.inventoryservice.contract.InventoryIntegrationEvent
+import com.koosco.common.core.event.IntegrationEvent
 import com.koosco.inventoryservice.domain.enums.StockReservationFailReason
 
-/**
- * fileName       : StockReservedEvent
- * author         : koo
- * date           : 2025. 12. 24. 오전 3:53
- * description    :
- */
 data class StockReservedEvent(
-    override val orderId: Long,
+    val orderId: Long,
     val items: List<Item>,
 
     val correlationId: String,
     val causationId: String?,
-) : InventoryIntegrationEvent {
+) : IntegrationEvent {
+    override val aggregateId: String get() = orderId.toString()
+
     override fun getEventType(): String = "stock.reserved"
+
+    override fun getSubject(): String = "inventory/$orderId"
 
     data class Item(val skuId: String, val quantity: Int)
 }
@@ -26,14 +24,18 @@ data class StockReservedEvent(
  * OrderPlaced → Inventory.reserve 실패 시 발행
  */
 data class StockReservationFailedEvent(
-    override val orderId: Long,
+    val orderId: Long,
     val reason: StockReservationFailReason?,
     val failedItems: List<FailedItem>?,
 
     val correlationId: String,
     val causationId: String?,
-) : InventoryIntegrationEvent {
+) : IntegrationEvent {
+    override val aggregateId: String get() = orderId.toString()
+
     override fun getEventType(): String = "stock.reservation.failed"
+
+    override fun getSubject(): String = "inventory/$orderId"
 
     data class FailedItem(val skuId: String, val requestedQuantity: Int, val availableQuantity: Int? = null)
 }
