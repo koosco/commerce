@@ -1,5 +1,6 @@
 package com.koosco.inventoryservice.api.controller
 
+import com.koosco.common.core.messaging.MessageContext
 import com.koosco.common.core.response.ApiResponse
 import com.koosco.inventoryservice.api.request.BulkAddStockRequest
 import com.koosco.inventoryservice.api.request.BulkReduceStockRequest
@@ -11,12 +12,11 @@ import com.koosco.inventoryservice.application.usecase.AddStockUseCase
 import com.koosco.inventoryservice.application.usecase.ReduceStockUseCase
 import com.koosco.inventoryservice.application.usecase.ReserveStockUseCase
 import com.koosco.inventoryservice.domain.entity.InventoryApiIdempotency
-import com.koosco.common.core.messaging.MessageContext
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.ResponseStatus
 
 @Tag(name = "Inventory Internal Stock Controller", description = "내부 재고 관리 API")
 @RestController

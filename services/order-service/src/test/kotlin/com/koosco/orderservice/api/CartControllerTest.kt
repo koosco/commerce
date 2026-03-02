@@ -1,5 +1,8 @@
 package com.koosco.orderservice.api
 
+import com.koosco.orderservice.api.controller.CartController
+import com.koosco.orderservice.api.request.AddCartItemRequest
+import com.koosco.orderservice.api.request.UpdateCartItemRequest
 import com.koosco.orderservice.application.result.CartItemResult
 import com.koosco.orderservice.application.result.CartResult
 import com.koosco.orderservice.application.usecase.AddCartItemUseCase

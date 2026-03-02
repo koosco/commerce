@@ -71,7 +71,7 @@ class ReviewUseCaseTest {
             val useCase = CreateReviewUseCase(
                 reviewRepository,
                 productRepository,
-                catalogIdempotencyRepository
+                catalogIdempotencyRepository,
             )
             val command = CreateReviewCommand(1L, 1L, null, "좋아요", "내용", 5)
 
@@ -100,7 +100,7 @@ class ReviewUseCaseTest {
             val useCase = CreateReviewUseCase(
                 reviewRepository,
                 productRepository,
-                catalogIdempotencyRepository
+                catalogIdempotencyRepository,
             )
             val command = CreateReviewCommand(1L, 1L, null, "좋아요", "내용", 5, listOf("http://img1.jpg"))
 
@@ -129,7 +129,7 @@ class ReviewUseCaseTest {
             val useCase = CreateReviewUseCase(
                 reviewRepository,
                 productRepository,
-                catalogIdempotencyRepository
+                catalogIdempotencyRepository,
             )
             val review = createReview()
             val existing = com.koosco.catalogservice.domain.entity.CatalogIdempotency.create("key-1", "REVIEW", 1L)
@@ -151,7 +151,7 @@ class ReviewUseCaseTest {
             val useCase = CreateReviewUseCase(
                 reviewRepository,
                 productRepository,
-                catalogIdempotencyRepository
+                catalogIdempotencyRepository,
             )
             val existing = com.koosco.catalogservice.domain.entity.CatalogIdempotency.create("key-1", "REVIEW", 1L)
 
@@ -169,7 +169,7 @@ class ReviewUseCaseTest {
             val useCase = CreateReviewUseCase(
                 reviewRepository,
                 productRepository,
-                catalogIdempotencyRepository
+                catalogIdempotencyRepository,
             )
             val command = CreateReviewCommand(1L, 1L, null, "좋아요", "내용", 5)
 
@@ -313,7 +313,7 @@ class ReviewUseCaseTest {
             val useCase = ToggleReviewLikeUseCase(
                 reviewRepository,
                 reviewLikeRepository,
-                catalogIdempotencyRepository
+                catalogIdempotencyRepository,
             )
             val review = createReview()
 
@@ -332,7 +332,7 @@ class ReviewUseCaseTest {
             val useCase = ToggleReviewLikeUseCase(
                 reviewRepository,
                 reviewLikeRepository,
-                catalogIdempotencyRepository
+                catalogIdempotencyRepository,
             )
             val review = createReview()
             review.likeCount = 1
@@ -352,7 +352,7 @@ class ReviewUseCaseTest {
             val useCase = ToggleReviewLikeUseCase(
                 reviewRepository,
                 reviewLikeRepository,
-                catalogIdempotencyRepository
+                catalogIdempotencyRepository,
             )
 
             whenever(reviewRepository.findByIdOrNull(1L)).thenReturn(null)
@@ -366,7 +366,7 @@ class ReviewUseCaseTest {
             val useCase = ToggleReviewLikeUseCase(
                 reviewRepository,
                 reviewLikeRepository,
-                catalogIdempotencyRepository
+                catalogIdempotencyRepository,
             )
             val existing = com.koosco.catalogservice.domain.entity.CatalogIdempotency.create("key-1", "REVIEW_LIKE", 1L)
 
@@ -383,7 +383,7 @@ class ReviewUseCaseTest {
             val useCase = ToggleReviewLikeUseCase(
                 reviewRepository,
                 reviewLikeRepository,
-                catalogIdempotencyRepository
+                catalogIdempotencyRepository,
             )
             val review = createReview()
 

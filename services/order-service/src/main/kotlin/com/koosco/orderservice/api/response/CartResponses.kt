@@ -1,4 +1,4 @@
-package com.koosco.orderservice.api
+package com.koosco.orderservice.api.response
 
 import com.koosco.orderservice.application.result.CartItemResult
 import com.koosco.orderservice.application.result.CartResult

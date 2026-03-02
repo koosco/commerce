@@ -234,7 +234,7 @@ class StockAndSalesUseCaseTest {
             val useCase = ToggleProductLikeUseCase(
                 productRepository,
                 productLikeRepository,
-                idempotencyRepository
+                idempotencyRepository,
             )
             val product = createProduct()
 
@@ -253,7 +253,7 @@ class StockAndSalesUseCaseTest {
             val useCase = ToggleProductLikeUseCase(
                 productRepository,
                 productLikeRepository,
-                idempotencyRepository
+                idempotencyRepository,
             )
             val product = createProduct()
             product.likeCount = 1
@@ -273,7 +273,7 @@ class StockAndSalesUseCaseTest {
             val useCase = ToggleProductLikeUseCase(
                 productRepository,
                 productLikeRepository,
-                idempotencyRepository
+                idempotencyRepository,
             )
 
             whenever(productRepository.findOrNull(1L)).thenReturn(null)
@@ -287,7 +287,7 @@ class StockAndSalesUseCaseTest {
             val useCase = ToggleProductLikeUseCase(
                 productRepository,
                 productLikeRepository,
-                idempotencyRepository
+                idempotencyRepository,
             )
             val existing = CatalogIdempotency.create("like-key", "PRODUCT_LIKE", 1L)
 

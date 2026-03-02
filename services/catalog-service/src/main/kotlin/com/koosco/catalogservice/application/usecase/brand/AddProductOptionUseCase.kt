@@ -96,9 +96,7 @@ class AddProductOptionUseCase(
      * 현재 옵션 그룹 기준으로 모든 조합을 생성합니다.
      * @return Pair<ProductOptions, additionalPrice>
      */
-    private fun generateAllCombinations(
-        product: Product,
-    ): List<Pair<ProductOptions, Long>> {
+    private fun generateAllCombinations(product: Product): List<Pair<ProductOptions, Long>> {
         if (product.optionGroups.isEmpty()) return emptyList()
 
         val groups = product.optionGroups

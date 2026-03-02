@@ -10,9 +10,6 @@ interface InventoryReservationPort {
         val idempotencyKey: String? = null,
         val correlationId: String,
     ) {
-        data class ReserveItem(
-            val skuId: Long,
-            val quantity: Int,
-        )
+        data class ReserveItem(val skuId: Long, val quantity: Int)
     }
 }

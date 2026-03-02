@@ -1,8 +1,13 @@
-package com.koosco.orderservice.api
+package com.koosco.orderservice.api.controller
 
 import com.koosco.common.core.messaging.MessageContext
-import com.koosco.common.core.response.ApiResponse
 import com.koosco.commonsecurity.resolver.AuthId
+import com.koosco.orderservice.api.request.CreateOrderRequest
+import com.koosco.orderservice.api.request.RefundOrderItemsRequest
+import com.koosco.orderservice.api.response.CreateOrderResponse
+import com.koosco.orderservice.api.response.OrderDetailResponse
+import com.koosco.orderservice.api.response.OrderResponse
+import com.koosco.orderservice.api.response.RefundOrderItemsResponse
 import com.koosco.orderservice.application.command.CancelOrderCommand
 import com.koosco.orderservice.application.usecase.CancelOrderByUserUseCase
 import com.koosco.orderservice.application.usecase.CreateOrderUseCase
@@ -12,6 +17,7 @@ import com.koosco.orderservice.application.usecase.RefundOrderItemsUseCase
 import com.koosco.orderservice.domain.enums.OrderCancelReason
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -26,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
-import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
 
 @Tag(name = "Orders", description = "Order management API - Create, view, and manage orders")
 @RestController
@@ -46,19 +51,22 @@ class OrderController(
     )
     @ApiResponses(
         value = [
-            SwaggerApiResponse(responseCode = "200", description = "Order created successfully"),
-            SwaggerApiResponse(responseCode = "400", description = "Invalid request data"),
-            SwaggerApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
+            ApiResponse(responseCode = "200", description = "Order created successfully"),
+            ApiResponse(responseCode = "400", description = "Invalid request data"),
+            ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized - Invalid or missing JWT token",
+            ),
         ],
     )
     @PostMapping
     fun createOrder(
         @Parameter(hidden = true) @AuthId userId: Long,
         @Valid @RequestBody request: CreateOrderRequest,
-    ): ApiResponse<CreateOrderResponse> {
+    ): com.koosco.common.core.response.ApiResponse<CreateOrderResponse> {
         val result = createOrderUseCase.execute(request.toCommand(userId))
 
-        return ApiResponse.Companion.success(CreateOrderResponse.Companion.from(result))
+        return com.koosco.common.core.response.ApiResponse.Companion.success(CreateOrderResponse.Companion.from(result))
     }
 
     @Operation(
@@ -69,9 +77,13 @@ class OrderController(
     fun getOrders(
         @AuthId userId: Long,
         @PageableDefault(size = 20, sort = ["createdAt"]) pageable: Pageable,
-    ): ApiResponse<Page<OrderResponse>> {
+    ): com.koosco.common.core.response.ApiResponse<Page<OrderResponse>> {
         val result = getOrdersUseCase.execute(userId, pageable)
-        return ApiResponse.Companion.success(result.map { OrderResponse.Companion.from(it) })
+        return com.koosco.common.core.response.ApiResponse.Companion.success(
+            result.map {
+                OrderResponse.Companion.from(it)
+            },
+        )
     }
 
     @Operation(
@@ -79,9 +91,12 @@ class OrderController(
         description = "주문 상세 정보를 조회합니다. 주문 아이템 정보를 포함합니다.",
     )
     @GetMapping("/{orderId}")
-    fun getOrderDetail(@AuthId userId: Long, @PathVariable orderId: Long): ApiResponse<OrderDetailResponse> {
+    fun getOrderDetail(
+        @AuthId userId: Long,
+        @PathVariable orderId: Long,
+    ): com.koosco.common.core.response.ApiResponse<OrderDetailResponse> {
         val result = getOrderDetailUseCase.execute(orderId, userId)
-        return ApiResponse.Companion.success(OrderDetailResponse.Companion.from(result))
+        return com.koosco.common.core.response.ApiResponse.Companion.success(OrderDetailResponse.Companion.from(result))
     }
 
     @Operation(
@@ -90,7 +105,10 @@ class OrderController(
         security = [SecurityRequirement(name = "bearerAuth")],
     )
     @PostMapping("/{orderId}/cancel")
-    fun cancelOrder(@Parameter(hidden = true) @AuthId userId: Long, @PathVariable orderId: Long): ApiResponse<Any> {
+    fun cancelOrder(
+        @Parameter(hidden = true) @AuthId userId: Long,
+        @PathVariable orderId: Long,
+    ): com.koosco.common.core.response.ApiResponse<Any> {
         val command = CancelOrderCommand(
             orderId = orderId,
             reason = OrderCancelReason.USER_REQUEST,
@@ -100,7 +118,7 @@ class OrderController(
             causationId = "rest-cancel-by-user",
         )
         cancelOrderByUserUseCase.execute(command, context)
-        return ApiResponse.success()
+        return com.koosco.common.core.response.ApiResponse.Companion.success()
     }
 
     @Operation(
@@ -113,8 +131,10 @@ class OrderController(
         @Parameter(hidden = true) @AuthId userId: Long,
         @PathVariable orderId: Long,
         @Valid @RequestBody request: RefundOrderItemsRequest,
-    ): ApiResponse<RefundOrderItemsResponse> {
+    ): com.koosco.common.core.response.ApiResponse<RefundOrderItemsResponse> {
         val result = refundOrderItemsUseCase.execute(request.toCommand(orderId, userId))
-        return ApiResponse.Companion.success(RefundOrderItemsResponse.from(result))
+        return com.koosco.common.core.response.ApiResponse.Companion.success(
+            RefundOrderItemsResponse.Companion.from(result),
+        )
     }
 }

@@ -1,7 +1,7 @@
 package com.koosco.searchservice.application.usecase.search
 
-import com.koosco.searchservice.application.port.SearchClickLogPort
 import com.koosco.common.core.annotation.UseCase
+import com.koosco.searchservice.application.port.SearchClickLogPort
 import org.slf4j.LoggerFactory
 
 /**

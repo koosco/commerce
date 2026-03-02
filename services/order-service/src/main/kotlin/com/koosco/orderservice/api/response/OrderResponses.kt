@@ -1,9 +1,10 @@
-package com.koosco.orderservice.api
+package com.koosco.orderservice.api.response
 
 import com.koosco.orderservice.application.result.CreateOrderResult
 import com.koosco.orderservice.application.result.OrderDetailResult
 import com.koosco.orderservice.application.result.OrderItemDetailResult
 import com.koosco.orderservice.application.result.OrderListResult
+import com.koosco.orderservice.application.result.RefundOrderItemsResult
 import com.koosco.orderservice.domain.enums.OrderStatus
 import java.time.LocalDateTime
 
@@ -115,6 +116,22 @@ data class CreateOrderResponse(
             orderNo = result.orderNo,
             status = result.status,
             totalAmount = result.totalAmount,
+        )
+    }
+}
+
+data class RefundOrderItemsResponse(
+    val orderId: Long,
+    val refundAmount: Long,
+    val refundedItemIds: List<Long>,
+    val orderStatus: OrderStatus,
+) {
+    companion object {
+        fun from(result: RefundOrderItemsResult): RefundOrderItemsResponse = RefundOrderItemsResponse(
+            orderId = result.orderId,
+            refundAmount = result.refundAmount,
+            refundedItemIds = result.refundedItemIds,
+            orderStatus = result.orderStatus,
         )
     }
 }

@@ -13,9 +13,7 @@ import org.springframework.web.client.RestClientResponseException
 
 @Profile("!test")
 @Component
-class InternalInventoryReservationAdapter(
-    private val inventoryRestClient: RestClient,
-) : InventoryReservationPort {
+class InternalInventoryReservationAdapter(private val inventoryRestClient: RestClient) : InventoryReservationPort {
 
     override fun reserve(command: InventoryReservationPort.ReserveCommand) {
         val request = ReserveStockRequest(
@@ -61,9 +59,6 @@ class InternalInventoryReservationAdapter(
         val idempotencyKey: String?,
         val correlationId: String,
     ) {
-        data class ReserveItem(
-            val skuId: String,
-            val quantity: Int,
-        )
+        data class ReserveItem(val skuId: String, val quantity: Int)
     }
 }

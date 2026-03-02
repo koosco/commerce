@@ -1,6 +1,11 @@
 package com.koosco.orderservice.api
 
 import com.koosco.common.core.messaging.MessageContext
+import com.koosco.orderservice.api.controller.OrderController
+import com.koosco.orderservice.api.request.CreateOrderRequest
+import com.koosco.orderservice.api.request.OrderItemRequest
+import com.koosco.orderservice.api.request.RefundOrderItemsRequest
+import com.koosco.orderservice.api.request.ShippingAddressRequest
 import com.koosco.orderservice.application.command.CancelOrderCommand
 import com.koosco.orderservice.application.result.CreateOrderResult
 import com.koosco.orderservice.application.result.OrderDetailResult
@@ -65,7 +70,13 @@ class OrderControllerTest {
                 ),
                 discountAmount = 0L,
                 shippingFee = 0L,
-                shippingAddress = ShippingAddressRequest("홍길동", "010-1234-5678", "12345", "서울시", "101호"),
+                shippingAddress = ShippingAddressRequest(
+                    "홍길동",
+                    "010-1234-5678",
+                    "12345",
+                    "서울시",
+                    "101호",
+                ),
             )
 
             val result = CreateOrderResult(1L, "ORD-TEST", OrderStatus.CREATED, 20000L)

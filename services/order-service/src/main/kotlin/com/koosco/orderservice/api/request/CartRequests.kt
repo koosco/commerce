@@ -1,4 +1,4 @@
-package com.koosco.orderservice.api
+package com.koosco.orderservice.api.request
 
 import com.koosco.orderservice.application.command.AddCartItemCommand
 import com.koosco.orderservice.application.command.UpdateCartItemCommand

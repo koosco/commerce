@@ -1,9 +1,9 @@
 package com.koosco.searchservice.api.controller
 
-import com.koosco.searchservice.api.request.SearchClickRequest
-import com.koosco.searchservice.application.usecase.search.RecordSearchClickUseCase
 import com.koosco.common.core.response.ApiResponse
 import com.koosco.commonsecurity.resolver.AuthId
+import com.koosco.searchservice.api.request.SearchClickRequest
+import com.koosco.searchservice.application.usecase.search.RecordSearchClickUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
