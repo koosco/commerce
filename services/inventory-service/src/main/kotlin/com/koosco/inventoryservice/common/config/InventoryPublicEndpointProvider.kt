@@ -1,21 +1,20 @@
 package com.koosco.inventoryservice.common.config
 
 import com.koosco.commonsecurity.config.PublicEndpointProvider
+import org.springframework.http.HttpMethod
 import org.springframework.stereotype.Component
 
-/**
- * fileName       : PaymentPublicEndpointProvider
- * author         : koo
- * date           : 2025. 12. 24. 오후 7:44
- * description    :
- */
 @Component
 class InventoryPublicEndpointProvider : PublicEndpointProvider {
+    override fun publicEndpointsByMethod(): Map<HttpMethod, Array<String>> = mapOf(
+        HttpMethod.GET to arrayOf("/api/inventories/{skuId}"),
+    )
+
     override fun publicEndpoints(): Array<String> = arrayOf(
-        "/**", // Public product browsing
-        "/actuator/health/**", // Kubernetes health checks
-        "/actuator/info", // Application info
-        "/swagger-ui/**", // API documentation
-        "/v3/api-docs/**", // OpenAPI specs
+        "/api/inventories/bulk",
+        "/actuator/health/**",
+        "/actuator/info",
+        "/swagger-ui/**",
+        "/v3/api-docs/**",
     )
 }

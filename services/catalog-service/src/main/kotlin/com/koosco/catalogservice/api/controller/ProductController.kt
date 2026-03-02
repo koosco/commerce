@@ -148,6 +148,7 @@ class ProductController(
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createProduct(
+        @Parameter(hidden = true) @AuthId userId: Long,
         @Valid @RequestBody request: ProductCreateRequest,
         @RequestHeader("Idempotency-Key", required = false) idempotencyKey: String?,
     ): ApiResponse<ProductDetailResponse> {
@@ -163,6 +164,7 @@ class ProductController(
     )
     @PutMapping("/{productId}")
     fun updateProduct(
+        @Parameter(hidden = true) @AuthId userId: Long,
         @Parameter(description = "Product ID") @PathVariable productId: Long,
         @Valid @RequestBody request: ProductUpdateRequest,
     ): ApiResponse<Any> {
@@ -178,6 +180,7 @@ class ProductController(
     )
     @PatchMapping("/{productId}/status")
     fun changeProductStatus(
+        @Parameter(hidden = true) @AuthId userId: Long,
         @Parameter(description = "Product ID") @PathVariable productId: Long,
         @Valid @RequestBody request: ChangeStatusRequest,
     ): ApiResponse<Any> {
@@ -193,6 +196,7 @@ class ProductController(
     )
     @PostMapping("/{productId}/options")
     fun addProductOption(
+        @Parameter(hidden = true) @AuthId userId: Long,
         @Parameter(description = "Product ID") @PathVariable productId: Long,
         @Valid @RequestBody request: AddOptionRequest,
     ): ApiResponse<ProductDetailResponse> {
@@ -208,6 +212,7 @@ class ProductController(
     )
     @DeleteMapping("/{productId}/options/{optionId}")
     fun removeProductOption(
+        @Parameter(hidden = true) @AuthId userId: Long,
         @Parameter(description = "Product ID") @PathVariable productId: Long,
         @Parameter(description = "Option ID") @PathVariable optionId: Long,
     ): ApiResponse<ProductDetailResponse> {
@@ -225,7 +230,10 @@ class ProductController(
     )
     @DeleteMapping("/{productId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteProduct(@Parameter(description = "Product ID") @PathVariable productId: Long): ApiResponse<Any> {
+    fun deleteProduct(
+        @Parameter(hidden = true) @AuthId userId: Long,
+        @Parameter(description = "Product ID") @PathVariable productId: Long,
+    ): ApiResponse<Any> {
         deleteProductUseCase.execute(DeleteProductCommand(productId = productId))
 
         return ApiResponse.Companion.success()

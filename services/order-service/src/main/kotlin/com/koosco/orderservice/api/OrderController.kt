@@ -79,8 +79,8 @@ class OrderController(
         description = "주문 상세 정보를 조회합니다. 주문 아이템 정보를 포함합니다.",
     )
     @GetMapping("/{orderId}")
-    fun getOrderDetail(@PathVariable orderId: Long): ApiResponse<OrderDetailResponse> {
-        val result = getOrderDetailUseCase.execute(orderId)
+    fun getOrderDetail(@AuthId userId: Long, @PathVariable orderId: Long): ApiResponse<OrderDetailResponse> {
+        val result = getOrderDetailUseCase.execute(orderId, userId)
         return ApiResponse.Companion.success(OrderDetailResponse.Companion.from(result))
     }
 
