@@ -20,6 +20,10 @@ allprojects {
 subprojects {
     apply(plugin = "jacoco")
 
+    val isCi = providers.environmentVariable("CI")
+        .map { it.equals("true", ignoreCase = true) }
+        .orElse(false)
+
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         compilerOptions {
             freeCompilerArgs.addAll("-Xjsr305=strict")
@@ -30,7 +34,9 @@ subprojects {
     tasks.withType<Test> {
         useJUnitPlatform()
         finalizedBy(tasks.withType<JacocoReport>())
-        finalizedBy(tasks.withType<JacocoCoverageVerification>())
+        if (isCi.get()) {
+            finalizedBy(tasks.withType<JacocoCoverageVerification>())
+        }
     }
 
     tasks.withType<JacocoReport> {

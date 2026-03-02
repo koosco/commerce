@@ -28,4 +28,8 @@ enum class OrderErrorCode(override val code: String, override val message: Strin
     ORDER_ALREADY_CANCELED("ORDER-409-002", "이미 취소된 주문입니다.", HttpStatus.CONFLICT),
     PAYMENT_AMOUNT_MISMATCH("ORDER-409-004", "결제 금액이 일치하지 않습니다.", HttpStatus.CONFLICT),
     ORDER_IDEMPOTENCY_CONFLICT("ORDER-409-005", "중복된 주문 요청입니다.", HttpStatus.CONFLICT),
+    STOCK_RESERVATION_FAILED("ORDER-409-006", "재고 예약에 실패했습니다.", HttpStatus.CONFLICT),
+
+    // 503 Service Unavailable
+    INVENTORY_SERVICE_UNAVAILABLE("ORDER-503-001", "재고 서비스에 일시적으로 접근할 수 없습니다.", HttpStatus.SERVICE_UNAVAILABLE),
 }

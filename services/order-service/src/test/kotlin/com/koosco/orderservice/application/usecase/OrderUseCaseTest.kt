@@ -15,6 +15,7 @@ import com.koosco.orderservice.application.command.MarkOrderPaymentCreatedComman
 import com.koosco.orderservice.application.command.MarkOrderPaymentPendingCommand
 import com.koosco.orderservice.application.command.MarkRefundCompletedCommand
 import com.koosco.orderservice.application.command.RefundOrderItemsCommand
+import com.koosco.orderservice.application.port.InventoryReservationPort
 import com.koosco.orderservice.application.port.OrderIdempotencyRepository
 import com.koosco.orderservice.application.port.OrderRepository
 import com.koosco.orderservice.application.port.OrderStatusHistoryRepository
@@ -34,8 +35,10 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.data.domain.PageImpl
@@ -47,6 +50,7 @@ class OrderUseCaseTest {
     private val orderRepository: OrderRepository = mock()
     private val orderStatusHistoryRepository: OrderStatusHistoryRepository = mock()
     private val orderIdempotencyRepository: OrderIdempotencyRepository = mock()
+    private val inventoryReservationPort: InventoryReservationPort = mock()
     private val integrationEventProducer: IntegrationEventProducer = mock()
     private val userBehaviorEventProducer: UserBehaviorEventProducer = mock()
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
@@ -150,6 +154,7 @@ class OrderUseCaseTest {
             orderRepository,
             orderStatusHistoryRepository,
             orderIdempotencyRepository,
+            inventoryReservationPort,
             integrationEventProducer,
             objectMapper,
         )
@@ -165,10 +170,16 @@ class OrderUseCaseTest {
             val result = useCase.execute(command)
 
             assertThat(result.orderId).isEqualTo(1L)
-            assertThat(result.status).isEqualTo(OrderStatus.CREATED)
-            verify(orderRepository).save(any())
-            verify(orderStatusHistoryRepository).save(any())
+            assertThat(result.status).isEqualTo(OrderStatus.PAYMENT_PENDING)
+            verify(orderRepository, times(2)).save(any())
+            verify(orderStatusHistoryRepository, times(3)).save(any())
             verify(orderIdempotencyRepository).save(any())
+
+            val reserveCaptor = argumentCaptor<InventoryReservationPort.ReserveCommand>()
+            verify(inventoryReservationPort).reserve(reserveCaptor.capture())
+            assertThat(reserveCaptor.firstValue.idempotencyKey).isEqualTo("reserve-order-1")
+            assertThat(reserveCaptor.firstValue.correlationId).isEqualTo("1")
+
             verify(integrationEventProducer).publish(any())
         }
 
@@ -200,6 +211,7 @@ class OrderUseCaseTest {
             assertThat(result.orderId).isEqualTo(1L)
             verify(orderIdempotencyRepository, never()).findByUserIdAndIdempotencyKey(any(), any())
             verify(orderIdempotencyRepository, never()).save(any())
+            verify(inventoryReservationPort).reserve(any())
         }
     }
 

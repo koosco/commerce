@@ -19,7 +19,7 @@ import org.springframework.test.context.ActiveProfiles
  *
  * Verifies:
  * - Order is persisted correctly with all fields
- * - Order starts in CREATED status
+ * - Order starts in PAYMENT_PENDING status
  * - Order items are saved correctly
  * - Idempotency key prevents duplicate order creation
  */
@@ -68,7 +68,7 @@ class CreateOrderIntegrationTest : IntegrationTestBase() {
         // then
         assertNotNull(result.orderId)
         assertTrue(result.orderNo.startsWith("ORD-"))
-        assertEquals(OrderStatus.CREATED, result.status)
+        assertEquals(OrderStatus.PAYMENT_PENDING, result.status)
         assertEquals(23000L, result.totalAmount) // 10000 * 2 + 3000 shipping
 
         // verify persistence using GetOrderDetailUseCase (handles transaction scope)

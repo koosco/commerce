@@ -11,6 +11,7 @@ import com.koosco.inventoryservice.domain.exception.NotEnoughStockException
 import com.koosco.inventoryservice.infra.idempotency.IdempotencyChecker
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
@@ -21,6 +22,11 @@ import org.springframework.validation.annotation.Validated
  */
 @Component
 @Validated
+@ConditionalOnProperty(
+    prefix = "inventory.reservation",
+    name = ["mode"],
+    havingValue = "event",
+)
 class KafkaOrderPlacedEventConsumer(
     private val reserveStockUseCase: ReserveStockUseCase,
     private val idempotencyChecker: IdempotencyChecker,

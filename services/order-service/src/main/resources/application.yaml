@@ -67,6 +67,10 @@ jwt:
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800} # 7 days in seconds
 
 order:
+  inventory:
+    base-url: ${ORDER_INVENTORY_BASE_URL:http://localhost:8083}
+    connect-timeout: ${ORDER_INVENTORY_CONNECT_TIMEOUT:2s}
+    read-timeout: ${ORDER_INVENTORY_READ_TIMEOUT:2s}
   topic:
     default: koosco.commerce.order.default
     user-behavior: user-behavior-events

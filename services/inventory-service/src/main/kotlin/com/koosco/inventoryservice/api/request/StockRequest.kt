@@ -1,5 +1,7 @@
 package com.koosco.inventoryservice.api.request
 
+import com.koosco.inventoryservice.application.command.ReserveStockCommand
+
 /**
  * 재고 조회 요청 DTO
  */
@@ -19,4 +21,24 @@ data class BulkAddStockRequest(val items: List<AddingStockInfo>, val idempotency
 data class BulkReduceStockRequest(val items: List<ReducingStockInfo>, val idempotencyKey: String? = null) {
 
     data class ReducingStockInfo(val skuId: String, val quantity: Int)
+}
+
+/**
+ * 내부 주문 시스템의 재고 예약 요청 DTO
+ */
+data class ReserveStockRequest(
+    val orderId: Long,
+    val items: List<ReserveItemInfo>,
+    val idempotencyKey: String? = null,
+    val correlationId: String? = null,
+) {
+    data class ReserveItemInfo(
+        val skuId: String,
+        val quantity: Int,
+    )
+
+    fun toCommand(): ReserveStockCommand = ReserveStockCommand(
+        orderId = orderId,
+        items = items.map { ReserveStockCommand.ReservedSku(it.skuId, it.quantity) },
+    )
 }

@@ -83,6 +83,8 @@ management:
       enabled: true
 
 inventory:
+  reservation:
+    mode: ${INVENTORY_RESERVATION_MODE:sync}
   topic:
     default: koosco.commerce.inventory.default
     mappings:

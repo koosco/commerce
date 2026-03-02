@@ -54,13 +54,14 @@
 
 ### Inventory Service (:8083)
 
-| # | Method | Endpoint                                                  | Description | Auth  |
-|---|--------|-----------------------------------------------------------|-------------|-------|
-| 1 | GET    | [/api/inventories/{skuId}](#get-apiinventoriesskuid)      | 재고 조회       | -     |
-| 2 | POST   | [/api/inventories/bulk](#post-apiinventoriesbulk)         | 대량 재고 조회    | -     |
-| 3 | POST   | [/api/inventories/increase](#post-apiinventoriesincrease) | 대량 재고 추가    | -     |
-| 4 | POST   | [/api/inventories/decrease](#post-apiinventoriesdecrease) | 대량 재고 감소    | -     |
-| 5 | GET    | [/api/inventories/logs](#get-apiinventorieslogs)          | 재고 변경 로그 조회 | ADMIN |
+| # | Method | Endpoint                                                            | Description  | Auth  |
+|---|--------|---------------------------------------------------------------------|--------------|-------|
+| 1 | GET    | [/api/inventories/{skuId}](#get-apiinventoriesskuid)                | 재고 조회        | -     |
+| 2 | POST   | [/api/inventories/bulk](#post-apiinventoriesbulk)                   | 대량 재고 조회     | -     |
+| 3 | POST   | [/internal/inventories/increase](#post-internalinventoriesincrease) | 대량 재고 추가(내부) | -     |
+| 4 | POST   | [/internal/inventories/decrease](#post-internalinventoriesdecrease) | 대량 재고 감소(내부) | -     |
+| 5 | POST   | [/internal/inventories/reserve](#post-internalinventoriesreserve)   | 주문 재고 예약(내부) | -     |
+| 6 | GET    | [/api/inventories/logs](#get-apiinventorieslogs)                    | 재고 변경 로그 조회  | ADMIN |
 
 ### Order Service (:8085)
 
@@ -522,8 +523,8 @@ Cookie에 포함된 Refresh Token으로 Access Token을 재발급합니다.
 
 **Headers**
 
-| Name            | Required | Description                    |
-|-----------------|----------|--------------------------------|
+| Name            | Required | Description                 |
+|-----------------|----------|-----------------------------|
 | Idempotency-Key | No       | 멱등성 키 (네트워크 재시도 시 동일 결과 보장) |
 
 **Response**
@@ -594,8 +595,8 @@ Cookie에 포함된 Refresh Token으로 Access Token을 재발급합니다.
 
 **Headers**
 
-| Name            | Required | Description                    |
-|-----------------|----------|--------------------------------|
+| Name            | Required | Description                 |
+|-----------------|----------|-----------------------------|
 | Idempotency-Key | No       | 멱등성 키 (네트워크 재시도 시 동일 결과 보장) |
 
 **Response**
@@ -614,8 +615,8 @@ Cookie에 포함된 Refresh Token으로 Access Token을 재발급합니다.
 
 **Headers**
 
-| Name            | Required | Description                    |
-|-----------------|----------|--------------------------------|
+| Name            | Required | Description                 |
+|-----------------|----------|-----------------------------|
 | Idempotency-Key | No       | 멱등성 키 (네트워크 재시도 시 동일 결과 보장) |
 
 **Response**
@@ -663,7 +664,7 @@ Cookie에 포함된 Refresh Token으로 Access Token을 재발급합니다.
 
 ---
 
-### POST /api/inventories/increase
+### POST /internal/inventories/increase
 
 대량 재고 추가
 
@@ -683,7 +684,7 @@ Cookie에 포함된 Refresh Token으로 Access Token을 재발급합니다.
 
 ---
 
-### POST /api/inventories/decrease
+### POST /internal/inventories/decrease
 
 대량 재고 감소
 
@@ -698,6 +699,28 @@ Cookie에 포함된 Refresh Token으로 Access Token을 재발급합니다.
     }
   ],
   "idempotencyKey": "string?"
+}
+```
+
+---
+
+### POST /internal/inventories/reserve
+
+주문 재고 예약 (내부 API)
+
+**Request Body**
+
+```json
+{
+  "orderId": "long",
+  "items": [
+    {
+      "skuId": "string",
+      "quantity": "int"
+    }
+  ],
+  "idempotencyKey": "string?",
+  "correlationId": "string?"
 }
 ```
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.koosco.common.core.annotation.UseCase
 import com.koosco.common.core.event.IntegrationEventProducer
 import com.koosco.orderservice.application.command.CreateOrderCommand
+import com.koosco.orderservice.application.port.InventoryReservationPort
 import com.koosco.orderservice.application.port.OrderIdempotencyRepository
 import com.koosco.orderservice.application.port.OrderRepository
 import com.koosco.orderservice.application.port.OrderStatusHistoryRepository
@@ -27,6 +28,7 @@ class CreateOrderUseCase(
     private val orderRepository: OrderRepository,
     private val orderStatusHistoryRepository: OrderStatusHistoryRepository,
     private val orderIdempotencyRepository: OrderIdempotencyRepository,
+    private val inventoryReservationPort: InventoryReservationPort,
     private val integrationEventProducer: IntegrationEventProducer,
     private val objectMapper: ObjectMapper,
 ) {
@@ -110,6 +112,42 @@ class CreateOrderUseCase(
                 orderId = savedOrder.id!!,
                 fromStatus = null,
                 toStatus = OrderStatus.CREATED,
+            ),
+        )
+
+        val reservationIdempotencyKey = "reserve-order-${savedOrder.id}"
+
+        inventoryReservationPort.reserve(
+            InventoryReservationPort.ReserveCommand(
+                orderId = savedOrder.id!!,
+                items = savedOrder.items.map {
+                    InventoryReservationPort.ReserveCommand.ReserveItem(
+                        skuId = it.skuId,
+                        quantity = it.qty,
+                    )
+                },
+                idempotencyKey = reservationIdempotencyKey,
+                correlationId = savedOrder.id.toString(),
+            ),
+        )
+
+        savedOrder.markReserved()
+        orderStatusHistoryRepository.save(
+            OrderStatusHistory.create(
+                orderId = savedOrder.id!!,
+                fromStatus = OrderStatus.CREATED,
+                toStatus = OrderStatus.RESERVED,
+            ),
+        )
+
+        savedOrder.markPaymentPending()
+        orderRepository.save(savedOrder)
+
+        orderStatusHistoryRepository.save(
+            OrderStatusHistory.create(
+                orderId = savedOrder.id!!,
+                fromStatus = OrderStatus.RESERVED,
+                toStatus = OrderStatus.PAYMENT_PENDING,
             ),
         )
 

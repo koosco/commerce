@@ -36,6 +36,7 @@ class InventoryApiIdempotency(
     companion object {
         const val ADD_STOCK = "ADD_STOCK"
         const val DECREASE_STOCK = "DECREASE_STOCK"
+        const val RESERVE_STOCK = "RESERVE_STOCK"
 
         fun create(idempotencyKey: String, operationType: String) = InventoryApiIdempotency(
             idempotencyKey = idempotencyKey,

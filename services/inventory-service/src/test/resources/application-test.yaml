@@ -25,6 +25,8 @@ spring:
       enable-auto-commit: false
 
 inventory:
+  reservation:
+    mode: event
   topic:
     default: koosco.commerce.inventory.default
     mappings:

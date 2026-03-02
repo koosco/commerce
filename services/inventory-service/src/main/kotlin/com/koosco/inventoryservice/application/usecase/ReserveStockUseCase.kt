@@ -23,7 +23,7 @@ class ReserveStockUseCase(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    fun execute(command: ReserveStockCommand, context: MessageContext) {
+    fun execute(command: ReserveStockCommand, context: MessageContext, publishEvents: Boolean = true) {
         try {
             inventoryStockStore.reserve(
                 orderId = command.orderId,
@@ -35,10 +35,14 @@ class ReserveStockUseCase(
                 },
             )
         } catch (e: NotFoundException) {
-            publishFailed(command, context, StockReservationFailReason.SKU_NOT_FOUND)
+            if (publishEvents) {
+                publishFailed(command, context, StockReservationFailReason.SKU_NOT_FOUND)
+            }
             throw e
         } catch (e: NotEnoughStockException) {
-            publishFailed(command, context, StockReservationFailReason.NOT_ENOUGH_STOCK)
+            if (publishEvents) {
+                publishFailed(command, context, StockReservationFailReason.NOT_ENOUGH_STOCK)
+            }
             throw e
         }
 
@@ -53,16 +57,18 @@ class ReserveStockUseCase(
             },
         )
 
-        integrationEventProducer.publish(
-            StockReservedEvent(
-                orderId = command.orderId,
-                items = command.items.map {
-                    StockReservedEvent.Item(it.skuId, it.quantity)
-                },
-                correlationId = context.correlationId,
-                causationId = context.causationId,
-            ),
-        )
+        if (publishEvents) {
+            integrationEventProducer.publish(
+                StockReservedEvent(
+                    orderId = command.orderId,
+                    items = command.items.map {
+                        StockReservedEvent.Item(it.skuId, it.quantity)
+                    },
+                    correlationId = context.correlationId,
+                    causationId = context.causationId,
+                ),
+            )
+        }
 
         logger.info(
             "Stock reserved successfully. orderId={}, items={}",
