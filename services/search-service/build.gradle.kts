@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm")
     kotlin("plugin.spring")
+    kotlin("plugin.jpa")
     id("org.springframework.boot")
     id("io.spring.dependency-management")
     id("com.diffplug.spotless")
@@ -20,6 +21,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.kafka:spring-kafka")
+    runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     // common
