@@ -93,6 +93,7 @@ class ProductUseCaseTest {
             val useCase = CreateProductUseCase(
                 productRepository,
                 categoryRepository,
+                brandRepository,
                 skuGenerator,
                 productValidator,
                 integrationEventProducer,
@@ -131,6 +132,7 @@ class ProductUseCaseTest {
             val useCase = CreateProductUseCase(
                 productRepository,
                 categoryRepository,
+                brandRepository,
                 skuGenerator,
                 productValidator,
                 integrationEventProducer,
@@ -156,6 +158,7 @@ class ProductUseCaseTest {
             val useCase = CreateProductUseCase(
                 productRepository,
                 categoryRepository,
+                brandRepository,
                 skuGenerator,
                 productValidator,
                 integrationEventProducer,
@@ -180,6 +183,7 @@ class ProductUseCaseTest {
             val useCase = CreateProductUseCase(
                 productRepository,
                 categoryRepository,
+                brandRepository,
                 skuGenerator,
                 productValidator,
                 integrationEventProducer,
@@ -225,6 +229,7 @@ class ProductUseCaseTest {
             val useCase = CreateProductUseCase(
                 productRepository,
                 categoryRepository,
+                brandRepository,
                 skuGenerator,
                 productValidator,
                 integrationEventProducer,
@@ -457,20 +462,24 @@ class ProductUseCaseTest {
 
         @Test
         fun `상품을 수정한다`() {
-            val useCase = UpdateProductUseCase(productRepository)
+            val useCase =
+                UpdateProductUseCase(productRepository, categoryRepository, brandRepository, integrationEventProducer)
             val product = createProduct()
             val command = UpdateProductCommand(1L, "변경된 이름", null, null, null, null, null)
 
             whenever(productRepository.findOrNull(1L)).thenReturn(product)
+            doNothing().whenever(integrationEventProducer).publish(any())
 
             useCase.execute(command)
 
             assertThat(product.name).isEqualTo("변경된 이름")
+            verify(integrationEventProducer).publish(any())
         }
 
         @Test
         fun `상품이 없으면 예외를 던진다`() {
-            val useCase = UpdateProductUseCase(productRepository)
+            val useCase =
+                UpdateProductUseCase(productRepository, categoryRepository, brandRepository, integrationEventProducer)
             val command = UpdateProductCommand(1L, "변경", null, null, null, null, null)
 
             whenever(productRepository.findOrNull(1L)).thenReturn(null)
@@ -486,19 +495,21 @@ class ProductUseCaseTest {
 
         @Test
         fun `상품을 삭제한다`() {
-            val useCase = DeleteProductUseCase(productRepository)
+            val useCase = DeleteProductUseCase(productRepository, integrationEventProducer)
             val product = createProduct(status = ProductStatus.ACTIVE)
 
             whenever(productRepository.findOrNull(1L)).thenReturn(product)
+            doNothing().whenever(integrationEventProducer).publish(any())
 
             useCase.execute(DeleteProductCommand(1L))
 
             assertThat(product.status).isEqualTo(ProductStatus.DELETED)
+            verify(integrationEventProducer).publish(any())
         }
 
         @Test
         fun `상품이 없으면 예외를 던진다`() {
-            val useCase = DeleteProductUseCase(productRepository)
+            val useCase = DeleteProductUseCase(productRepository, integrationEventProducer)
 
             whenever(productRepository.findOrNull(1L)).thenReturn(null)
 
@@ -513,7 +524,13 @@ class ProductUseCaseTest {
 
         @Test
         fun `상태를 변경한다`() {
-            val useCase = ChangeProductStatusUseCase(productRepository, integrationEventProducer)
+            val useCase =
+                ChangeProductStatusUseCase(
+                    productRepository,
+                    categoryRepository,
+                    brandRepository,
+                    integrationEventProducer,
+                )
             val product = createProduct(status = ProductStatus.ACTIVE)
 
             whenever(productRepository.findOrNull(1L)).thenReturn(product)
@@ -526,7 +543,13 @@ class ProductUseCaseTest {
 
         @Test
         fun `상품이 없으면 예외를 던진다`() {
-            val useCase = ChangeProductStatusUseCase(productRepository, integrationEventProducer)
+            val useCase =
+                ChangeProductStatusUseCase(
+                    productRepository,
+                    categoryRepository,
+                    brandRepository,
+                    integrationEventProducer,
+                )
 
             whenever(productRepository.findOrNull(1L)).thenReturn(null)
 
@@ -536,7 +559,13 @@ class ProductUseCaseTest {
 
         @Test
         fun `잘못된 상태 전이이면 BadRequestException을 던진다`() {
-            val useCase = ChangeProductStatusUseCase(productRepository, integrationEventProducer)
+            val useCase =
+                ChangeProductStatusUseCase(
+                    productRepository,
+                    categoryRepository,
+                    brandRepository,
+                    integrationEventProducer,
+                )
             val product = createProduct(status = ProductStatus.DELETED)
 
             whenever(productRepository.findOrNull(1L)).thenReturn(product)

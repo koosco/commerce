@@ -1,11 +1,13 @@
 package com.koosco.catalogservice.application.usecase.product
 
 import com.koosco.catalogservice.application.command.CreateProductCommand
+import com.koosco.catalogservice.application.port.BrandRepository
 import com.koosco.catalogservice.application.port.CatalogIdempotencyRepository
 import com.koosco.catalogservice.application.port.CategoryRepository
 import com.koosco.catalogservice.application.port.ProductRepository
 import com.koosco.catalogservice.application.result.ProductInfo
 import com.koosco.catalogservice.common.error.CatalogErrorCode
+import com.koosco.catalogservice.contract.outbound.ProductChangedEvent
 import com.koosco.catalogservice.contract.outbound.ProductSkuCreatedEvent
 import com.koosco.catalogservice.domain.entity.CatalogIdempotency
 import com.koosco.catalogservice.domain.entity.Product
@@ -24,6 +26,7 @@ import java.time.LocalDateTime
 class CreateProductUseCase(
     private val productRepository: ProductRepository,
     private val categoryRepository: CategoryRepository,
+    private val brandRepository: BrandRepository,
     private val skuGenerator: SkuGenerator,
     private val productValidator: ProductValidator,
     private val integrationEventProducer: IntegrationEventProducer,
@@ -105,6 +108,30 @@ class CreateProductUseCase(
                 ),
             )
         }
+
+        // 상품 변경 이벤트 발행 (search-service 동기화용)
+        val category = command.categoryId?.let { categoryRepository.findByIdOrNull(it) }
+        val brand = command.brandId?.let { brandRepository.findOrNull(it) }
+        integrationEventProducer.publish(
+            ProductChangedEvent(
+                productId = savedProduct.id!!,
+                name = savedProduct.name,
+                description = savedProduct.description,
+                price = savedProduct.price,
+                sellingPrice = savedProduct.calculateSellingPrice(),
+                categoryId = savedProduct.categoryId,
+                categoryName = category?.name,
+                brandId = savedProduct.brandId,
+                brandName = brand?.name,
+                thumbnailImageUrl = savedProduct.thumbnailImageUrl,
+                status = savedProduct.status.name,
+                averageRating = savedProduct.averageRating,
+                reviewCount = savedProduct.reviewCount,
+                salesCount = savedProduct.salesCount,
+                viewCount = savedProduct.viewCount,
+                likeCount = savedProduct.likeCount,
+            ),
+        )
 
         if (idempotencyKey != null) {
             catalogIdempotencyRepository.save(
