@@ -139,22 +139,13 @@ class CreateOrderUseCase(
             ),
         )
 
-        savedOrder.markReserved()
-        orderStatusHistoryRepository.save(
-            OrderStatusHistory.create(
-                orderId = savedOrder.id!!,
-                fromStatus = OrderStatus.CREATED,
-                toStatus = OrderStatus.RESERVED,
-            ),
-        )
-
         savedOrder.markPaymentPending()
         orderRepository.save(savedOrder)
 
         orderStatusHistoryRepository.save(
             OrderStatusHistory.create(
                 orderId = savedOrder.id!!,
-                fromStatus = OrderStatus.RESERVED,
+                fromStatus = OrderStatus.CREATED,
                 toStatus = OrderStatus.PAYMENT_PENDING,
             ),
         )

@@ -13,7 +13,6 @@ import com.koosco.orderservice.application.command.MarkOrderConfirmedCommand
 import com.koosco.orderservice.application.command.MarkOrderFailedCommand
 import com.koosco.orderservice.application.command.MarkOrderPaidCommand
 import com.koosco.orderservice.application.command.MarkOrderPaymentCreatedCommand
-import com.koosco.orderservice.application.command.MarkOrderPaymentPendingCommand
 import com.koosco.orderservice.application.command.MarkRefundCompletedCommand
 import com.koosco.orderservice.application.command.RefundOrderItemsCommand
 import com.koosco.orderservice.application.port.CatalogQueryPort
@@ -96,22 +95,18 @@ class OrderUseCaseTest {
                 order.markPaymentCreated()
             }
             OrderStatus.PAYMENT_PENDING -> {
-                order.markReserved()
                 order.markPaymentPending()
             }
             OrderStatus.PAID -> {
-                order.markReserved()
                 order.markPaymentPending()
                 order.markPaid(amount.total)
             }
             OrderStatus.CONFIRMED -> {
-                order.markReserved()
                 order.markPaymentPending()
                 order.markPaid(amount.total)
                 order.confirmStock()
             }
             OrderStatus.CANCELLED -> {
-                order.markReserved()
                 order.markPaymentPending()
                 order.cancel(OrderCancelReason.USER_REQUEST)
             }
@@ -192,7 +187,7 @@ class OrderUseCaseTest {
             assertThat(result.orderId).isEqualTo(1L)
             assertThat(result.status).isEqualTo(OrderStatus.PAYMENT_PENDING)
             verify(orderRepository, times(2)).save(any())
-            verify(orderStatusHistoryRepository, times(3)).save(any())
+            verify(orderStatusHistoryRepository, times(2)).save(any())
             verify(orderIdempotencyRepository).save(any())
 
             val reserveCaptor = argumentCaptor<InventoryReservationPort.ReserveCommand>()
@@ -440,70 +435,6 @@ class OrderUseCaseTest {
 
             val command = MarkOrderPaymentCreatedCommand(999L, "pay-123")
             assertThatThrownBy { useCase.execute(command, messageContext) }
-                .isInstanceOf(NotFoundException::class.java)
-        }
-    }
-
-    @Nested
-    @DisplayName("MarkOrderPaymentPendingUseCase")
-    inner class MarkOrderPaymentPendingUseCaseTest {
-
-        private val useCase = MarkOrderPaymentPendingUseCase(
-            orderRepository,
-            orderStatusHistoryRepository,
-        )
-
-        @Test
-        fun `RESERVED 상태에서 PAYMENT_PENDING으로 전이 성공`() {
-            val order = createTestOrder(id = 1L, status = OrderStatus.RESERVED)
-            whenever(orderRepository.findById(1L)).thenReturn(order)
-            whenever(orderRepository.save(any())).thenReturn(order)
-
-            val command = MarkOrderPaymentPendingCommand(1L)
-            useCase.execute(command)
-
-            assertThat(order.status).isEqualTo(OrderStatus.PAYMENT_PENDING)
-        }
-
-        @Test
-        fun `CREATED 상태에서 먼저 RESERVED로 전이 후 PAYMENT_PENDING으로 전이한다`() {
-            val order = createTestOrder(id = 1L, status = OrderStatus.CREATED)
-            whenever(orderRepository.findById(1L)).thenReturn(order)
-            whenever(orderRepository.save(any())).thenReturn(order)
-
-            val command = MarkOrderPaymentPendingCommand(1L)
-            useCase.execute(command)
-
-            assertThat(order.status).isEqualTo(OrderStatus.PAYMENT_PENDING)
-        }
-
-        @Test
-        fun `이미 PAYMENT_PENDING이면 무시한다`() {
-            val order = createTestOrder(id = 1L, status = OrderStatus.PAYMENT_PENDING)
-            whenever(orderRepository.findById(1L)).thenReturn(order)
-
-            val command = MarkOrderPaymentPendingCommand(1L)
-            useCase.execute(command)
-
-            verify(orderRepository, never()).save(any())
-        }
-
-        @Test
-        fun `PAID 상태에서 호출 시 예외가 발생한다`() {
-            val order = createTestOrder(id = 1L, status = OrderStatus.PAID)
-            whenever(orderRepository.findById(1L)).thenReturn(order)
-
-            val command = MarkOrderPaymentPendingCommand(1L)
-            assertThatThrownBy { useCase.execute(command) }
-                .isInstanceOf(InvalidOrderStatus::class.java)
-        }
-
-        @Test
-        fun `주문이 존재하지 않으면 예외가 발생한다`() {
-            whenever(orderRepository.findById(999L)).thenReturn(null)
-
-            val command = MarkOrderPaymentPendingCommand(999L)
-            assertThatThrownBy { useCase.execute(command) }
                 .isInstanceOf(NotFoundException::class.java)
         }
     }
