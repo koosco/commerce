@@ -21,8 +21,14 @@ enum class InventoryErrorCode(
     PRODUCT_NOT_FOUND("INVENTORY-404-001", "상품을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     INVENTORY_NOT_FOUND("INVENTORY-404-002", "재고 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
+    // 404 Not Found - Flash Sale
+    RESERVATION_NOT_FOUND("INVENTORY-404-003", "예약 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    FLASH_SALE_NOT_FOUND("INVENTORY-404-004", "Flash Sale을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
     // 409 Conflict
     NOT_ENOUGH_STOCK("INVENTORY-409-001", "재고가 부족합니다.", HttpStatus.CONFLICT),
     OUT_OF_STOCK("INVENTORY-409-002", "재고가 없습니다.", HttpStatus.CONFLICT),
     INVENTORY_ALREADY_EXISTS("INVENTORY-409-003", "이미 존재하는 재고 정보입니다.", HttpStatus.CONFLICT),
+    RESERVATION_ALREADY_CONFIRMED("INVENTORY-409-004", "이미 확정된 예약입니다.", HttpStatus.CONFLICT),
+    RESERVATION_EXPIRED("INVENTORY-409-005", "만료된 예약입니다.", HttpStatus.CONFLICT),
 }
