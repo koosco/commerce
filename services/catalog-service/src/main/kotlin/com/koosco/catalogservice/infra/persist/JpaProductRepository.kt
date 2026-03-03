@@ -17,4 +17,7 @@ interface JpaProductRepository : JpaRepository<Product, Long> {
 
     @Query("SELECT p FROM Product p JOIN p.skus s WHERE s.skuId = :skuId")
     fun findBySkuId(@Param("skuId") skuId: String): Product?
+
+    @Query("SELECT p FROM Product p JOIN FETCH p.skus s WHERE s.id = :skuPkId")
+    fun findBySkuPkId(@Param("skuPkId") skuPkId: Long): Product?
 }

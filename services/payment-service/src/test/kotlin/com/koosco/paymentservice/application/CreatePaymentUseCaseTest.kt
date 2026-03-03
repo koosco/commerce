@@ -1,13 +1,17 @@
 package com.koosco.paymentservice.application
 
 import com.koosco.common.core.event.IntegrationEventProducer
+import com.koosco.common.core.exception.BadRequestException
+import com.koosco.common.core.exception.NotFoundException
 import com.koosco.common.core.messaging.MessageContext
 import com.koosco.paymentservice.application.command.CreatePaymentCommand
+import com.koosco.paymentservice.application.port.OrderQueryPort
 import com.koosco.paymentservice.application.port.PaymentRepository
 import com.koosco.paymentservice.application.usecase.CreatePaymentUseCase
 import com.koosco.paymentservice.contract.outbound.payment.PaymentCreatedEvent
 import com.koosco.paymentservice.domain.entity.Payment
 import com.koosco.paymentservice.domain.vo.Money
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -31,11 +35,21 @@ class CreatePaymentUseCaseTest {
     @Mock
     private lateinit var integrationEventProducer: IntegrationEventProducer
 
+    @Mock
+    private lateinit var orderQueryPort: OrderQueryPort
+
     @InjectMocks
     private lateinit var createPaymentUseCase: CreatePaymentUseCase
 
     private val command = CreatePaymentCommand(orderId = 1L, userId = 100L, amount = 50000L)
     private val context = MessageContext(correlationId = "corr-1", causationId = "cause-1")
+
+    private val validOrderInfo = OrderQueryPort.OrderInfo(
+        orderId = 1L,
+        status = "PAYMENT_PENDING",
+        totalAmount = 50000L,
+        userId = 100L,
+    )
 
     @Nested
     @DisplayName("결제 생성 성공")
@@ -44,6 +58,7 @@ class CreatePaymentUseCaseTest {
         @Test
         fun `새로운 주문에 대해 결제를 생성하고 이벤트를 발행한다`() {
             whenever(paymentRepository.existsByOrderId(1L)).thenReturn(false)
+            whenever(orderQueryPort.getOrder(1L)).thenReturn(validOrderInfo)
             val savedPayment = Payment(orderId = 1L, userId = 100L, amount = Money(50000L))
             whenever(paymentRepository.save(any())).thenReturn(savedPayment)
 
@@ -72,6 +87,57 @@ class CreatePaymentUseCaseTest {
 
             verify(paymentRepository, never()).save(any())
             verify(integrationEventProducer, never()).publish(any())
+        }
+    }
+
+    @Nested
+    @DisplayName("주문 검증 실패")
+    inner class OrderValidation {
+
+        @Test
+        fun `주문 정보를 찾을 수 없으면 NotFoundException이 발생한다`() {
+            whenever(paymentRepository.existsByOrderId(1L)).thenReturn(false)
+            whenever(orderQueryPort.getOrder(1L)).thenReturn(null)
+
+            assertThatThrownBy {
+                createPaymentUseCase.execute(command, context)
+            }.isInstanceOf(NotFoundException::class.java)
+        }
+
+        @Test
+        fun `주문 상태가 PAYMENT_PENDING이 아니면 BadRequestException이 발생한다`() {
+            whenever(paymentRepository.existsByOrderId(1L)).thenReturn(false)
+            whenever(orderQueryPort.getOrder(1L)).thenReturn(
+                validOrderInfo.copy(status = "CREATED"),
+            )
+
+            assertThatThrownBy {
+                createPaymentUseCase.execute(command, context)
+            }.isInstanceOf(BadRequestException::class.java)
+        }
+
+        @Test
+        fun `주문 금액과 결제 금액이 불일치하면 BadRequestException이 발생한다`() {
+            whenever(paymentRepository.existsByOrderId(1L)).thenReturn(false)
+            whenever(orderQueryPort.getOrder(1L)).thenReturn(
+                validOrderInfo.copy(totalAmount = 99999L),
+            )
+
+            assertThatThrownBy {
+                createPaymentUseCase.execute(command, context)
+            }.isInstanceOf(BadRequestException::class.java)
+        }
+
+        @Test
+        fun `주문자와 결제 요청자가 불일치하면 BadRequestException이 발생한다`() {
+            whenever(paymentRepository.existsByOrderId(1L)).thenReturn(false)
+            whenever(orderQueryPort.getOrder(1L)).thenReturn(
+                validOrderInfo.copy(userId = 999L),
+            )
+
+            assertThatThrownBy {
+                createPaymentUseCase.execute(command, context)
+            }.isInstanceOf(BadRequestException::class.java)
         }
     }
 }

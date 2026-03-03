@@ -12,6 +12,7 @@ import com.koosco.catalogservice.application.result.ProductInfo.ProductOptionInf
 import com.koosco.catalogservice.application.result.PromotionInfo
 import com.koosco.catalogservice.application.result.PromotionPriceInfo
 import com.koosco.catalogservice.application.result.ReviewResult
+import com.koosco.catalogservice.application.result.SkuResult
 import com.koosco.catalogservice.application.result.SnapResult
 import com.koosco.catalogservice.domain.entity.Product
 import com.koosco.catalogservice.domain.entity.ProductOption
@@ -313,7 +314,7 @@ class ResponseMappingTest {
     inner class SkuResponseTest {
 
         @Test
-        fun `ProductSku에서 매핑한다`() {
+        fun `SkuResult에서 매핑한다`() {
             val product = Product(
                 id = 1L,
                 productCode = "TEST-001",
@@ -330,7 +331,8 @@ class ResponseMappingTest {
                 status = SkuStatus.ACTIVE,
             )
 
-            val response = SkuResponse.from(sku)
+            val skuResult = SkuResult(sku = sku, available = true)
+            val response = SkuResponse.from(skuResult)
 
             assertThat(response.skuId).isEqualTo("SKU-001")
             assertThat(response.productId).isEqualTo(1L)

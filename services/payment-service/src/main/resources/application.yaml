@@ -46,6 +46,13 @@ resilience4j:
         permittedNumberOfCallsInHalfOpenState: 2
         slidingWindowType: COUNT_BASED
         registerHealthIndicator: true
+      order-api:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowType: COUNT_BASED
+        registerHealthIndicator: true
 
 management:
   endpoints:
@@ -73,6 +80,10 @@ payment:
   client:
     connect-timeout: 5s
     read-timeout: 5s
+  order:
+    base-url: ${PAYMENT_ORDER_BASE_URL:http://localhost:8085}
+    connect-timeout: ${PAYMENT_ORDER_CONNECT_TIMEOUT:2s}
+    read-timeout: ${PAYMENT_ORDER_READ_TIMEOUT:2s}
   topic:
     default: koosco.commerce.integration.order
     mappings:

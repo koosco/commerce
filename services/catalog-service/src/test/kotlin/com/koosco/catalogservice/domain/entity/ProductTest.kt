@@ -58,15 +58,6 @@ class ProductTest {
         }
 
         @Test
-        fun `ACTIVE에서 OUT_OF_STOCK으로 전환할 수 있다`() {
-            val product = createProduct(status = ProductStatus.ACTIVE)
-
-            product.changeStatus(ProductStatus.OUT_OF_STOCK)
-
-            assertThat(product.status).isEqualTo(ProductStatus.OUT_OF_STOCK)
-        }
-
-        @Test
         fun `ACTIVE에서 DELETED로 전환할 수 있다`() {
             val product = createProduct(status = ProductStatus.ACTIVE)
 
@@ -78,16 +69,6 @@ class ProductTest {
         @Test
         fun `SUSPENDED에서 ACTIVE로 전환할 수 있다`() {
             val product = createProduct(status = ProductStatus.SUSPENDED)
-            product.skus.add(createSku(product))
-
-            product.changeStatus(ProductStatus.ACTIVE)
-
-            assertThat(product.status).isEqualTo(ProductStatus.ACTIVE)
-        }
-
-        @Test
-        fun `OUT_OF_STOCK에서 ACTIVE로 전환할 수 있다`() {
-            val product = createProduct(status = ProductStatus.OUT_OF_STOCK)
             product.skus.add(createSku(product))
 
             product.changeStatus(ProductStatus.ACTIVE)

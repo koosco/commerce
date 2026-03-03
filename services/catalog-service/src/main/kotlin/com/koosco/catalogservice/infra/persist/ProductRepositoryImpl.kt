@@ -26,5 +26,7 @@ class ProductRepositoryImpl(
 
     override fun findBySkuId(skuId: String): Product? = jpaProductRepository.findBySkuId(skuId)
 
+    override fun findBySkuPkId(skuPkId: Long): Product? = jpaProductRepository.findBySkuPkId(skuPkId)
+
     override fun search(command: GetProductListCommand): Page<Product> = productQuery.search(command)
 }

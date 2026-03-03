@@ -23,6 +23,7 @@ data class ProductInfo(
     val orderCount: Long = 0,
     val salesCount: Long = 0,
     val likeCount: Long = 0,
+    val available: Boolean = true,
     val optionGroups: List<ProductOptionGroupInfo> = emptyList(),
 ) {
     data class ProductOptionGroupInfo(
@@ -53,7 +54,12 @@ data class ProductInfo(
     }
 
     companion object {
-        fun from(product: Product, brandName: String? = null, promotionDiscountPrice: Long? = null): ProductInfo {
+        fun from(
+            product: Product,
+            brandName: String? = null,
+            promotionDiscountPrice: Long? = null,
+            available: Boolean = true,
+        ): ProductInfo {
             val sellingPrice = promotionDiscountPrice
                 ?: product.calculateSellingPrice()
             val discountRate = if (promotionDiscountPrice != null && product.price > 0) {
@@ -80,6 +86,7 @@ data class ProductInfo(
                 orderCount = product.orderCount,
                 salesCount = product.salesCount,
                 likeCount = product.likeCount,
+                available = available,
                 optionGroups = product.optionGroups.map { ProductOptionGroupInfo.from(it) },
             )
         }

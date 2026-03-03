@@ -46,6 +46,9 @@ dependencies {
     implementation(project(":common:common-security"))
     implementation(project(":common:common-observability"))
 
+    // resilience4j
+    implementation("io.github.resilience4j:resilience4j-spring-boot3:2.2.0")
+
     // kafka
     implementation("org.springframework.kafka:spring-kafka")
     testImplementation("org.springframework.kafka:spring-kafka-test")
