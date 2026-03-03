@@ -23,11 +23,6 @@ class ProductStatusTest {
         }
 
         @Test
-        fun `DRAFT에서 OUT_OF_STOCK으로 전환 불가능하다`() {
-            assertThat(ProductStatus.DRAFT.canTransitionTo(ProductStatus.OUT_OF_STOCK)).isFalse()
-        }
-
-        @Test
         fun `DRAFT에서 DELETED로 전환 불가능하다`() {
             assertThat(ProductStatus.DRAFT.canTransitionTo(ProductStatus.DELETED)).isFalse()
         }
@@ -35,11 +30,6 @@ class ProductStatusTest {
         @Test
         fun `ACTIVE에서 SUSPENDED로 전환 가능하다`() {
             assertThat(ProductStatus.ACTIVE.canTransitionTo(ProductStatus.SUSPENDED)).isTrue()
-        }
-
-        @Test
-        fun `ACTIVE에서 OUT_OF_STOCK으로 전환 가능하다`() {
-            assertThat(ProductStatus.ACTIVE.canTransitionTo(ProductStatus.OUT_OF_STOCK)).isTrue()
         }
 
         @Test
@@ -60,26 +50,6 @@ class ProductStatusTest {
         @Test
         fun `SUSPENDED에서 DELETED로 전환 가능하다`() {
             assertThat(ProductStatus.SUSPENDED.canTransitionTo(ProductStatus.DELETED)).isTrue()
-        }
-
-        @Test
-        fun `SUSPENDED에서 OUT_OF_STOCK으로 전환 불가능하다`() {
-            assertThat(ProductStatus.SUSPENDED.canTransitionTo(ProductStatus.OUT_OF_STOCK)).isFalse()
-        }
-
-        @Test
-        fun `OUT_OF_STOCK에서 ACTIVE로 전환 가능하다`() {
-            assertThat(ProductStatus.OUT_OF_STOCK.canTransitionTo(ProductStatus.ACTIVE)).isTrue()
-        }
-
-        @Test
-        fun `OUT_OF_STOCK에서 DELETED로 전환 가능하다`() {
-            assertThat(ProductStatus.OUT_OF_STOCK.canTransitionTo(ProductStatus.DELETED)).isTrue()
-        }
-
-        @Test
-        fun `OUT_OF_STOCK에서 SUSPENDED로 전환 불가능하다`() {
-            assertThat(ProductStatus.OUT_OF_STOCK.canTransitionTo(ProductStatus.SUSPENDED)).isFalse()
         }
 
         @Test

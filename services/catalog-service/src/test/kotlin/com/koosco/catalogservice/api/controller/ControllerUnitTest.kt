@@ -27,6 +27,7 @@ import com.koosco.catalogservice.application.result.ProductInfo
 import com.koosco.catalogservice.application.result.PromotionInfo
 import com.koosco.catalogservice.application.result.PromotionPriceInfo
 import com.koosco.catalogservice.application.result.ReviewResult
+import com.koosco.catalogservice.application.result.SkuResult
 import com.koosco.catalogservice.application.result.SnapResult
 import com.koosco.catalogservice.application.usecase.brand.AddProductOptionUseCase
 import com.koosco.catalogservice.application.usecase.brand.CreateBrandUseCase
@@ -385,7 +386,7 @@ class ControllerUnitTest {
                 optionValues = """{"색상":"빨강"}""",
                 status = SkuStatus.ACTIVE,
             )
-            whenever(findSkuUseCase.execute(any())).thenReturn(sku)
+            whenever(findSkuUseCase.execute(any())).thenReturn(SkuResult(sku = sku, available = true))
 
             val response = controller().findSku(1L, mapOf("색상" to "빨강"))
 

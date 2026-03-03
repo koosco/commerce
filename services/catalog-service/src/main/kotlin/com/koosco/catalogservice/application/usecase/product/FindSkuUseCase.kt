@@ -1,17 +1,21 @@
 package com.koosco.catalogservice.application.usecase.product
 
 import com.koosco.catalogservice.application.command.FindSkuCommand
+import com.koosco.catalogservice.application.port.InventoryQueryPort
 import com.koosco.catalogservice.application.port.ProductRepository
-import com.koosco.catalogservice.domain.entity.ProductSku
+import com.koosco.catalogservice.application.result.SkuResult
 import com.koosco.catalogservice.domain.vo.ProductOptions
 import com.koosco.common.core.annotation.UseCase
 import org.springframework.transaction.annotation.Transactional
 
 @UseCase
-class FindSkuUseCase(private val productRepository: ProductRepository) {
+class FindSkuUseCase(
+    private val productRepository: ProductRepository,
+    private val inventoryQueryPort: InventoryQueryPort,
+) {
 
     @Transactional(readOnly = true)
-    fun execute(command: FindSkuCommand): ProductSku {
+    fun execute(command: FindSkuCommand): SkuResult {
         // Product 조회 (SKU도 함께)
         val product = productRepository.findOrNull(command.productId)
             ?: throw IllegalArgumentException("Product not found: ${command.productId}")
@@ -30,6 +34,10 @@ class FindSkuUseCase(private val productRepository: ProductRepository) {
                 }}",
         )
 
-        return sku
+        // 실시간 재고 조회
+        val availability = inventoryQueryPort.getAvailability(listOf(sku.skuId))
+        val available = availability[sku.skuId] ?: true
+
+        return SkuResult(sku = sku, available = available)
     }
 }

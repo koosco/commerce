@@ -3,6 +3,7 @@ package com.koosco.catalogservice.application.usecase.product
 import com.koosco.catalogservice.application.command.GetProductListCommand
 import com.koosco.catalogservice.application.port.BrandRepository
 import com.koosco.catalogservice.application.port.CategoryRepository
+import com.koosco.catalogservice.application.port.InventoryQueryPort
 import com.koosco.catalogservice.application.port.ProductRepository
 import com.koosco.catalogservice.application.port.PromotionRepository
 import com.koosco.catalogservice.application.port.UserBehaviorEventProducer
@@ -14,7 +15,6 @@ import com.koosco.common.core.event.UserBehaviorEvent
 import org.springframework.data.domain.Page
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import kotlin.collections.get
 
 @UseCase
 class GetProductListUseCase(
@@ -23,6 +23,7 @@ class GetProductListUseCase(
     private val categoryRepository: CategoryRepository,
     private val promotionRepository: PromotionRepository,
     private val userBehaviorEventProducer: UserBehaviorEventProducer,
+    private val inventoryQueryPort: InventoryQueryPort,
 ) {
 
     @Transactional(readOnly = true)
@@ -50,12 +51,23 @@ class GetProductListUseCase(
             emptyMap()
         }
 
+        // 실시간 재고 조회 (모든 상품의 SKU를 한 번에 조회)
+        val allSkuIds = page.content.flatMap { product -> product.skus.map { it.skuId } }
+        val availability = if (allSkuIds.isNotEmpty()) {
+            inventoryQueryPort.getAvailability(allSkuIds)
+        } else {
+            emptyMap()
+        }
+
         publishSearchEvent(command)
 
         return page.map { product ->
             val activePromotions = promotionMap[product.id] ?: emptyList()
             val discountPrice = PromotionPriceResolver.resolve(activePromotions)
-            ProductInfo.from(product, brandMap[product.brandId]?.name, discountPrice)
+            val productSkuIds = product.skus.map { it.skuId }
+            val hasAvailableStock = productSkuIds.isEmpty() ||
+                productSkuIds.any { skuId -> availability[skuId] ?: true }
+            ProductInfo.from(product, brandMap[product.brandId]?.name, discountPrice, hasAvailableStock)
         }
     }
 

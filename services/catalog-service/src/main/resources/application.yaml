@@ -68,6 +68,10 @@ jwt:
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800} # 7 days in seconds
 
 catalog:
+  inventory:
+    base-url: ${INVENTORY_SERVICE_URL:http://localhost:8083}
+    connect-timeout: 2s
+    read-timeout: 2s
   topic:
     default: koosco.commerce.catalog.default
     user-behavior: user-behavior-events
@@ -78,8 +82,6 @@ catalog:
       "product.deleted": koosco.commerce.product.default
       "promotion.activated": koosco.commerce.product.default
     consumer:
-      inventory:
-        stock: koosco.commerce.inventory.stock
       order:
         confirmed: koosco.commerce.order.confirmed
         cancelled: koosco.commerce.order.cancelled
@@ -107,6 +109,16 @@ common:
     servers:
       - url: http://localhost:8084
         description: Local development
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      inventory-availability:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-type: COUNT_BASED
 
 springdoc:
   swagger-ui:

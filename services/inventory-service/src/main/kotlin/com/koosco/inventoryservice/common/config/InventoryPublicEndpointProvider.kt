@@ -12,6 +12,7 @@ class InventoryPublicEndpointProvider : PublicEndpointProvider {
 
     override fun publicEndpoints(): Array<String> = arrayOf(
         "/api/inventories/bulk",
+        "/internal/inventories/availability",
         "/internal/inventories/reserve",
         "/internal/inventories/increase",
         "/internal/inventories/decrease",
