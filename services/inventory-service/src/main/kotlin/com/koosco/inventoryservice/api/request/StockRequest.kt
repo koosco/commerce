@@ -32,10 +32,7 @@ data class ReserveStockRequest(
     val idempotencyKey: String? = null,
     val correlationId: String? = null,
 ) {
-    data class ReserveItemInfo(
-        val skuId: String,
-        val quantity: Int,
-    )
+    data class ReserveItemInfo(val skuId: String, val quantity: Int)
 
     fun toCommand(): ReserveStockCommand = ReserveStockCommand(
         orderId = orderId,

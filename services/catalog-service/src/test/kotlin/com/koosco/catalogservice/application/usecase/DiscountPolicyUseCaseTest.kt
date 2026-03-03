@@ -57,7 +57,7 @@ class DiscountPolicyUseCaseTest {
                 CreateDiscountPolicyUseCase(
                     productRepository,
                     discountPolicyRepository,
-                    integrationEventProducer
+                    integrationEventProducer,
                 )
             val product = createProduct()
             val command = CreateDiscountPolicyCommand(
@@ -95,7 +95,7 @@ class DiscountPolicyUseCaseTest {
                 CreateDiscountPolicyUseCase(
                     productRepository,
                     discountPolicyRepository,
-                    integrationEventProducer
+                    integrationEventProducer,
                 )
             val command = CreateDiscountPolicyCommand(1L, "할인", DiscountType.RATE, 10, now, now.plusDays(1))
 
@@ -111,7 +111,7 @@ class DiscountPolicyUseCaseTest {
                 CreateDiscountPolicyUseCase(
                     productRepository,
                     discountPolicyRepository,
-                    integrationEventProducer
+                    integrationEventProducer,
                 )
             val product = createProduct()
             // Add an active SKU to trigger price change event
@@ -203,7 +203,7 @@ class DiscountPolicyUseCaseTest {
                 DeleteDiscountPolicyUseCase(
                     productRepository,
                     discountPolicyRepository,
-                    integrationEventProducer
+                    integrationEventProducer,
                 )
             val product = createProduct()
             val policy = DiscountPolicy(
@@ -231,7 +231,7 @@ class DiscountPolicyUseCaseTest {
                 DeleteDiscountPolicyUseCase(
                     productRepository,
                     discountPolicyRepository,
-                    integrationEventProducer
+                    integrationEventProducer,
                 )
 
             whenever(productRepository.findOrNull(1L)).thenReturn(null)
@@ -246,7 +246,7 @@ class DiscountPolicyUseCaseTest {
                 DeleteDiscountPolicyUseCase(
                     productRepository,
                     discountPolicyRepository,
-                    integrationEventProducer
+                    integrationEventProducer,
                 )
             val product = createProduct()
 
@@ -263,7 +263,7 @@ class DiscountPolicyUseCaseTest {
                 DeleteDiscountPolicyUseCase(
                     productRepository,
                     discountPolicyRepository,
-                    integrationEventProducer
+                    integrationEventProducer,
                 )
             val product = createProduct()
             val otherProduct = Product(
@@ -296,7 +296,7 @@ class DiscountPolicyUseCaseTest {
                 DeleteDiscountPolicyUseCase(
                     productRepository,
                     discountPolicyRepository,
-                    integrationEventProducer
+                    integrationEventProducer,
                 )
             val product = createProduct()
             val sku = com.koosco.catalogservice.domain.entity.ProductSku(

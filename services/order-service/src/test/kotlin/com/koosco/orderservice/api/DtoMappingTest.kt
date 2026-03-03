@@ -1,5 +1,18 @@
 package com.koosco.orderservice.api
 
+import com.koosco.orderservice.api.request.AddCartItemRequest
+import com.koosco.orderservice.api.request.CreateOrderRequest
+import com.koosco.orderservice.api.request.OrderItemRequest
+import com.koosco.orderservice.api.request.RefundOrderItemsRequest
+import com.koosco.orderservice.api.request.ShippingAddressRequest
+import com.koosco.orderservice.api.request.UpdateCartItemRequest
+import com.koosco.orderservice.api.response.CartItemResponse
+import com.koosco.orderservice.api.response.CartResponse
+import com.koosco.orderservice.api.response.CreateOrderResponse
+import com.koosco.orderservice.api.response.OrderDetailResponse
+import com.koosco.orderservice.api.response.OrderItemResponse
+import com.koosco.orderservice.api.response.OrderResponse
+import com.koosco.orderservice.api.response.RefundOrderItemsResponse
 import com.koosco.orderservice.application.command.MarkOrderConfirmedCommand
 import com.koosco.orderservice.application.command.MarkOrderPaymentPendingCommand
 import com.koosco.orderservice.application.result.CartItemResult
@@ -35,7 +48,13 @@ class DtoMappingTest {
                 ),
                 discountAmount = 1000L,
                 shippingFee = 3000L,
-                shippingAddress = ShippingAddressRequest("홍길동", "010-1234-5678", "12345", "서울", "101호"),
+                shippingAddress = ShippingAddressRequest(
+                    "홍길동",
+                    "010-1234-5678",
+                    "12345",
+                    "서울",
+                    "101호",
+                ),
             )
 
             val command = request.toCommand(1L)

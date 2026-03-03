@@ -223,7 +223,7 @@ class SnapUseCaseTest {
             val useCase = ToggleSnapLikeUseCase(
                 snapRepository,
                 snapLikeRepository,
-                catalogIdempotencyRepository
+                catalogIdempotencyRepository,
             )
             val snap = createSnap()
 
@@ -242,7 +242,7 @@ class SnapUseCaseTest {
             val useCase = ToggleSnapLikeUseCase(
                 snapRepository,
                 snapLikeRepository,
-                catalogIdempotencyRepository
+                catalogIdempotencyRepository,
             )
             val snap = createSnap()
             snap.likeCount = 1
@@ -262,7 +262,7 @@ class SnapUseCaseTest {
             val useCase = ToggleSnapLikeUseCase(
                 snapRepository,
                 snapLikeRepository,
-                catalogIdempotencyRepository
+                catalogIdempotencyRepository,
             )
 
             whenever(snapRepository.findByIdOrNull(1L)).thenReturn(null)
@@ -276,7 +276,7 @@ class SnapUseCaseTest {
             val useCase = ToggleSnapLikeUseCase(
                 snapRepository,
                 snapLikeRepository,
-                catalogIdempotencyRepository
+                catalogIdempotencyRepository,
             )
             val existing = com.koosco.catalogservice.domain.entity.CatalogIdempotency.create("key-1", "SNAP_LIKE", 1L)
 
@@ -293,7 +293,7 @@ class SnapUseCaseTest {
             val useCase = ToggleSnapLikeUseCase(
                 snapRepository,
                 snapLikeRepository,
-                catalogIdempotencyRepository
+                catalogIdempotencyRepository,
             )
             val snap = createSnap()
 

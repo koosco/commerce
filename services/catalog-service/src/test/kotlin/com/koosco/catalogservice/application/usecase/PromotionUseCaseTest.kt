@@ -55,7 +55,7 @@ class PromotionUseCaseTest {
             val useCase = CreatePromotionUseCase(
                 promotionRepository,
                 productRepository,
-                integrationEventProducer
+                integrationEventProducer,
             )
             val product = createProduct()
             val command = CreatePromotionCommand(
@@ -91,7 +91,7 @@ class PromotionUseCaseTest {
             val useCase = CreatePromotionUseCase(
                 promotionRepository,
                 productRepository,
-                integrationEventProducer
+                integrationEventProducer,
             )
             val product = createProduct()
             val command = CreatePromotionCommand(
@@ -132,7 +132,7 @@ class PromotionUseCaseTest {
             val useCase = CreatePromotionUseCase(
                 promotionRepository,
                 productRepository,
-                integrationEventProducer
+                integrationEventProducer,
             )
             val command = CreatePromotionCommand(1L, 8000, now, now.plusDays(1), PromotionType.CAMPAIGN, 0)
 

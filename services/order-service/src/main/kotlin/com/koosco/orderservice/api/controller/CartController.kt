@@ -1,7 +1,11 @@
-package com.koosco.orderservice.api
+package com.koosco.orderservice.api.controller
 
 import com.koosco.common.core.response.ApiResponse
 import com.koosco.commonsecurity.resolver.AuthId
+import com.koosco.orderservice.api.request.AddCartItemRequest
+import com.koosco.orderservice.api.request.UpdateCartItemRequest
+import com.koosco.orderservice.api.response.CartItemResponse
+import com.koosco.orderservice.api.response.CartResponse
 import com.koosco.orderservice.application.command.ClearCartCommand
 import com.koosco.orderservice.application.command.GetCartCommand
 import com.koosco.orderservice.application.command.RemoveCartItemCommand
@@ -33,13 +37,13 @@ class CartController(
     @GetMapping
     fun getCart(@AuthId userId: Long): ApiResponse<CartResponse> {
         val result = getCartUseCase.execute(GetCartCommand(userId))
-        return ApiResponse.success(CartResponse.from(result))
+        return ApiResponse.Companion.success(CartResponse.Companion.from(result))
     }
 
     @PostMapping("/items")
     fun addItem(@AuthId userId: Long, @Valid @RequestBody request: AddCartItemRequest): ApiResponse<CartItemResponse> {
         val result = addCartItemUseCase.execute(request.toCommand(userId))
-        return ApiResponse.success(CartItemResponse.from(result))
+        return ApiResponse.Companion.success(CartItemResponse.Companion.from(result))
     }
 
     @PatchMapping("/items/{cartItemId}")
@@ -49,18 +53,18 @@ class CartController(
         @Valid @RequestBody request: UpdateCartItemRequest,
     ): ApiResponse<CartItemResponse> {
         val result = updateCartItemQuantityUseCase.execute(request.toCommand(userId, cartItemId))
-        return ApiResponse.success(CartItemResponse.from(result))
+        return ApiResponse.Companion.success(CartItemResponse.Companion.from(result))
     }
 
     @DeleteMapping("/items/{cartItemId}")
     fun removeItem(@AuthId userId: Long, @PathVariable cartItemId: Long): ApiResponse<Unit> {
         removeCartItemUseCase.execute(RemoveCartItemCommand(userId, cartItemId))
-        return ApiResponse.success(Unit)
+        return ApiResponse.Companion.success(Unit)
     }
 
     @DeleteMapping("/items")
     fun clearCart(@AuthId userId: Long): ApiResponse<Unit> {
         clearCartUseCase.execute(ClearCartCommand(userId))
-        return ApiResponse.success(Unit)
+        return ApiResponse.Companion.success(Unit)
     }
 }

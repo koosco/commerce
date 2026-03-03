@@ -55,11 +55,18 @@ Each service follows Clean Architecture: **api** → **application** → **domai
 API (request) → Application (command) → Application (result) → API (response)
 ```
 
-### Event-Driven Communication
+### Inter-Service Communication
 
-- All inter-service communication uses **Kafka** (no synchronous REST calls between services)
-- Events follow **CloudEvent** specification (see `common-core`)
-- Consumers must be **idempotent**
+서비스 간 통신은 상호작용의 성격에 따라 두 가지 전략을 사용한다:
+
+- **동기 (REST + CircuitBreaker)**: 즉시 응답이 필요한 조회/검증에 사용
+  - 반드시 Resilience4j CircuitBreaker + fallback 적용
+  - 호출 대상 장애 시에도 호출 서비스는 graceful degradation
+  - 예: 주문 시 가격/재고 확인, 상품 상세에서 리뷰 조회
+- **비동기 (Kafka)**: 상태 변경 전파, eventual consistency 허용 시 사용
+  - Events follow **CloudEvent** specification (see `common-core`)
+  - Consumers must be **idempotent**
+  - 예: 결제 완료 → 재고 확정, 상품 변경 → 검색 인덱스 동기화
 
 ### Key Dependencies
 
@@ -83,7 +90,7 @@ implementation(project(":common:common-observability"))  // 로깅, Actuator, Pr
 ## Important Constraints
 
 1. **No cross-layer dependencies**: application/domain must not depend on api/infra
-2. **No synchronous inter-service calls**: Use Kafka for all service communication
+2. **Inter-service communication**: REST (+ CircuitBreaker) for queries/validations needing immediate response. Kafka for state change propagation. Do NOT use REST for fire-and-forget state changes
 3. **Idempotent consumers**: All Kafka consumers must handle duplicate messages
 4. **No backward-incompatible changes** to common modules without coordination
 5. **Event publishing naming**: Port는 `IntegrationEventProducer`, Adapter는

@@ -1,6 +1,7 @@
-package com.koosco.orderservice.api
+package com.koosco.orderservice.api.request
 
 import com.koosco.orderservice.application.command.CreateOrderCommand
+import com.koosco.orderservice.application.command.RefundOrderItemsCommand
 import com.koosco.orderservice.domain.vo.Money
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Min
@@ -96,5 +97,16 @@ data class OrderItemRequest(
         optionSnapshot = optionSnapshot,
         quantity = quantity,
         unitPrice = Money(unitPrice),
+    )
+}
+
+data class RefundOrderItemsRequest(
+    @field:NotEmpty
+    val itemIds: List<Long>,
+) {
+    fun toCommand(orderId: Long, userId: Long): RefundOrderItemsCommand = RefundOrderItemsCommand(
+        orderId = orderId,
+        userId = userId,
+        itemIds = itemIds,
     )
 }
