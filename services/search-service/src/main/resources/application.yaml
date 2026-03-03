@@ -6,6 +6,13 @@ spring:
   web:
     resources:
       add-mappings: false
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+      group-id: search-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
   jpa:
     open-in-view: false
     hibernate:
@@ -15,10 +22,6 @@ spring:
         dialect: org.hibernate.dialect.MariaDBDialect
         show_sql: false
         format_sql: false
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
   datasource:
     url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:commerce-search}
     username: ${DB_USERNAME:admin}
@@ -31,6 +34,15 @@ spring:
       idle-timeout: 600000
       max-lifetime: 1800000
       leak-detection-threshold: 60000
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+search:
+  topic:
+    consumer:
+      product: koosco.commerce.product.default
 
 management:
   endpoints:
@@ -60,16 +72,14 @@ common:
     description: |
       # Search Service API Documentation
 
-      Product search service with FULLTEXT index support.
+      Search quality tracking service.
 
       ## Key Features
-      - **Product Search**: FULLTEXT keyword search with filters
       - **Search Click Logging**: Record search result clicks
       - **Search Metrics**: Expose mAP@k gauges for quality monitoring
 
       ## Authentication
       - JWT Bearer token required for click logging APIs
-      - Anonymous access for product search
     servers:
       - url: http://localhost:8082
         description: Local development

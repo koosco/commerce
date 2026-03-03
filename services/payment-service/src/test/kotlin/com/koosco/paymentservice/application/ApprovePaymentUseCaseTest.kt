@@ -1,10 +1,12 @@
 package com.koosco.paymentservice.application
 
 import com.koosco.common.core.event.IntegrationEventProducer
+import com.koosco.common.core.exception.BadRequestException
 import com.koosco.common.core.exception.NotFoundException
 import com.koosco.paymentservice.application.command.PaymentApproveCommand
 import com.koosco.paymentservice.application.command.PaymentApproveResult
 import com.koosco.paymentservice.application.port.IdempotencyRepository
+import com.koosco.paymentservice.application.port.OrderQueryPort
 import com.koosco.paymentservice.application.port.PaymentGateway
 import com.koosco.paymentservice.application.port.PaymentRepository
 import com.koosco.paymentservice.application.usecase.ApprovePaymentUseCase
@@ -47,11 +49,21 @@ class ApprovePaymentUseCaseTest {
     @Mock
     private lateinit var integrationEventProducer: IntegrationEventProducer
 
+    @Mock
+    private lateinit var orderQueryPort: OrderQueryPort
+
     @InjectMocks
     private lateinit var approvePaymentUseCase: ApprovePaymentUseCase
 
     private val paymentId = UUID.randomUUID()
     private val idempotencyKey = "idem-key-123"
+
+    private val validOrderInfo = OrderQueryPort.OrderInfo(
+        orderId = 1L,
+        status = "PAYMENT_PENDING",
+        totalAmount = 50000L,
+        userId = 100L,
+    )
 
     private fun createPayment(status: PaymentStatus = PaymentStatus.READY): Payment {
         val payment = Payment(paymentId = paymentId, orderId = 1L, userId = 100L, amount = Money(50000L))
@@ -82,6 +94,7 @@ class ApprovePaymentUseCaseTest {
         fun `PG 승인 성공 시 상태를 APPROVED로 변경하고 PaymentCompletedEvent를 발행한다`() {
             val payment = createPayment()
             whenever(paymentRepository.findByPaymentId(paymentId)).thenReturn(payment)
+            whenever(orderQueryPort.getOrder(1L)).thenReturn(validOrderInfo)
             whenever(paymentGateway.approve(any())).thenReturn(
                 PaymentApproveResult(success = true, pgTransactionId = "pg-txn-456"),
             )
@@ -109,6 +122,7 @@ class ApprovePaymentUseCaseTest {
         fun `PG 승인 실패 시 상태를 FAILED로 변경하고 PaymentFailedEvent를 발행한다`() {
             val payment = createPayment()
             whenever(paymentRepository.findByPaymentId(paymentId)).thenReturn(payment)
+            whenever(orderQueryPort.getOrder(1L)).thenReturn(validOrderInfo)
             whenever(paymentGateway.approve(any())).thenReturn(
                 PaymentApproveResult(
                     success = false,
@@ -134,6 +148,7 @@ class ApprovePaymentUseCaseTest {
         fun `PG 승인 실패 시 failureReason이 null이면 기본 메시지를 사용한다`() {
             val payment = createPayment()
             whenever(paymentRepository.findByPaymentId(paymentId)).thenReturn(payment)
+            whenever(orderQueryPort.getOrder(1L)).thenReturn(validOrderInfo)
             whenever(paymentGateway.approve(any())).thenReturn(
                 PaymentApproveResult(success = false, pgTransactionId = null, failureReason = null),
             )
@@ -176,6 +191,35 @@ class ApprovePaymentUseCaseTest {
 
             verify(paymentGateway, never()).approve(any())
             verify(integrationEventProducer, never()).publish(any())
+        }
+    }
+
+    @Nested
+    @DisplayName("주문 상태 검증 실패")
+    inner class OrderStatusValidation {
+
+        @Test
+        fun `주문 정보를 찾을 수 없으면 BadRequestException이 발생한다`() {
+            val payment = createPayment()
+            whenever(paymentRepository.findByPaymentId(paymentId)).thenReturn(payment)
+            whenever(orderQueryPort.getOrder(1L)).thenReturn(null)
+
+            assertThatThrownBy {
+                approvePaymentUseCase.execute(paymentId, createCommand(), idempotencyKey)
+            }.isInstanceOf(BadRequestException::class.java)
+        }
+
+        @Test
+        fun `주문 상태가 PAYMENT_PENDING이 아니면 BadRequestException이 발생한다`() {
+            val payment = createPayment()
+            whenever(paymentRepository.findByPaymentId(paymentId)).thenReturn(payment)
+            whenever(orderQueryPort.getOrder(1L)).thenReturn(
+                validOrderInfo.copy(status = "CANCELLED"),
+            )
+
+            assertThatThrownBy {
+                approvePaymentUseCase.execute(paymentId, createCommand(), idempotencyKey)
+            }.isInstanceOf(BadRequestException::class.java)
         }
     }
 }

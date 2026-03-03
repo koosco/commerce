@@ -10,5 +10,6 @@ class OrderPublicEndpointProvider : PublicEndpointProvider {
         "/actuator/info",
         "/swagger-ui/**",
         "/v3/api-docs/**",
+        "/internal/**",
     )
 }

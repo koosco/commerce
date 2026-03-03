@@ -33,5 +33,6 @@ class CatalogPublicEndpointProvider : PublicEndpointProvider {
         "/actuator/info",
         "/swagger-ui/**",
         "/v3/api-docs/**",
+        "/internal/**",
     )
 }

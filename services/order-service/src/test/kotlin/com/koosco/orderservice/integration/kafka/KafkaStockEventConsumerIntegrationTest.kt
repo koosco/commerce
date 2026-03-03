@@ -3,11 +3,9 @@ package com.koosco.orderservice.integration.kafka
 import com.koosco.common.core.event.CloudEvent
 import com.koosco.common.core.test.KafkaContainerTestBase
 import com.koosco.orderservice.application.usecase.MarkOrderConfirmedUseCase
-import com.koosco.orderservice.application.usecase.MarkOrderPaymentPendingUseCase
 import com.koosco.orderservice.contract.inbound.inventory.StockConfirmFailedEvent
 import com.koosco.orderservice.contract.inbound.inventory.StockConfirmedEvent
 import com.koosco.orderservice.contract.inbound.inventory.StockReserveFailedEvent
-import com.koosco.orderservice.contract.inbound.inventory.StockReservedEvent
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.DisplayName
@@ -27,17 +25,15 @@ import java.util.UUID
 
 /**
  * Integration tests for Kafka stock event consumers.
- * Tests that StockReservedEvent, StockReservationFailedEvent, StockConfirmedEvent, and StockConfirmFailedEvent
+ * Tests that StockConfirmedEvent and StockConfirmFailedEvent
  * are consumed and processed correctly.
+ * StockReservedEvent is no longer consumed - reservation is handled via sync REST.
  */
 @SpringBootTest
 @Testcontainers
 @ActiveProfiles("test")
 @DisplayName("KafkaStockEventConsumer Integration Tests")
 class KafkaStockEventConsumerIntegrationTest : KafkaContainerTestBase() {
-
-    @Value("\${order.topic.mappings.stock.reserved}")
-    private lateinit var stockReservedTopic: String
 
     @Value("\${order.topic.mappings.stock.reservation.failed}")
     private lateinit var stockReservationFailedTopic: String
@@ -49,99 +45,7 @@ class KafkaStockEventConsumerIntegrationTest : KafkaContainerTestBase() {
     private lateinit var stockConfirmFailedTopic: String
 
     @MockBean
-    private lateinit var markOrderPaymentPendingUseCase: MarkOrderPaymentPendingUseCase
-
-    @MockBean
     private lateinit var markOrderConfirmedUseCase: MarkOrderConfirmedUseCase
-
-    @Nested
-    @DisplayName("StockReservedEvent Consumer Tests")
-    inner class StockReservedEventConsumerTests {
-
-        @Test
-        @DisplayName("should consume StockReservedEvent and call MarkOrderPaymentPendingUseCase")
-        fun `should consume StockReservedEvent and call MarkOrderPaymentPendingUseCase`() {
-            // Given
-            val orderId = 100L
-            val correlationId = orderId.toString()
-
-            val stockReservedEvent = StockReservedEvent(
-                orderId = orderId,
-                items = listOf(
-                    StockReservedEvent.ReservedItem(skuId = "SKU-001", quantity = 2),
-                ),
-                correlationId = correlationId,
-                causationId = UUID.randomUUID().toString(),
-            )
-
-            val cloudEvent = CloudEvent.of(
-                source = "inventory-service",
-                type = "stock.reserved",
-                subject = "stock/reservation/$orderId",
-                data = stockReservedEvent,
-            )
-
-            // When
-            val kafkaTemplate = createTestKafkaTemplate()
-            kafkaTemplate.send(stockReservedTopic, orderId.toString(), cloudEvent)
-
-            // Then
-            verify(markOrderPaymentPendingUseCase, timeout(10000)).execute(any())
-        }
-
-        @Test
-        @DisplayName("should consume StockReservedEvent with multiple items")
-        fun `should consume StockReservedEvent with multiple items`() {
-            // Given
-            val orderId = 101L
-
-            val stockReservedEvent = StockReservedEvent(
-                orderId = orderId,
-                items = listOf(
-                    StockReservedEvent.ReservedItem(skuId = "SKU-A", quantity = 1),
-                    StockReservedEvent.ReservedItem(skuId = "SKU-B", quantity = 3),
-                    StockReservedEvent.ReservedItem(skuId = "SKU-C", quantity = 5),
-                ),
-                correlationId = orderId.toString(),
-                causationId = UUID.randomUUID().toString(),
-            )
-
-            val cloudEvent = CloudEvent.of(
-                source = "inventory-service",
-                type = "stock.reserved",
-                subject = "stock/reservation/$orderId",
-                data = stockReservedEvent,
-            )
-
-            // When
-            val kafkaTemplate = createTestKafkaTemplate()
-            kafkaTemplate.send(stockReservedTopic, orderId.toString(), cloudEvent)
-
-            // Then
-            verify(markOrderPaymentPendingUseCase, timeout(10000)).execute(any())
-        }
-
-        @Test
-        @DisplayName("should skip processing when StockReservedEvent data is null")
-        fun `should skip processing when StockReservedEvent data is null`() {
-            // Given
-            val cloudEvent = CloudEvent.of<StockReservedEvent?>(
-                source = "inventory-service",
-                type = "stock.reserved",
-                subject = "stock/reservation/null",
-                data = null,
-            )
-
-            // When
-            val kafkaTemplate = createTestKafkaTemplate()
-            kafkaTemplate.send(stockReservedTopic, "null-key", cloudEvent)
-
-            // Then
-            await().during(Duration.ofSeconds(2)).untilAsserted {
-                verify(markOrderPaymentPendingUseCase, never()).execute(any())
-            }
-        }
-    }
 
     @Nested
     @DisplayName("StockReservationFailedEvent Consumer Tests")

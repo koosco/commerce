@@ -67,6 +67,10 @@ jwt:
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800} # 7 days in seconds
 
 order:
+  catalog:
+    base-url: ${ORDER_CATALOG_BASE_URL:http://localhost:8084}
+    connect-timeout: ${ORDER_CATALOG_CONNECT_TIMEOUT:2s}
+    read-timeout: ${ORDER_CATALOG_READ_TIMEOUT:2s}
   inventory:
     base-url: ${ORDER_INVENTORY_BASE_URL:http://localhost:8083}
     connect-timeout: ${ORDER_INVENTORY_CONNECT_TIMEOUT:2s}
@@ -92,6 +96,17 @@ order:
         completed: koosco.commerce.payment.completed
         failed: koosco.commerce.payment.failed
         canceled: koosco.commerce.payment.canceled
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      catalogService:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowType: COUNT_BASED
+        registerHealthIndicator: true
 
 common:
   openapi:

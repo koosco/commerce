@@ -24,6 +24,7 @@ data class ProductListResponse(
     val orderCount: Long,
     val salesCount: Long,
     val likeCount: Long,
+    val available: Boolean,
 ) {
     companion object {
         fun from(productInfo: ProductInfo): ProductListResponse = ProductListResponse(
@@ -43,6 +44,7 @@ data class ProductListResponse(
             orderCount = productInfo.orderCount,
             salesCount = productInfo.salesCount,
             likeCount = productInfo.likeCount,
+            available = productInfo.available,
         )
     }
 }

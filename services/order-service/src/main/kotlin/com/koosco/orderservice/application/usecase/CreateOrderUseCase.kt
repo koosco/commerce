@@ -3,12 +3,16 @@ package com.koosco.orderservice.application.usecase
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.koosco.common.core.annotation.UseCase
 import com.koosco.common.core.event.IntegrationEventProducer
+import com.koosco.common.core.exception.BadRequestException
+import com.koosco.common.core.exception.NotFoundException
 import com.koosco.orderservice.application.command.CreateOrderCommand
+import com.koosco.orderservice.application.port.CatalogQueryPort
 import com.koosco.orderservice.application.port.InventoryReservationPort
 import com.koosco.orderservice.application.port.OrderIdempotencyRepository
 import com.koosco.orderservice.application.port.OrderRepository
 import com.koosco.orderservice.application.port.OrderStatusHistoryRepository
 import com.koosco.orderservice.application.result.CreateOrderResult
+import com.koosco.orderservice.common.error.OrderErrorCode
 import com.koosco.orderservice.contract.outbound.order.OrderPlacedEvent
 import com.koosco.orderservice.contract.outbound.order.OrderPlacedEvent.PlacedItem
 import com.koosco.orderservice.domain.entity.Order
@@ -28,6 +32,7 @@ class CreateOrderUseCase(
     private val orderRepository: OrderRepository,
     private val orderStatusHistoryRepository: OrderStatusHistoryRepository,
     private val orderIdempotencyRepository: OrderIdempotencyRepository,
+    private val catalogQueryPort: CatalogQueryPort,
     private val inventoryReservationPort: InventoryReservationPort,
     private val integrationEventProducer: IntegrationEventProducer,
     private val objectMapper: ObjectMapper,
@@ -51,6 +56,9 @@ class CreateOrderUseCase(
                 )
             }
         }
+
+        // 상품/가격 동기 검증
+        validateSkuInfos(command)
 
         val itemSpecs = command.items.map {
             OrderItemSpec(
@@ -131,22 +139,13 @@ class CreateOrderUseCase(
             ),
         )
 
-        savedOrder.markReserved()
-        orderStatusHistoryRepository.save(
-            OrderStatusHistory.create(
-                orderId = savedOrder.id!!,
-                fromStatus = OrderStatus.CREATED,
-                toStatus = OrderStatus.RESERVED,
-            ),
-        )
-
         savedOrder.markPaymentPending()
         orderRepository.save(savedOrder)
 
         orderStatusHistoryRepository.save(
             OrderStatusHistory.create(
                 orderId = savedOrder.id!!,
-                fromStatus = OrderStatus.RESERVED,
+                fromStatus = OrderStatus.CREATED,
                 toStatus = OrderStatus.PAYMENT_PENDING,
             ),
         )
@@ -185,6 +184,37 @@ class CreateOrderUseCase(
             status = savedOrder.status,
             totalAmount = savedOrder.totalAmount.amount,
         )
+    }
+
+    /**
+     * catalog-service에서 SKU 정보를 조회하여 상품 존재 여부, 활성 상태, 가격을 검증한다.
+     */
+    private fun validateSkuInfos(command: CreateOrderCommand) {
+        val skuIds = command.items.map { it.skuId }
+        val skuInfos = catalogQueryPort.getSkuInfos(skuIds)
+
+        command.items.forEach { item ->
+            val skuInfo = skuInfos[item.skuId]
+                ?: throw NotFoundException(
+                    OrderErrorCode.SKU_NOT_FOUND,
+                    "SKU를 찾을 수 없습니다. skuId=${item.skuId}",
+                )
+
+            if (skuInfo.status != "ACTIVE") {
+                throw BadRequestException(
+                    OrderErrorCode.SKU_NOT_ACTIVE,
+                    "비활성 상품은 주문할 수 없습니다. skuId=${item.skuId}, status=${skuInfo.status}",
+                )
+            }
+
+            if (skuInfo.price != item.unitPrice.amount) {
+                throw BadRequestException(
+                    OrderErrorCode.PRICE_MISMATCH,
+                    "상품 가격이 변경되었습니다. skuId=${item.skuId}, " +
+                        "요청가격=${item.unitPrice.amount}, 실제가격=${skuInfo.price}",
+                )
+            }
+        }
     }
 
     private fun generateOrderNo(): String {

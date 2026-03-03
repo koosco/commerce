@@ -4,11 +4,13 @@ import com.koosco.common.core.messaging.MessageContext
 import com.koosco.common.core.response.ApiResponse
 import com.koosco.inventoryservice.api.request.BulkAddStockRequest
 import com.koosco.inventoryservice.api.request.BulkReduceStockRequest
+import com.koosco.inventoryservice.api.request.DeductStockRequest
 import com.koosco.inventoryservice.api.request.ReserveStockRequest
 import com.koosco.inventoryservice.application.command.BulkAddStockCommand
 import com.koosco.inventoryservice.application.command.BulkReduceStockCommand
 import com.koosco.inventoryservice.application.port.InventoryApiIdempotencyRepository
 import com.koosco.inventoryservice.application.usecase.AddStockUseCase
+import com.koosco.inventoryservice.application.usecase.DeductStockUseCase
 import com.koosco.inventoryservice.application.usecase.ReduceStockUseCase
 import com.koosco.inventoryservice.application.usecase.ReserveStockUseCase
 import com.koosco.inventoryservice.domain.entity.InventoryApiIdempotency
@@ -25,6 +27,7 @@ class InventoryStockController(
     private val addStockUseCase: AddStockUseCase,
     private val reduceStockUseCase: ReduceStockUseCase,
     private val reserveStockUseCase: ReserveStockUseCase,
+    private val deductStockUseCase: DeductStockUseCase,
     private val apiIdempotencyRepository: InventoryApiIdempotencyRepository,
 ) {
 
@@ -106,6 +109,17 @@ class InventoryStockController(
             )
         }
 
+        return ApiResponse.success()
+    }
+
+    @Operation(
+        summary = "일반 구매 재고 차감",
+        description = "일반 구매 주문 시 RDB 조건부 UPDATE로 재고를 직접 차감합니다. 내부 서비스 간 호출 전용 API입니다.",
+    )
+    @PostMapping("/deduct")
+    @ResponseStatus(HttpStatus.OK)
+    fun deductStock(@RequestBody body: DeductStockRequest): ApiResponse<Any> {
+        deductStockUseCase.execute(body.toCommand())
         return ApiResponse.success()
     }
 }

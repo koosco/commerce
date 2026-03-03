@@ -143,7 +143,7 @@ class Order(
     }
 
     fun markPaymentPending() {
-        if (status != OrderStatus.RESERVED) {
+        if (status != OrderStatus.RESERVED && status != OrderStatus.CREATED) {
             throw InvalidOrderStatus()
         }
         status = OrderStatus.PAYMENT_PENDING

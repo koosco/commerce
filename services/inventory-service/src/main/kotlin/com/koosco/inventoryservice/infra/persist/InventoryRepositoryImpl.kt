@@ -29,4 +29,7 @@ class InventoryRepositoryImpl(
         jpaInventoryRepository.findAllBySkuIdInWithLock(skuIds)
 
     override fun existsBySkuId(skuId: String): Boolean = jpaInventoryRepository.existsById(skuId)
+
+    override fun deductQuantity(skuId: String, quantity: Int): Int =
+        jpaInventoryRepository.deductQuantity(skuId, quantity)
 }

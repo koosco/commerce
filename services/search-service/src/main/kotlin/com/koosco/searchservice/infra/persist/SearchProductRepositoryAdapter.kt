@@ -7,16 +7,24 @@ import com.koosco.searchservice.domain.enums.SearchSortStrategy
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.data.domain.Page
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.data.support.PageableExecutionUtils
 import org.springframework.stereotype.Repository
 
-/**
- * MariaDB FULLTEXT 인덱스를 활용한 검색 저장소 구현체.
- * Native Query를 사용하여 MATCH AGAINST 구문을 실행한다.
- */
 @Repository
-class SearchProductRepositoryAdapter(@PersistenceContext private val entityManager: EntityManager) :
-    SearchProductRepository {
+class SearchProductRepositoryAdapter(
+    private val jpaSearchProductRepository: JpaSearchProductRepository,
+    @PersistenceContext private val entityManager: EntityManager,
+) : SearchProductRepository {
+
+    override fun save(searchProduct: SearchProduct): SearchProduct = jpaSearchProductRepository.save(searchProduct)
+
+    override fun findByProductId(productId: Long): SearchProduct? =
+        jpaSearchProductRepository.findByProductId(productId)
+
+    override fun findOrNull(id: Long): SearchProduct? = jpaSearchProductRepository.findByIdOrNull(id)
+
+    override fun deleteByProductId(productId: Long) = jpaSearchProductRepository.deleteByProductId(productId)
 
     override fun search(command: SearchProductCommand): Page<SearchProduct> {
         val hasKeyword = !command.keyword.isNullOrBlank()
@@ -24,7 +32,6 @@ class SearchProductRepositoryAdapter(@PersistenceContext private val entityManag
         val countQueryBuilder = StringBuilder()
         val params = mutableMapOf<String, Any>()
 
-        // SELECT 절
         if (hasKeyword) {
             queryBuilder.append(
                 "SELECT sp.*, MATCH(sp.name, sp.description) AGAINST(:keyword IN BOOLEAN MODE) AS relevance_score ",
@@ -35,7 +42,6 @@ class SearchProductRepositoryAdapter(@PersistenceContext private val entityManag
         queryBuilder.append("FROM search_product sp ")
         countQueryBuilder.append("SELECT COUNT(*) FROM search_product sp ")
 
-        // WHERE 절
         val conditions = mutableListOf<String>()
         conditions.add("sp.status = :status")
         params["status"] = command.status
@@ -65,14 +71,10 @@ class SearchProductRepositoryAdapter(@PersistenceContext private val entityManag
         queryBuilder.append(whereClause)
         countQueryBuilder.append(whereClause)
 
-        // ORDER BY 절
         queryBuilder.append(" ")
         queryBuilder.append(buildOrderBy(command.sort, hasKeyword))
-
-        // 페이징
         queryBuilder.append(" LIMIT :limit OFFSET :offset")
 
-        // 데이터 쿼리 실행
         val query = entityManager.createNativeQuery(queryBuilder.toString(), SearchProduct::class.java)
         params.forEach { (key, value) -> query.setParameter(key, value) }
         query.setParameter("limit", command.pageable.pageSize)
@@ -81,7 +83,6 @@ class SearchProductRepositoryAdapter(@PersistenceContext private val entityManag
         @Suppress("UNCHECKED_CAST")
         val content = query.resultList as List<SearchProduct>
 
-        // 카운트 쿼리
         val countQuery = entityManager.createNativeQuery(countQueryBuilder.toString())
         params.forEach { (key, value) -> countQuery.setParameter(key, value) }
 

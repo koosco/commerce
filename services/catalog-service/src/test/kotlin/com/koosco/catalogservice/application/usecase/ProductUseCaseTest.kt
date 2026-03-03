@@ -10,6 +10,7 @@ import com.koosco.catalogservice.application.command.UpdateProductCommand
 import com.koosco.catalogservice.application.port.BrandRepository
 import com.koosco.catalogservice.application.port.CatalogIdempotencyRepository
 import com.koosco.catalogservice.application.port.CategoryRepository
+import com.koosco.catalogservice.application.port.InventoryQueryPort
 import com.koosco.catalogservice.application.port.ProductRepository
 import com.koosco.catalogservice.application.port.PromotionRepository
 import com.koosco.catalogservice.application.port.UserBehaviorEventProducer
@@ -72,6 +73,8 @@ class ProductUseCaseTest {
 
     @Mock lateinit var userBehaviorEventProducer: UserBehaviorEventProducer
 
+    @Mock lateinit var inventoryQueryPort: InventoryQueryPort
+
     private fun createProduct(id: Long = 1L, status: ProductStatus = ProductStatus.ACTIVE): Product {
         val product = Product(
             id = id,
@@ -93,6 +96,7 @@ class ProductUseCaseTest {
             val useCase = CreateProductUseCase(
                 productRepository,
                 categoryRepository,
+                brandRepository,
                 skuGenerator,
                 productValidator,
                 integrationEventProducer,
@@ -131,6 +135,7 @@ class ProductUseCaseTest {
             val useCase = CreateProductUseCase(
                 productRepository,
                 categoryRepository,
+                brandRepository,
                 skuGenerator,
                 productValidator,
                 integrationEventProducer,
@@ -156,6 +161,7 @@ class ProductUseCaseTest {
             val useCase = CreateProductUseCase(
                 productRepository,
                 categoryRepository,
+                brandRepository,
                 skuGenerator,
                 productValidator,
                 integrationEventProducer,
@@ -180,6 +186,7 @@ class ProductUseCaseTest {
             val useCase = CreateProductUseCase(
                 productRepository,
                 categoryRepository,
+                brandRepository,
                 skuGenerator,
                 productValidator,
                 integrationEventProducer,
@@ -225,6 +232,7 @@ class ProductUseCaseTest {
             val useCase = CreateProductUseCase(
                 productRepository,
                 categoryRepository,
+                brandRepository,
                 skuGenerator,
                 productValidator,
                 integrationEventProducer,
@@ -258,6 +266,7 @@ class ProductUseCaseTest {
                 brandRepository,
                 promotionRepository,
                 userBehaviorEventProducer,
+                inventoryQueryPort,
             )
             val product = createProduct()
             val brand = Brand(id = 1L, name = "브랜드A")
@@ -279,6 +288,7 @@ class ProductUseCaseTest {
                 brandRepository,
                 promotionRepository,
                 userBehaviorEventProducer,
+                inventoryQueryPort,
             )
 
             whenever(productRepository.findByIdWithOptions(1L)).thenReturn(null)
@@ -294,6 +304,7 @@ class ProductUseCaseTest {
                 brandRepository,
                 promotionRepository,
                 userBehaviorEventProducer,
+                inventoryQueryPort,
             )
             val product = createProduct()
 
@@ -313,6 +324,7 @@ class ProductUseCaseTest {
                 brandRepository,
                 promotionRepository,
                 userBehaviorEventProducer,
+                inventoryQueryPort,
             )
             val product = createProduct()
             val now = LocalDateTime.now()
@@ -340,6 +352,7 @@ class ProductUseCaseTest {
                 categoryRepository,
                 promotionRepository,
                 userBehaviorEventProducer,
+                inventoryQueryPort,
             )
             val products = listOf(createProduct())
             val page = PageImpl(products)
@@ -369,6 +382,7 @@ class ProductUseCaseTest {
                 categoryRepository,
                 promotionRepository,
                 userBehaviorEventProducer,
+                inventoryQueryPort,
             )
             val command = GetProductListCommand(
                 categoryId = 1L,
@@ -399,6 +413,7 @@ class ProductUseCaseTest {
                 categoryRepository,
                 promotionRepository,
                 userBehaviorEventProducer,
+                inventoryQueryPort,
             )
             val product = createProduct()
             val page = PageImpl(listOf(product))
@@ -430,6 +445,7 @@ class ProductUseCaseTest {
                 categoryRepository,
                 promotionRepository,
                 userBehaviorEventProducer,
+                inventoryQueryPort,
             )
             val page = PageImpl(emptyList<Product>())
             val command = GetProductListCommand(
@@ -457,20 +473,24 @@ class ProductUseCaseTest {
 
         @Test
         fun `상품을 수정한다`() {
-            val useCase = UpdateProductUseCase(productRepository)
+            val useCase =
+                UpdateProductUseCase(productRepository, categoryRepository, brandRepository, integrationEventProducer)
             val product = createProduct()
             val command = UpdateProductCommand(1L, "변경된 이름", null, null, null, null, null)
 
             whenever(productRepository.findOrNull(1L)).thenReturn(product)
+            doNothing().whenever(integrationEventProducer).publish(any())
 
             useCase.execute(command)
 
             assertThat(product.name).isEqualTo("변경된 이름")
+            verify(integrationEventProducer).publish(any())
         }
 
         @Test
         fun `상품이 없으면 예외를 던진다`() {
-            val useCase = UpdateProductUseCase(productRepository)
+            val useCase =
+                UpdateProductUseCase(productRepository, categoryRepository, brandRepository, integrationEventProducer)
             val command = UpdateProductCommand(1L, "변경", null, null, null, null, null)
 
             whenever(productRepository.findOrNull(1L)).thenReturn(null)
@@ -486,19 +506,21 @@ class ProductUseCaseTest {
 
         @Test
         fun `상품을 삭제한다`() {
-            val useCase = DeleteProductUseCase(productRepository)
+            val useCase = DeleteProductUseCase(productRepository, integrationEventProducer)
             val product = createProduct(status = ProductStatus.ACTIVE)
 
             whenever(productRepository.findOrNull(1L)).thenReturn(product)
+            doNothing().whenever(integrationEventProducer).publish(any())
 
             useCase.execute(DeleteProductCommand(1L))
 
             assertThat(product.status).isEqualTo(ProductStatus.DELETED)
+            verify(integrationEventProducer).publish(any())
         }
 
         @Test
         fun `상품이 없으면 예외를 던진다`() {
-            val useCase = DeleteProductUseCase(productRepository)
+            val useCase = DeleteProductUseCase(productRepository, integrationEventProducer)
 
             whenever(productRepository.findOrNull(1L)).thenReturn(null)
 
@@ -513,7 +535,13 @@ class ProductUseCaseTest {
 
         @Test
         fun `상태를 변경한다`() {
-            val useCase = ChangeProductStatusUseCase(productRepository, integrationEventProducer)
+            val useCase =
+                ChangeProductStatusUseCase(
+                    productRepository,
+                    categoryRepository,
+                    brandRepository,
+                    integrationEventProducer,
+                )
             val product = createProduct(status = ProductStatus.ACTIVE)
 
             whenever(productRepository.findOrNull(1L)).thenReturn(product)
@@ -526,7 +554,13 @@ class ProductUseCaseTest {
 
         @Test
         fun `상품이 없으면 예외를 던진다`() {
-            val useCase = ChangeProductStatusUseCase(productRepository, integrationEventProducer)
+            val useCase =
+                ChangeProductStatusUseCase(
+                    productRepository,
+                    categoryRepository,
+                    brandRepository,
+                    integrationEventProducer,
+                )
 
             whenever(productRepository.findOrNull(1L)).thenReturn(null)
 
@@ -536,7 +570,13 @@ class ProductUseCaseTest {
 
         @Test
         fun `잘못된 상태 전이이면 BadRequestException을 던진다`() {
-            val useCase = ChangeProductStatusUseCase(productRepository, integrationEventProducer)
+            val useCase =
+                ChangeProductStatusUseCase(
+                    productRepository,
+                    categoryRepository,
+                    brandRepository,
+                    integrationEventProducer,
+                )
             val product = createProduct(status = ProductStatus.DELETED)
 
             whenever(productRepository.findOrNull(1L)).thenReturn(product)
@@ -552,7 +592,7 @@ class ProductUseCaseTest {
 
         @Test
         fun `옵션에 맞는 SKU를 찾는다`() {
-            val useCase = FindSkuUseCase(productRepository)
+            val useCase = FindSkuUseCase(productRepository, inventoryQueryPort)
             val product = createProduct()
             val sku = ProductSku(
                 id = 1L,
@@ -565,15 +605,18 @@ class ProductUseCaseTest {
             product.skus.add(sku)
 
             whenever(productRepository.findOrNull(1L)).thenReturn(product)
+            whenever(inventoryQueryPort.getAvailability(listOf("SKU-001")))
+                .thenReturn(mapOf("SKU-001" to true))
 
             val result = useCase.execute(FindSkuCommand(1L, mapOf("색상" to "빨강")))
 
-            assertThat(result.skuId).isEqualTo("SKU-001")
+            assertThat(result.sku.skuId).isEqualTo("SKU-001")
+            assertThat(result.available).isTrue()
         }
 
         @Test
         fun `상품이 없으면 예외를 던진다`() {
-            val useCase = FindSkuUseCase(productRepository)
+            val useCase = FindSkuUseCase(productRepository, inventoryQueryPort)
 
             whenever(productRepository.findOrNull(1L)).thenReturn(null)
 
@@ -583,7 +626,7 @@ class ProductUseCaseTest {
 
         @Test
         fun `일치하는 SKU가 없으면 예외를 던진다`() {
-            val useCase = FindSkuUseCase(productRepository)
+            val useCase = FindSkuUseCase(productRepository, inventoryQueryPort)
             val product = createProduct()
 
             whenever(productRepository.findOrNull(1L)).thenReturn(product)

@@ -14,7 +14,6 @@ import com.koosco.orderservice.api.response.OrderItemResponse
 import com.koosco.orderservice.api.response.OrderResponse
 import com.koosco.orderservice.api.response.RefundOrderItemsResponse
 import com.koosco.orderservice.application.command.MarkOrderConfirmedCommand
-import com.koosco.orderservice.application.command.MarkOrderPaymentPendingCommand
 import com.koosco.orderservice.application.result.CartItemResult
 import com.koosco.orderservice.application.result.CartResult
 import com.koosco.orderservice.application.result.CreateOrderResult
@@ -221,28 +220,6 @@ class DtoMappingTest {
             assertThat(command.orderId).isEqualTo(10L)
             assertThat(command.userId).isEqualTo(1L)
             assertThat(command.itemIds).containsExactly(1L, 2L, 3L)
-        }
-    }
-
-    @Nested
-    @DisplayName("MarkOrderPaymentPendingCommand")
-    inner class MarkOrderPaymentPendingCommandTest {
-
-        @Test
-        fun `MarkedPaymentPendingItem 생성 및 프로퍼티 접근`() {
-            val item = MarkOrderPaymentPendingCommand.MarkedPaymentPendingItem(skuId = 1L, quantity = 3)
-
-            assertThat(item.skuId).isEqualTo(1L)
-            assertThat(item.quantity).isEqualTo(3)
-
-            val same = MarkOrderPaymentPendingCommand.MarkedPaymentPendingItem(skuId = 1L, quantity = 3)
-            assertThat(item).isEqualTo(same)
-            assertThat(item.hashCode()).isEqualTo(same.hashCode())
-            assertThat(item.toString()).contains("1")
-
-            val command = MarkOrderPaymentPendingCommand(orderId = 10L, items = listOf(item))
-            assertThat(command.orderId).isEqualTo(10L)
-            assertThat(command.items).hasSize(1)
         }
     }
 

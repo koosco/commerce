@@ -29,4 +29,7 @@ enum class PaymentErrorCode(override val code: String, override val message: Str
 
     // 502 Bad Gateway (외부 PG 오류)
     PAYMENT_GATEWAY_ERROR("PAYMENT-502-001", "결제 게이트웨이 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY),
+
+    // 503 Service Unavailable
+    ORDER_SERVICE_UNAVAILABLE("PAYMENT-503-001", "주문 서비스를 사용할 수 없습니다.", HttpStatus.SERVICE_UNAVAILABLE),
 }

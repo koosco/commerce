@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface JpaSearchProductRepository : JpaRepository<SearchProduct, Long> {
 
     fun findByProductId(productId: Long): SearchProduct?
+
+    fun deleteByProductId(productId: Long)
 }
