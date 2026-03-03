@@ -3,6 +3,7 @@ package com.koosco.orderservice.application.usecase
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.koosco.common.core.event.IntegrationEventProducer
+import com.koosco.common.core.exception.BadRequestException
 import com.koosco.common.core.exception.ForbiddenException
 import com.koosco.common.core.exception.NotFoundException
 import com.koosco.common.core.messaging.MessageContext
@@ -15,6 +16,7 @@ import com.koosco.orderservice.application.command.MarkOrderPaymentCreatedComman
 import com.koosco.orderservice.application.command.MarkOrderPaymentPendingCommand
 import com.koosco.orderservice.application.command.MarkRefundCompletedCommand
 import com.koosco.orderservice.application.command.RefundOrderItemsCommand
+import com.koosco.orderservice.application.port.CatalogQueryPort
 import com.koosco.orderservice.application.port.InventoryReservationPort
 import com.koosco.orderservice.application.port.OrderIdempotencyRepository
 import com.koosco.orderservice.application.port.OrderRepository
@@ -50,6 +52,7 @@ class OrderUseCaseTest {
     private val orderRepository: OrderRepository = mock()
     private val orderStatusHistoryRepository: OrderStatusHistoryRepository = mock()
     private val orderIdempotencyRepository: OrderIdempotencyRepository = mock()
+    private val catalogQueryPort: CatalogQueryPort = mock()
     private val inventoryReservationPort: InventoryReservationPort = mock()
     private val integrationEventProducer: IntegrationEventProducer = mock()
     private val userBehaviorEventProducer: UserBehaviorEventProducer = mock()
@@ -154,10 +157,26 @@ class OrderUseCaseTest {
             orderRepository,
             orderStatusHistoryRepository,
             orderIdempotencyRepository,
+            catalogQueryPort,
             inventoryReservationPort,
             integrationEventProducer,
             objectMapper,
         )
+
+        private fun stubCatalogQueryPort(skuId: Long = 1L, price: Long = 10000L, status: String = "ACTIVE") {
+            whenever(catalogQueryPort.getSkuInfos(any())).thenReturn(
+                mapOf(
+                    skuId to CatalogQueryPort.SkuInfo(
+                        skuPkId = skuId,
+                        skuId = "SKU-$skuId",
+                        productId = 1L,
+                        productName = "상품1",
+                        price = price,
+                        status = status,
+                    ),
+                ),
+            )
+        }
 
         @Test
         fun `주문 생성 성공`() {
@@ -166,6 +185,7 @@ class OrderUseCaseTest {
 
             whenever(orderIdempotencyRepository.findByUserIdAndIdempotencyKey(any(), any())).thenReturn(null)
             whenever(orderRepository.save(any())).thenReturn(savedOrder)
+            stubCatalogQueryPort()
 
             val result = useCase.execute(command)
 
@@ -205,6 +225,7 @@ class OrderUseCaseTest {
             val savedOrder = createTestOrder(id = 1L)
 
             whenever(orderRepository.save(any())).thenReturn(savedOrder)
+            stubCatalogQueryPort()
 
             val result = useCase.execute(command)
 
@@ -212,6 +233,39 @@ class OrderUseCaseTest {
             verify(orderIdempotencyRepository, never()).findByUserIdAndIdempotencyKey(any(), any())
             verify(orderIdempotencyRepository, never()).save(any())
             verify(inventoryReservationPort).reserve(any())
+        }
+
+        @Test
+        fun `존재하지 않는 SKU로 주문 시 예외가 발생한다`() {
+            val command = createCommand()
+
+            whenever(orderIdempotencyRepository.findByUserIdAndIdempotencyKey(any(), any())).thenReturn(null)
+            whenever(catalogQueryPort.getSkuInfos(any())).thenReturn(emptyMap())
+
+            assertThatThrownBy { useCase.execute(command) }
+                .isInstanceOf(NotFoundException::class.java)
+        }
+
+        @Test
+        fun `비활성 SKU로 주문 시 예외가 발생한다`() {
+            val command = createCommand()
+
+            whenever(orderIdempotencyRepository.findByUserIdAndIdempotencyKey(any(), any())).thenReturn(null)
+            stubCatalogQueryPort(status = "DEACTIVATED")
+
+            assertThatThrownBy { useCase.execute(command) }
+                .isInstanceOf(BadRequestException::class.java)
+        }
+
+        @Test
+        fun `가격이 불일치하면 예외가 발생한다`() {
+            val command = createCommand()
+
+            whenever(orderIdempotencyRepository.findByUserIdAndIdempotencyKey(any(), any())).thenReturn(null)
+            stubCatalogQueryPort(price = 99999L)
+
+            assertThatThrownBy { useCase.execute(command) }
+                .isInstanceOf(BadRequestException::class.java)
         }
     }
 

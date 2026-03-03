@@ -29,6 +29,10 @@ dependencies {
     implementation(project(":common:common-security"))
     implementation(project(":common:common-observability"))
 
+    // resilience4j
+    implementation("io.github.resilience4j:resilience4j-spring-boot3:2.2.0")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+
     // jpa
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
