@@ -5,6 +5,7 @@ enum class InventoryAction {
     RESERVE,
     CONFIRM,
     CANCEL,
+    RELEASE,
     ADD,
     DECREASE,
     DEDUCT,

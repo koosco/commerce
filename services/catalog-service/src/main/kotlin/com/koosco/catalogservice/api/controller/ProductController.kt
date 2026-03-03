@@ -138,9 +138,9 @@ class ProductController(
             productId = productId,
             options = allRequestParams,
         )
-        val sku = findSkuUseCase.execute(command)
+        val skuResult = findSkuUseCase.execute(command)
 
-        return ApiResponse.Companion.success(SkuResponse.Companion.from(sku))
+        return ApiResponse.Companion.success(SkuResponse.Companion.from(skuResult))
     }
 
     @Operation(

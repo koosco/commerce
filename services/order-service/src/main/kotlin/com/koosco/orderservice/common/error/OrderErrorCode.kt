@@ -30,6 +30,12 @@ enum class OrderErrorCode(override val code: String, override val message: Strin
     ORDER_IDEMPOTENCY_CONFLICT("ORDER-409-005", "중복된 주문 요청입니다.", HttpStatus.CONFLICT),
     STOCK_RESERVATION_FAILED("ORDER-409-006", "재고 예약에 실패했습니다.", HttpStatus.CONFLICT),
 
+    // 422 Unprocessable Entity
+    SKU_NOT_FOUND("ORDER-422-001", "존재하지 않는 상품(SKU)입니다.", HttpStatus.UNPROCESSABLE_ENTITY),
+    SKU_NOT_ACTIVE("ORDER-422-002", "비활성 상품은 주문할 수 없습니다.", HttpStatus.UNPROCESSABLE_ENTITY),
+    PRICE_MISMATCH("ORDER-422-003", "상품 가격이 변경되었습니다. 다시 확인해주세요.", HttpStatus.UNPROCESSABLE_ENTITY),
+
     // 503 Service Unavailable
     INVENTORY_SERVICE_UNAVAILABLE("ORDER-503-001", "재고 서비스에 일시적으로 접근할 수 없습니다.", HttpStatus.SERVICE_UNAVAILABLE),
+    CATALOG_SERVICE_UNAVAILABLE("ORDER-503-002", "상품 서비스에 일시적으로 접근할 수 없습니다.", HttpStatus.SERVICE_UNAVAILABLE),
 }

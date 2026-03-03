@@ -53,16 +53,13 @@ class OrderTest {
                 order.markPaymentCreated()
             }
             OrderStatus.PAYMENT_PENDING -> {
-                order.markReserved()
                 order.markPaymentPending()
             }
             OrderStatus.PAID -> {
-                order.markReserved()
                 order.markPaymentPending()
                 order.markPaid(amount.total)
             }
             OrderStatus.CONFIRMED -> {
-                order.markReserved()
                 order.markPaymentPending()
                 order.markPaid(amount.total)
                 order.confirmStock()
@@ -164,8 +161,17 @@ class OrderTest {
     }
 
     @Nested
-    @DisplayName("markPaymentPending - RESERVED -> PAYMENT_PENDING")
+    @DisplayName("markPaymentPending - CREATED/RESERVED -> PAYMENT_PENDING")
     inner class MarkPaymentPending {
+
+        @Test
+        fun `CREATED 상태에서 PAYMENT_PENDING으로 전이한다`() {
+            val order = createOrder(OrderStatus.CREATED)
+
+            order.markPaymentPending()
+
+            assertThat(order.status).isEqualTo(OrderStatus.PAYMENT_PENDING)
+        }
 
         @Test
         fun `RESERVED 상태에서 PAYMENT_PENDING으로 전이한다`() {
@@ -177,8 +183,8 @@ class OrderTest {
         }
 
         @Test
-        fun `CREATED 상태에서 markPaymentPending 호출 시 예외가 발생한다`() {
-            val order = createOrder(OrderStatus.CREATED)
+        fun `PAID 상태에서 markPaymentPending 호출 시 예외가 발생한다`() {
+            val order = createOrder(OrderStatus.PAID)
 
             assertThatThrownBy { order.markPaymentPending() }
                 .isInstanceOf(InvalidOrderStatus::class.java)
@@ -323,7 +329,6 @@ class OrderTest {
                 amount = amount,
                 shippingAddressSnapshot = "{}",
             )
-            order.markReserved()
             order.markPaymentPending()
             order.markPaid(amount.total)
             return order
@@ -399,7 +404,6 @@ class OrderTest {
                 amount = amount,
                 shippingAddressSnapshot = "{}",
             )
-            order.markReserved()
             order.markPaymentPending()
             order.markPaid(amount.total)
 

@@ -30,8 +30,8 @@ import java.util.UUID
 /**
  * Integration tests for Kafka order event consumers.
  *
- * Tests that the consumers correctly process OrderPlacedEvent,
- * OrderConfirmedEvent, and OrderCancelledEvent from Kafka topics.
+ * Tests that the consumers correctly process OrderConfirmedEvent and OrderCancelledEvent from Kafka topics.
+ * OrderPlacedEvent is consumed for logging only - reservation is handled via sync REST.
  */
 @SpringBootTest
 @Testcontainers
@@ -68,8 +68,8 @@ class KafkaOrderEventConsumerIntegrationTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `should consume OrderPlacedEvent and call reserve stock use case`() {
-        // Given
+    fun `should consume OrderPlacedEvent and log without calling reserve`() {
+        // Given - reservation is handled via sync REST, consumer only logs
         val orderId = 1001L
         val correlationId = UUID.randomUUID().toString()
         val causationId = UUID.randomUUID().toString()
@@ -96,10 +96,9 @@ class KafkaOrderEventConsumerIntegrationTest : IntegrationTestBase() {
         // When
         kafkaTemplate.send(orderPlacedTopic, orderId.toString(), cloudEvent).get()
 
-        // Then
-        await().atMost(Duration.ofSeconds(15)).untilAsserted {
-            verify(inventoryStockStore, atLeastOnce()).reserve(any(), any())
-        }
+        // Then - reserve should NOT be called, event is consumed for logging only
+        Thread.sleep(3000)
+        verify(inventoryStockStore, org.mockito.kotlin.never()).reserve(any(), any())
     }
 
     @Test
@@ -192,8 +191,8 @@ class KafkaOrderEventConsumerIntegrationTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `should process multiple OrderPlacedEvents with different order ids`() {
-        // Given
+    fun `should consume multiple OrderPlacedEvents without calling reserve`() {
+        // Given - reservation is handled via sync REST, consumer only logs
         val events = (1..3).map { index ->
             val orderId = 2000L + index
             val orderPlacedEvent = OrderPlacedEvent(
@@ -219,10 +218,9 @@ class KafkaOrderEventConsumerIntegrationTest : IntegrationTestBase() {
             kafkaTemplate.send(orderPlacedTopic, key, event).get()
         }
 
-        // Then
-        await().atMost(Duration.ofSeconds(20)).untilAsserted {
-            verify(inventoryStockStore, org.mockito.kotlin.atLeast(3)).reserve(any(), any())
-        }
+        // Then - reserve should NOT be called
+        Thread.sleep(3000)
+        verify(inventoryStockStore, org.mockito.kotlin.never()).reserve(any(), any())
     }
 
     @Test
@@ -286,9 +284,8 @@ class KafkaOrderEventConsumerIntegrationTest : IntegrationTestBase() {
         // When
         kafkaTemplate.send(orderPlacedTopic, orderId.toString(), cloudEvent).get()
 
-        // Then
-        await().atMost(Duration.ofSeconds(15)).untilAsserted {
-            verify(inventoryStockStore, atLeastOnce()).reserve(any(), any())
-        }
+        // Then - reserve should NOT be called, event consumed for logging only
+        Thread.sleep(3000)
+        verify(inventoryStockStore, org.mockito.kotlin.never()).reserve(any(), any())
     }
 }

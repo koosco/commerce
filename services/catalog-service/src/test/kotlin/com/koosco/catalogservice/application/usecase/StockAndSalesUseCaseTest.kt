@@ -5,7 +5,6 @@ import com.koosco.catalogservice.application.port.ProductLikeRepository
 import com.koosco.catalogservice.application.port.ProductRepository
 import com.koosco.catalogservice.application.usecase.product.ToggleProductLikeUseCase
 import com.koosco.catalogservice.application.usecase.product.UpdateProductSalesCountUseCase
-import com.koosco.catalogservice.application.usecase.product.UpdateProductStockStatusUseCase
 import com.koosco.catalogservice.domain.entity.CatalogIdempotency
 import com.koosco.catalogservice.domain.entity.Product
 import com.koosco.catalogservice.domain.entity.ProductLike
@@ -54,101 +53,6 @@ class StockAndSalesUseCaseTest {
             ),
         )
         return product
-    }
-
-    @Nested
-    @DisplayName("UpdateProductStockStatusUseCase는")
-    inner class UpdateProductStockStatusUseCaseTest {
-
-        @Test
-        fun `재고 소진 시 OUT_OF_STOCK으로 변경한다`() {
-            val useCase = UpdateProductStockStatusUseCase(productRepository)
-            val product = createProduct(ProductStatus.ACTIVE)
-
-            whenever(productRepository.findBySkuId("SKU-001")).thenReturn(product)
-
-            useCase.markOutOfStock("SKU-001")
-
-            assertThat(product.status).isEqualTo(ProductStatus.OUT_OF_STOCK)
-        }
-
-        @Test
-        fun `이미 OUT_OF_STOCK이면 무시한다`() {
-            val useCase = UpdateProductStockStatusUseCase(productRepository)
-            val product = createProduct(ProductStatus.OUT_OF_STOCK)
-
-            whenever(productRepository.findBySkuId("SKU-001")).thenReturn(product)
-
-            useCase.markOutOfStock("SKU-001")
-
-            assertThat(product.status).isEqualTo(ProductStatus.OUT_OF_STOCK)
-        }
-
-        @Test
-        fun `상품이 없으면 무시한다`() {
-            val useCase = UpdateProductStockStatusUseCase(productRepository)
-
-            whenever(productRepository.findBySkuId("SKU-001")).thenReturn(null)
-
-            useCase.markOutOfStock("SKU-001") // 예외 없이 통과
-        }
-
-        @Test
-        fun `전이 불가능한 상태이면 무시한다`() {
-            val useCase = UpdateProductStockStatusUseCase(productRepository)
-            val product = createProduct(ProductStatus.DELETED)
-
-            whenever(productRepository.findBySkuId("SKU-001")).thenReturn(product)
-
-            useCase.markOutOfStock("SKU-001")
-
-            assertThat(product.status).isEqualTo(ProductStatus.DELETED)
-        }
-
-        @Test
-        fun `재고 복구 시 ACTIVE로 변경한다`() {
-            val useCase = UpdateProductStockStatusUseCase(productRepository)
-            val product = createProduct(ProductStatus.OUT_OF_STOCK)
-
-            whenever(productRepository.findBySkuId("SKU-001")).thenReturn(product)
-
-            useCase.markActive("SKU-001")
-
-            assertThat(product.status).isEqualTo(ProductStatus.ACTIVE)
-        }
-
-        @Test
-        fun `이미 ACTIVE이면 무시한다`() {
-            val useCase = UpdateProductStockStatusUseCase(productRepository)
-            val product = createProduct(ProductStatus.ACTIVE)
-
-            whenever(productRepository.findBySkuId("SKU-001")).thenReturn(product)
-
-            useCase.markActive("SKU-001")
-
-            assertThat(product.status).isEqualTo(ProductStatus.ACTIVE)
-        }
-
-        @Test
-        fun `markActive에서 상품이 없으면 무시한다`() {
-            val useCase = UpdateProductStockStatusUseCase(productRepository)
-
-            whenever(productRepository.findBySkuId("SKU-001")).thenReturn(null)
-
-            useCase.markActive("SKU-001") // 예외 없이 통과
-        }
-
-        @Test
-        fun `markActive에서 전이 불가능한 상태이면 무시한다`() {
-            val useCase = UpdateProductStockStatusUseCase(productRepository)
-            val product = createProduct(ProductStatus.DELETED)
-
-            whenever(productRepository.findBySkuId("SKU-001")).thenReturn(product)
-
-            useCase.markActive("SKU-001")
-
-            assertThat(product.status).isEqualTo(ProductStatus.DELETED)
-        }
     }
 
     @Nested
