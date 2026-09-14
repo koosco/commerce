@@ -95,7 +95,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: commerce.koomango.com
+    - host: commerce.koosco.co.kr
       http:
         paths:
           # ==========================================

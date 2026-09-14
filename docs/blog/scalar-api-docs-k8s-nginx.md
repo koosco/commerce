@@ -179,7 +179,7 @@ Scalar는 CDN에서 제공하는 JavaScript 한 줄로 API 문서 UI를 렌더�
                 url: url,
                 darkMode: true,
                 servers: [
-                    { url: 'https://commerce.koomango.com', description: 'Production' }
+                    { url: 'https://commerce.koosco.co.kr', description: 'Production' }
                 ]
             });
         }
@@ -259,7 +259,7 @@ spec:
 ```yaml
 spec:
   rules:
-    - host: commerce.koomango.com
+    - host: commerce.koosco.co.kr
       http:
         paths:
           # API Documentation - Scalar UI
@@ -295,7 +295,7 @@ kubectl apply -f infra/k8s/ingress.yaml
 
 ## 결과
 
-이제 `https://commerce.koomango.com/docs/`에 접속하면 Scalar UI 기반의 통합 API 문서 페이지가 표시됩니다. 우측 상단의 드롭다운으로 서비스를 전환할 수 있고, "Try it out" 기능으로 실제 API를 호출할 수 있습니다.
+이제 `https://commerce.koosco.co.kr/docs/`에 접속하면 Scalar UI 기반의 통합 API 문서 페이지가 표시됩니다. 우측 상단의 드롭다운으로 서비스를 전환할 수 있고, "Try it out" 기능으로 실제 API를 호출할 수 있습니다.
 
 구현 결과를 정리하면 다음과 같습니다.
 

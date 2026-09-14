@@ -145,7 +145,7 @@ data:
                     url: url,
                     darkMode: true,
                     servers: [
-                        { url: 'https://commerce.koomango.com', description: 'Production' }
+                        { url: 'https://commerce.koosco.co.kr', description: 'Production' }
                     ]
                 });
             }
